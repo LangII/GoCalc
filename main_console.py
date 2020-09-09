@@ -1,11 +1,11 @@
 
 """
-GoThink/main.py
+GoCalc/main_console.py
 """
 
 """
 TO-DOS:
-- 
+-
 """
 
 from board import Board
@@ -81,7 +81,7 @@ def main():
 
     # print(black_bot.getAngularProxInflGrid())
 
-    print(black_bot.getWholeBoardRawInfluenceGrid(_to_print=True))
+    print(black_bot.getWholeBoardRawInfluenceGrid(to_print=True))
 
     # print("abs_life =", black_bot.groupHasAbsLife([7, 2]))
 
