@@ -5,7 +5,7 @@ GoThink/main.py
 
 """
 TO-DOS:
-- Give project a repo.
+- 
 """
 
 from board import Board
