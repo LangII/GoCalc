@@ -1,6 +1,6 @@
 
 """
-GoThink/board.py
+GoCalc/board.py
 """
 
 from copy import deepcopy
@@ -43,33 +43,33 @@ class Board:
 
 
 
-    def convertInitGridSize(self, _grid_size):
-        if isinstance(_grid_size, int):  return [_grid_size, _grid_size]
-        else:  return _grid_size
+    def convertInitGridSize(self, grid_size):
+        if isinstance(grid_size, int):  return [grid_size, grid_size]
+        else:  return grid_size
 
 
 
-    def getNewGrid(self, _grid_size):
+    def getNewGrid(self, grid_size):
         """ self.grid (list of lists) containing either Stone instances or None. """
-        grid_ = []
-        for _ in range(_grid_size[0]):
-            grid_ += [[ None for _ in range(_grid_size[1]) ]]
-        return grid_
+        grid = []
+        for _ in range(grid_size[0]):
+            grid += [[ None for _ in range(grid_size[1]) ]]
+        return grid
 
 
 
     def getPrintGrid(self):
         """ self.print_grid (list of lists parallel to self.grid) containing string characters
         representing the black/white stones or no stones. """
-        print_grid_ = []
+        print_grid = []
         for row in self.grid:
             print_row = []
             for stone in row:
                 if not stone:  print_char = self.NO_STONE_CHAR
                 else:  print_char = stone.print_char
                 print_row += [ print_char ]
-            print_grid_ += [ print_row ]
-        return print_grid_
+            print_grid += [ print_row ]
+        return print_grid
 
 
 
@@ -84,23 +84,23 @@ class Board:
                                                                                 ###   GAMEPLAY   ###
                                                                                 ####################
 
-    def updatePlayer(self, _player):
+    def updatePlayer(self, player):
         """ Called from Player to update Board's internal reference to Player. """
-        if _player.color == 'black':  self.players['black'] = _player
-        else:  self.players['white'] = _player
+        if player.color == 'black':  self.players['black'] = player
+        else:  self.players['white'] = player
 
 
 
-    def getMoveLegality(self, _player, _pos):
+    def getMoveLegality(self, player, pos):
         """ The primary purpose of getMoveLegality() is to handle the not too common scenario Where
         a move that is played would be considered illegal, if not for the fact that the move
         performs a capture in the process. """
-        # Setup hypothetical temporary board with _player Stone and Group played on _pos.
+        # Setup hypothetical temporary board with player Stone and Group played on pos.
         temp_board = deepcopy(self)
-        temp_stone = Stone(temp_board, _player.color, _pos)
-        temp_board.grid[_pos[0]][_pos[1]] = temp_stone
+        temp_stone = Stone(temp_board, player.color, pos)
+        temp_board.grid[pos[0]][pos[1]] = temp_stone
         temp_board.updateAllBoardData()
-        temp_group = temp_board.getGroupByPos(_pos)
+        temp_group = temp_board.getGroupByPos(pos)
         # If new played stone's group has no liberties then check liberties of neighboring groups.
         if temp_group.liberty_count <= 0:
             # Check each neighbor pos.
@@ -121,14 +121,14 @@ class Board:
 
 
 
-    def playerMakesMove(self, _player, _pos, _is_capturing=False):
-        stone = Stone(self, _player.color, _pos)
-        self.grid[_pos[0]][_pos[1]] = stone
-        if _is_capturing:  stone.is_capturing = True
+    def playerMakesMove(self, player, pos, is_capturing=False):
+        stone = Stone(self, player.color, pos)
+        self.grid[pos[0]][pos[1]] = stone
+        if is_capturing:  stone.is_capturing = True
         self.updateAllBoardData()
         self.handleCapturedGroups()
         self.updateAllBoardData()
-        if _is_capturing:  stone.is_capturing = False
+        if is_capturing:  stone.is_capturing = False
 
 
 
@@ -142,13 +142,13 @@ class Board:
 
 
     def getStones(self):
-        stones_ = {'black': [], 'white': []}
+        stones = {'black': [], 'white': []}
         for row in self.grid:
             for stone in row:
                 if stone:
-                    if stone.color == 'black':  stones_['black'] += [ stone ]
-                    elif stone.color == 'white':  stones_['white'] += [ stone ]
-        return stones_
+                    if stone.color == 'black':  stones['black'] += [ stone ]
+                    elif stone.color == 'white':  stones['white'] += [ stone ]
+        return stones
 
 
 
@@ -158,16 +158,16 @@ class Board:
 
 
 
-    def getStoneByPos(self, _pos):
-        return self.grid[_pos[0]][_pos[1]]
+    def getStoneByPos(self, pos):
+        return self.grid[pos[0]][pos[1]]
 
 
 
-    def getGroupByPos(self, _pos):
+    def getGroupByPos(self, pos):
         for color in self.groups:
             for group in self.groups[color]:
                 for stone in group.stones:
-                    if stone.pos == _pos:  return group
+                    if stone.pos == pos:  return group
         return 'pos has no stone / no group'
 
 
@@ -176,7 +176,7 @@ class Board:
         """ Groups are generated from stones[color].  Each stone in stones[color] is compared to all
         other stones in stones[color], if the stones being compared are neighbors
         (stone.isNeighbor()) then the stones being compared are assigned a group. """
-        groups_ = {'black': [], 'white': []}
+        groups = {'black': [], 'white': []}
         for color, stones in self.stones.items():
             if not stones:  continue
             # (group_labels) is a parallel array to (stones).  Where each value is an
@@ -209,15 +209,15 @@ class Board:
                                 if ga == group_labels[i]:  new_labels += [ group_labels[other_i] ]
                                 else:  new_labels += [ ga ]
                             group_labels = new_labels
-            # (groups_) are created now that (group_labels) has been generated.
+            # (groups) are created now that (group_labels) has been generated.
             for master_label in range(max(group_labels)):
                 master_label += 1
                 stones_to_group = []
                 for i, label in enumerate(group_labels):
                     if master_label == label:
                         stones_to_group += [ self.stones[color][i] ]
-                groups_[color] += [ Group(self, stones_to_group) ]
-        return groups_
+                groups[color] += [ Group(self, stones_to_group) ]
+        return groups
 
 
 
@@ -232,7 +232,7 @@ class Board:
                                                                                   ###   PRINTS   ###
                                                                                   ##################
 
-    def prettyPrint(self, _coord=True, _captures=True):
+    def prettyPrint(self, coord=True, captures=True):
         # Get all_printed_mid_rows.
         printed_mid_rows = []
         for row in self.print_grid:  printed_mid_rows += [ self.getPrintMidRow(row) ]
@@ -248,10 +248,10 @@ class Board:
             printed_topbot_sep_row,
             printed_topbot_row
         ])
-        if _coord:  all_printed = self.addCoordToPrettyPrint(all_printed)
+        if coord:  all_printed = self.addCoordToPrettyPrint(all_printed)
         print('\n' + all_printed)
         # Print captures.
-        if _captures:
+        if captures:
             format_largs = [
                 str(self.players['black'].captures).rjust(2, '0'),
                 str(self.players['white'].captures).rjust(2, '0')
@@ -279,59 +279,59 @@ class Board:
 
 
 
-    def getPrintMidRow(self, _print_row):
+    def getPrintMidRow(self, print_row):
         lines = '--' if self.print_with_lines else '  '
         outer_chars = self.BOARDER_VERT_CHAR + '  {}  ' + self.BOARDER_VERT_CHAR
-        inner_chars = lines.join(_print_row)
+        inner_chars = lines.join(print_row)
         return outer_chars.format(inner_chars)
 
 
 
-    def addCoordToPrettyPrint(self, _printed):
+    def addCoordToPrettyPrint(self, printed):
         print_with_coord = []
-        print_with_coord += [ self.getTopCoordsPrintLine(_printed) ]
-        print_with_coord += self.getListOfPrintLinesWithLeftCoord(_printed)
+        print_with_coord += [ self.getTopCoordsPrintLine(printed) ]
+        print_with_coord += self.getListOfPrintLinesWithLeftCoord(printed)
         print_with_coord = '\n'.join(print_with_coord)
         return print_with_coord
 
 
 
-    def getTopCoordsPrintLine(self, _printed):
+    def getTopCoordsPrintLine(self, printed):
         # Format top_coord_ to list of chars of only ' ' and NO_STONE_CHAR.
-        top_coords_ = deepcopy(_printed.split('\n')[2])
-        top_coords_ = top_coords_.replace(self.BOARDER_VERT_CHAR, ' ')
+        top_coords = deepcopy(printed.split('\n')[2])
+        top_coords = top_coords.replace(self.BOARDER_VERT_CHAR, ' ')
         for each in [self.BLACK_STONE_CHAR, self.WHITE_STONE_CHAR]:
-            top_coords_ = top_coords_.replace(each, self.NO_STONE_CHAR)
-        top_coords_ = list(top_coords_)
+            top_coords = top_coords.replace(each, self.NO_STONE_CHAR)
+        top_coords = list(top_coords)
         # Replace NO_STONE_CHAR with coord.
         for coord in range(self.size[1]):
-            top_coords_[top_coords_.index(self.NO_STONE_CHAR)] = str(coord)
+            top_coords[top_coords.index(self.NO_STONE_CHAR)] = str(coord)
         # Reallign white space for double digit coords.
         to_delete = []
-        for i in range(len(top_coords_)):
-            if len(top_coords_[i]) == 2:  to_delete += [ i - 1 ]
+        for i in range(len(top_coords)):
+            if len(top_coords[i]) == 2:  to_delete += [ i - 1 ]
         to_delete.reverse()
-        for deleting in to_delete:  del top_coords_[deleting]
+        for deleting in to_delete:  del top_coords[deleting]
         # Reformat coord line and add to output.
-        top_coords_ = '   ' + ''.join(top_coords_)
-        return top_coords_
+        top_coords = '   ' + ''.join(top_coords)
+        return top_coords
 
 
 
-    def getListOfPrintLinesWithLeftCoord(self, _printed):
-        lines_with_coord_ = []
+    def getListOfPrintLinesWithLeftCoord(self, printed):
+        lines_with_coord = []
         # Designate which lines need coords.
         coord_indexes = range(2, (self.size[0] + 1) * 2, 2)
         added_coord = 0
-        for i, print_line in enumerate(_printed.split('\n')):
+        for i, print_line in enumerate(printed.split('\n')):
             # Add coords to lines that need them.
             if i in coord_indexes:
                 print_line = '{} '.format(str(added_coord).rjust(2)) + print_line
                 added_coord += 1
             else:
                 print_line = '   ' + print_line
-            lines_with_coord_ += [ print_line ]
-        return lines_with_coord_
+            lines_with_coord += [ print_line ]
+        return lines_with_coord
 
 
 

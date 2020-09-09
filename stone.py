@@ -1,17 +1,17 @@
 
 """
-GoThink/stone.py
+GoCalc/stone.py
 """
 
 ####################################################################################################
 
 class Stone:
 
-    def __init__(self, _board, _color, _pos):
-        self.board = _board
-        self.color = _color
+    def __init__(self, board, color, pos):
+        self.board = board
+        self.color = color
         self.print_char = self.getPrintChar()
-        self.pos = _pos
+        self.pos = pos
         self.neighbor_pos = {}
         self.neighbors = {}
         self.is_capturing = False
@@ -84,27 +84,27 @@ class Stone:
 
 
 
-    def isNeighbor(self, _stone):
-        if _stone in self.neighbors.values():  return True
+    def isNeighbor(self, stone):
+        if stone in self.neighbors.values():  return True
         else:  return False
 
 
 
-    def getNeighborPosInOrder(self, _order=['N', 'E', 'S', 'W']):
-        neighbor_pos_in_order_ = []
-        for dir in _order:
+    def getNeighborPosInOrder(self, order=['N', 'E', 'S', 'W']):
+        neighbor_pos_in_order = []
+        for dir in order:
             if not dir in self.neighbor_pos:  continue
             neighbor_pos_in_order_ += [[ dir, self.neighbor_pos[dir] ]]
-        return neighbor_pos_in_order_
+        return neighbor_pos_in_order
 
 
 
-    def getNeighborsInOrder(self, _order=['N', 'E', 'S', 'W']):
-        neighbors_in_order_ = []
+    def getNeighborsInOrder(self, order=['N', 'E', 'S', 'W']):
+        neighbors_in_order = []
         for dir in _order:
             if not dir in self.neighbors:  continue
-            neighbors_in_order_ += [[ dir, self.neighbors[dir] ]]
-        return neighbors_in_order_
+            neighbors_in_order += [[ dir, self.neighbors[dir] ]]
+        return neighbors_in_order
 
 
 

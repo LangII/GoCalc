@@ -1,15 +1,15 @@
 
 """
-GoThink/group.py
+GoCalc/group.py
 """
 
 ####################################################################################################
 
 class Group:
 
-    def __init__(self, _board, _stones=[]):
-        self.board = _board
-        self.stones = _stones
+    def __init__(self, board, stones=[]):
+        self.board = board
+        self.stones = stones
         self.stones_count = len(self.stones)
         self.color = self.stones[0].color
         self.neighbor_pos = self.getNeighborPos()
@@ -25,24 +25,21 @@ class Group:
 
 
     def getNeighborPos(self):
-        all_neighbor_pos_ = []
+        all_neighbor_pos = []
         all_stone_pos = [ stone.pos for stone in self.stones ]
-        # print("\n{} getNeighborPos()".format(self))
         for stone in self.stones:
             for neighbor_pos in stone.neighbor_pos.values():
-                # print("neighbor_pos =", neighbor_pos)
-                if not neighbor_pos in all_neighbor_pos_ + all_stone_pos:
-                    all_neighbor_pos_ += [ neighbor_pos ]
-        # print("all_neighbor_pos_ =", all_neighbor_pos_)
-        return all_neighbor_pos_
+                if not neighbor_pos in all_neighbor_pos + all_stone_pos:
+                    all_neighbor_pos += [ neighbor_pos ]
+        return all_neighbor_pos
 
 
 
     def getLibertyPos(self):
-        liberty_pos_ = []
+        liberty_pos = []
         for pos in self.neighbor_pos:
-            if not self.board.grid[pos[0]][pos[1]]:  liberty_pos_ += [ pos ]
-        return liberty_pos_
+            if not self.board.grid[pos[0]][pos[1]]:  liberty_pos += [ pos ]
+        return liberty_pos
 
 
 

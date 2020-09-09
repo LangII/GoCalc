@@ -1,21 +1,21 @@
 
 """
-GoThink/player.py
+GoCalc/player.py
 """
 
 ####################################################################################################
 
 class Player:
 
-    def __init__(self, _board, _color):
+    def __init__(self, board, color):
         # Primary attributes:
-        self.colorCheck(_color)
-        self.board = _board
-        self.color = _color
+        self.colorCheck(color)
+        self.board = board
+        self.color = color
         self.print_char = self.getPrintChar()
         self.captures = 0
-        self.stones = self.board.stones[_color]
-        self.groups = self.board.groups[_color]
+        self.stones = self.board.stones[self.color]
+        self.groups = self.board.groups[self.color]
         # Update boards referencing of self.
         self.board.updatePlayer(self)
 
@@ -26,10 +26,10 @@ class Player:
 
 
 
-    def colorCheck(self, _color):
-        if not _color in ['black', 'white']:
+    def colorCheck(self, color):
+        if color not in ['black', 'white']:
             exit_print = "Player.__init__() _color arg only accepts 'black' or 'white' not '%s'."
-            print(exit_print % _color)
+            print(exit_print % color)
             exit()
 
 
@@ -39,25 +39,24 @@ class Player:
 
 
 
-    def makeMove(self, _pos, _check_legality=True):
+    def makeMove(self, pos, check_legality=True):
         """ May possibly need to move this logic to board.playerMakesMove()...  The only reason I'm
         suggesting that is out of consistency:  I'm trying to keep as much of the logic in board as
         possible. """
         # Check legality is an argument mainly for testing purposes; not for live gameplay.
-        if _check_legality:
-            legality = self.board.getMoveLegality(self, _pos)
+        if check_legality:
+            legality = self.board.getMoveLegality(self, pos)
             is_legal_move, is_capturing = legality['is_legal_move'], legality['is_capturing']
             if not is_legal_move:
                 # Will need to update this line with interface update.
-                # exit("ILLEGAL MOVE of {} at {}".format(self.color, _pos))
                 return 'illegal'
             else:
                 # _is_capturing is necessary because of the not too often situation of a move with
                 # no liberties, but is legal because it's capturing.
-                if is_capturing:  self.board.playerMakesMove(self, _pos, _is_capturing=True)
-                else:  self.board.playerMakesMove(self, _pos)
+                if is_capturing:  self.board.playerMakesMove(self, pos, _is_capturing=True)
+                else:  self.board.playerMakesMove(self, pos)
         else:
-            self.board.playerMakesMove(self, _pos)
+            self.board.playerMakesMove(self, pos)
 
 
 
