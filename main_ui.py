@@ -1,4 +1,5 @@
 
+
 """
 GoCalc/main_ui.py
 """
@@ -37,12 +38,20 @@ class GoCalcApp(App):
 class MainWindow(BoxLayout):
     def __init__(self):
         super().__init__()
+
+        Window.bind(mouse_pos=self.on_mouse_pos)
+
         self.orientation = 'horizontal'
 
-        # self.add_widget(Button(text='button1', size_hint=(0.8, None)))
-        # self.add_widget(Button(text='button 1', size=[500, 500], size_hint=[None, None]))
-        self.add_widget(BoardDisplay())
+        self.board_display = BoardDisplay()
+
+        self.add_widget(self.board_display)
         self.add_widget(Button(text='button 2'))
+
+    def on_mouse_pos(self, window, pos):
+        for button in self.board_display.pos_buttons:
+            if button.collide_point(*pos):
+                print(button.text)
 
 class BoardDisplay(GridLayout):
     def __init__(self):
@@ -50,11 +59,18 @@ class BoardDisplay(GridLayout):
         self.cols = BOARD_SIZE
         self.size = [500, 500]
         self.size_hint = [None, None]
+        self.pos_buttons = self.getPosButtons()
+        self.addPosButtons()
 
-        for each in range(BOARD_SIZE ** 2):
-            self.add_widget(Button(
-                text='pos{}'.format(str(each + 1).rjust(2, '0')), size_hint=[1/9, 1/9]
-            ))
+    def getPosButtons(self):
+        pos_buttons = []
+        for each in range(self.cols ** 2):
+            button = Button(text='pos{}'.format(str(each + 1).rjust(2, '0')), size_hint=[1/9, 1/9])
+            pos_buttons += [ button ]
+        return pos_buttons
+
+    def addPosButtons(self):
+        for pos_button in self.pos_buttons:  self.add_widget(pos_button)
 
 
 
