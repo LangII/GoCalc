@@ -1,0 +1,13 @@
+
+***   DECISION MAKING   ***
+
+decision calculator object (2020-09-18):
+- An object with many observation model object inputs and a single final decision output.
+
+decision observation model object (2020-09-18):
+- An object with a single live input, many settings inputs, and a single results output.
+- settings inputs:
+	- data type:  (incremental, categorical, bool) Determines how variable results are calculated
+	and how variable inlfuences the decision of the calculator.
+	- influence:  How important this observation is to it's parent calculator.
+	-
