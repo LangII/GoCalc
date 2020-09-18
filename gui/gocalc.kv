@@ -1,0 +1,127 @@
+
+
+
+#:set MID_GREY_SCALE 0.5
+#:set MID_GREY [*[MID_GREY_SCALE] * 3, 1]
+#:set DARK_PRISMARINE [0.0, 0.3, 0.3, 1]
+#:set PRISMARINE [0.0, 0.4, 0.4, 1]
+
+#:set GLOBAL_SPACING 3
+
+
+
+<MainWindow>:
+    spacing:  GLOBAL_SPACING
+    orientation:  'vertical'
+
+    canvas.before:
+        Color:
+            rgba:  PRISMARINE
+        Rectangle:
+            pos:  self.pos
+            size:  self.size
+
+
+
+<MainMenuBar>:
+    button_width:  80
+    size_hint:  [1.0, None]
+    padding:  [GLOBAL_SPACING, GLOBAL_SPACING, GLOBAL_SPACING, 0]
+    height:  20
+    orientation:  'horizontal'
+    spacing:  GLOBAL_SPACING
+
+    canvas.before:
+        Color:
+            rgba:  PRISMARINE
+        Rectangle:
+            pos:  self.pos
+            size:  self.size
+
+
+
+<ContentScroll>:
+    layout:  layout
+    do_scroll_x:  True
+    do_scroll_y:  False
+
+    BoxLayout:
+        id:  layout
+        width:  self.minimum_width
+        size_hint:  [None, 1.0]
+        padding:  [GLOBAL_SPACING, 0, GLOBAL_SPACING, GLOBAL_SPACING]
+        spacing:  GLOBAL_SPACING
+        orientation:  'horizontal'
+
+
+
+<ContentPanel>:
+    title_label:  title_label
+    close_button:  close_button
+    width:  200
+    size_hint:  [None, 1.0]
+    spacing:  GLOBAL_SPACING
+    padding:  [GLOBAL_SPACING, GLOBAL_SPACING, GLOBAL_SPACING, GLOBAL_SPACING]
+    orientation:  'vertical'
+
+    canvas.before:
+        Color:
+            rgba:  DARK_PRISMARINE
+        Rectangle:
+            pos:  self.pos
+            size:  self.size
+
+    BoxLayout:
+        height:  20
+        size_hint:  [1.0, None]
+        padding:  [2, 0, 0, 0]
+
+        Label:
+            id:  title_label
+            size_hint:  [0.9, 1.0]
+            text_size:  self.size
+            halign:  'left'
+            text:  self.parent.parent.panel_title_text
+
+        Button:
+            id:  close_button
+            size:  [20, 20]
+            size_hint:  [None, None]
+            text:  'X'
+
+
+
+<ContentPanelMenuBar>:
+    button_size_hint:  [0.25, 1.0]
+    height:  20
+    size_hint:  [1.0, None]
+    spacing:  GLOBAL_SPACING
+    orientation:  'horizontal'
+
+
+
+<PlayBoardDisplay>:
+    height:  self.width
+    size_hint:  [1.0, None]
+    cols:  self.board_size
+
+
+
+# <BoardPosButton>:
+    # size_hint:  [1 / self.board_size, 1 / self.board_size]
+    # background_color:  [0, 0, 0, 0]
+    # background_down:  [1, 1, 1, 1]
+    # CornerPos:
+    # canvas.before:
+    #     Color:
+    #         rgba:  [1, 1, 0, 1] if self.state == 'normal' else [1, 0, 0, 1]
+    #     Rectangle:
+    #         pos:  self.pos
+    #         size:  self.size
+
+# <CornerPos@canvas.before>:
+#     Color:
+#         rgba:  [1, 1, 0, 1] if self.state == 'normal' else [1, 0, 0, 1]
+#     Rectangle:
+#         pos:  self.pos
+#         size:  self.size
