@@ -28,7 +28,7 @@ from kivy.uix.button import Button, ButtonBehavior
 from kivy.uix.label import Label
 
 from kivy.properties import NumericProperty, StringProperty, ListProperty, ObjectProperty
-from kivy.graphics import Color, Rectangle
+from kivy.graphics import Color, Rectangle, Line
 
 ####################################################################################################
 
@@ -141,7 +141,7 @@ class ContentPanelMenuBar(BoxLayout):
 class PlayBoardPanel(ContentPanel):
 
     def __init__(self):
-        super(PlayBoardPanel, self).__init__(title='Play Board')
+        super(PlayBoardPanel, self).__init__(title='Game Board')
         self.title_label.halign = 'center'
         self.close_button.parent.remove_widget(self.close_button)
 
@@ -160,70 +160,56 @@ class PlayBoardDisplay(GridLayout):
         self.pos_buttons = self.getPosButtons()
         self.addPosButtons()
 
-
+        self.button_toggle = 0
 
     def getPosButtons(self):
         pos_buttons = []
         for each in range(self.cols ** 2):
-            button = BoardPosButton()
+            button = GameBoardPosButton()
             pos_buttons += [ button ]
         return pos_buttons
 
     def addPosButtons(self):
         for pos_button in self.pos_buttons:
             self.add_widget(pos_button)
-            # pos_button.size_hint = [1 / self.board_size, 1 / self.board_size]
-            # pos_button.initCanvasDraw()
-            # with pos_button.canvas:
-            #     Color(.8, .8, .1, 1)
-            #     Rectangle(
-            #         # size_hint=[1 / self.board_size, 1 / self.board_size],
-            #         # size_hint=[None, None],
-            #         # pos_hint=[None, None],
-            #         size=pos_button.size,
-            #         pos=pos_button.pos
-            #     )
-            # pos_button.bind(pos=pos_button.update_rectangle, size=pos_button.update_rectangle)
 
 
 
-class BoardPosButton(ButtonBehavior, Widget):
-# class BoardPosButton(Widget):
-# class BoardPosButton(Button):
+class GameBoardPosButton(ButtonBehavior, Widget):
     board_size = NumericProperty(BOARD_SIZE)
-    # button_color = ListProperty([1, 1, 0, 1])
-    # pos_state = StringProperty()
-    # stone_state = StringProperty()
     def __init__(self):
-        super(BoardPosButton, self).__init__()
+        super(GameBoardPosButton, self).__init__()
         self.size_hint = [1 / self.board_size, 1 / self.board_size]
-        self.cur_color = [1, 1, 0, 1]
 
-    # def initCanvasDraw(self):
-        # self.canvas.clear()
-        with self.canvas:
-            # this = [1, 1, 0, 1] if self.state == 'normal' else [1, 1, 0, 1]
-            self.color = Color(1, 1, 0, 1)
-            self.rect = Rectangle(
-                # size_hint=[1 / self.board_size, 1 / self.board_size],
-                # size_hint=[None, None],
-                # pos_hint=[None, None],
-                size=self.size,
-                pos=self.pos
-            )
+        with self.canvas.before:
+            self.rect_color = Color(.8, .6, 0, 1)
+            self.rect = Rectangle()
+            self.hor_line_color = Color(0, 0, 0, 1)
+            self.hor_line = Line()
+            self.hor_line_color = Color(0, 0, 0, 1)
+            self.vert_line = Line()
         self.bind(pos=self.updateRect, size=self.updateRect)
-
-        # print(type(self.parent))
-        print(self.pos)
 
     def updateRect(self, instance, value):
         self.rect.pos = self.pos
         self.rect.size = self.size
+        self.hor_line.points = [
+            self.rect.pos[0],
+            self.rect.pos[1] + (self.rect.size[1] / 2),
+            self.rect.pos[0] + self.rect.size[0],
+            self.rect.pos[1] + (self.rect.size[1] / 2)
+        ]
+        self.vert_line.points = [
+            self.rect.pos[0] + (self.rect.size[0] / 2),
+            self.rect.pos[1],
+            self.rect.pos[0] + (self.rect.size[0] / 2),
+            self.rect.pos[1] + self.rect.size[1],
+        ]
 
     def on_release(self):
-        self.color.rgba = [1, 0, 0, 1]
-        print("button pressed")
-
+        if self.parent.button_toggle == 0:  self.parent.button_toggle = 1
+        elif self.parent.button_toggle == 1:  self.parent.button_toggle = 0
+        self.rect_color.rgba = [0, 0, 0, 1] if self.parent.button_toggle else [1, 1, 1, 1]
 
 
 
