@@ -3,10 +3,12 @@
 GoCalc/board.py
 """
 
-from copy import deepcopy
+from copy import deepcopy, copy
 
 from stone import Stone
 from group import Group
+
+from kivy.app import App
 
 ####################################################################################################
 
@@ -14,6 +16,7 @@ class Board:
 
     def __init__(self, _settings):
         # Main settings attributes:
+        self.app = App.get_running_app()
         self.BOARD_SIZE = _settings['BOARD_SIZE']
         self.NO_STONE_CHAR = _settings['NO_STONE_CHAR']
         self.BLACK_STONE_CHAR = _settings['BLACK_STONE_CHAR']
@@ -96,7 +99,10 @@ class Board:
         a move that is played would be considered illegal, if not for the fact that the move
         performs a capture in the process. """
         # Setup hypothetical temporary board with player Stone and Group played on pos.
-        temp_board = deepcopy(self)
+
+        # temp_board = deepcopy(self)
+        temp_board = copy(self)
+
         temp_stone = Stone(temp_board, player.color, pos)
         temp_board.grid[pos[0]][pos[1]] = temp_stone
         temp_board.updateAllBoardData()
@@ -121,7 +127,14 @@ class Board:
 
 
 
+
+
+    """ !!! HERE !!! """
+
     def playerMakesMove(self, player, pos, is_capturing=False):
+
+        self.app.main.content_scroll.game_board_panel.display.updateButton(player.color, pos)
+
         stone = Stone(self, player.color, pos)
         self.grid[pos[0]][pos[1]] = stone
         if is_capturing:  stone.is_capturing = True
@@ -129,6 +142,10 @@ class Board:
         self.handleCapturedGroups()
         self.updateAllBoardData()
         if is_capturing:  stone.is_capturing = False
+
+    """ !!! HERE !!! """
+
+
 
 
 

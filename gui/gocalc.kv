@@ -1,14 +1,16 @@
 
-
-
 #:set MID_GREY_SCALE 0.5
 #:set MID_GREY [*[MID_GREY_SCALE] * 3, 1]
 #:set DARK_PRISMARINE [0.0, 0.3, 0.3, 1]
 #:set PRISMARINE [0.0, 0.4, 0.4, 1]
 
+#:set BOARD_COLOR [0.85, 0.6, 0, 1]
+#:set BLACK_STONE_COLOR [0, 0, 0, 1]
+#:set WHITE_STONE_COLOR [1, 1, 1, 1]
+
 #:set GLOBAL_SPACING 3
 
-
+#################################################################################   \/ MAIN \/   ###
 
 <MainWindow>:
     spacing:  GLOBAL_SPACING
@@ -53,7 +55,7 @@
         spacing:  GLOBAL_SPACING
         orientation:  'horizontal'
 
-
+################################################################    \/ CONTENT BASE WIDGETS \/   ###
 
 <ContentPanel>:
     title_label:  title_label
@@ -100,28 +102,58 @@
 
 
 
-<PlayBoardDisplay>:
+<PanelSettings>:
+    layout:  layout
+    do_scroll_x:  False
+    do_scroll_y:  True
+
+    BoxLayout:
+        id:  layout
+        height:  self.minimum_height
+        size_hint:  [1.0, None]
+        spacing:  10
+        orientation:  'vertical'
+
+        canvas.before:
+            Color:
+                rgba:  DARK_PRISMARINE
+            Rectangle:
+                pos:  self.pos
+                size:  self.size
+
+
+
+<PanelSettingsInput>:
+    orientation:  'vertical'
+    size_hint:  [1.0, None]
+    height:  sum([ c.height + self.spacing for c in self.children ]) - self.spacing
+    spacing:  GLOBAL_SPACING
+    Label:
+        height:  20
+        size_hint:  [1.0, None]
+        halign:  'left'
+        font_size:  13
+        text_size:  self.size
+        text:  self.parent.title_label_text
+        padding_x:  GLOBAL_SPACING
+        canvas.before:
+            Color:
+                rgba:  PRISMARINE
+            Rectangle:
+                pos:  self.pos
+                size:  self.size
+
+#######################################################################   \/ CONTENT PANELS \/   ###
+
+<GameBoardDisplay>:
+    width:  self.height
     height:  self.width
     size_hint:  [1.0, None]
     cols:  self.board_size
 
 
 
-# <BoardPosButton>:
-    # size_hint:  [1 / self.board_size, 1 / self.board_size]
-    # background_color:  [0, 0, 0, 0]
-    # background_down:  [1, 1, 1, 1]
-    # CornerPos:
-    # canvas.before:
-    #     Color:
-    #         rgba:  [1, 1, 0, 1] if self.state == 'normal' else [1, 0, 0, 1]
-    #     Rectangle:
-    #         pos:  self.pos
-    #         size:  self.size
-
-# <CornerPos@canvas.before>:
-#     Color:
-#         rgba:  [1, 1, 0, 1] if self.state == 'normal' else [1, 0, 0, 1]
-#     Rectangle:
-#         pos:  self.pos
-#         size:  self.size
+<GameBoardButton>:
+    board_color:  BOARD_COLOR
+    black_stone_color:  BLACK_STONE_COLOR
+    white_stone_color:  WHITE_STONE_COLOR
