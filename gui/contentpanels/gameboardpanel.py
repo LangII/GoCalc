@@ -6,12 +6,12 @@ from kivy.uix.widget import Widget
 from kivy.uix.label import Label
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.togglebutton import ToggleButton
-# from kivy.uix.splitter import Splitter
+from kivy.uix.splitter import Splitter
 
-from kivy.properties import NumericProperty, ListProperty
+from kivy.properties import NumericProperty, ListProperty, ObjectProperty
 from kivy.graphics import Color, Rectangle, Line, Ellipse
 
-from contentbasewidgets import ContentPanel, PanelSettings, PanelSettingsInput
+from gui.contentbasewidgets import ContentPanel, PanelSettings, PanelSettingsInput
 
 ####################################################################################################
 
@@ -28,12 +28,13 @@ class GameBoardPanel (ContentPanel):
         # Remove close_button because GameBoardPanel is a mandatory panel.
         self.close_button.parent.remove_widget(self.close_button)
 
-        """ TEMPORARY!!!  Need to incorporate Splitter for resizing. """
         self.display = GameBoardDisplay()
         self.add_widget(self.display)
 
-        """ PLACEHOLDER for display resizing """
-        self.add_widget(Label(text='- - -', size_hint=[1.0, None], height=10))
+        self.display.bind(height=self.displayHeightChange)
+
+        self.captures_display = CapturesDisplay()
+        self.add_widget(self.captures_display)
 
         self.settings = PanelSettings()
         self.add_widget(self.settings)
@@ -50,48 +51,47 @@ class GameBoardPanel (ContentPanel):
         for i in range(20):
             self.settings.layout.add_widget(Label(text=f'{i + 1}', size_hint=[1.0, None], height=20))
 
-        """ DIRTY!!! """
-        # self.add_widget(Label(text='temp panel text', size_hint=[1.0, 1.0]))
+    def displayHeightChange(self, obj, value):
+        self.width = value
 
 
 
-class GameBoardDisplay (GridLayout):
+class GameBoardDisplay (Splitter):
     board_size = NumericProperty()
     grid_star_size = NumericProperty()
+    layout = ObjectProperty()
 
     def __init__(self):
         super(GameBoardDisplay, self).__init__()
         self.app = App.get_running_app()
+        self.sizable_from='bottom'
         self.board_size = self.app.data['board_size']
         self.grid_star_size = self.app.data['grid_star_size']
         self.buttons = self.getAndAddButtons()
 
-
-
     def getAndAddButtons(self):
-        buttons = []
-        for i in range(self.cols ** 2):
+        buttons = {}
+        for i in range(self.layout.cols ** 2):
             coord = [i // self.board_size, i % self.board_size]
             button = GameBoardButton(coord)
-            self.add_widget(button)
-            buttons += [ button ]
+            self.layout.add_widget(button)
+            buttons[str(coord)] = button
         return buttons
 
 
 
-
-
-    """ !!! HERE !!! """
-
+####################################################################################################
+####################################################################################################
+####################################################################################################
+    """ Called from /GoCalc/logic/. """
     def updateButton(self, color, coord):
-        for button in self.buttons:
-            if button.coord == coord:
-                if color == 'white':  button.stone_color.rgba = button.white_stone_color
-                elif color == 'black':  button.stone_color.rgba = button.black_stone_color
-
-    """ !!! HERE !!! """
-
-
+        button = self.buttons[str(coord)]
+        if color == 'white':  button.stone_color.rgba = button.white_stone_color
+        elif color == 'black':  button.stone_color.rgba = button.black_stone_color
+        elif color == 'no_stone':  button.stone_color.rgba = button.no_stone_color
+####################################################################################################
+####################################################################################################
+####################################################################################################
 
 
 
@@ -184,15 +184,21 @@ class GameBoardButton (ButtonBehavior, Widget):
 
 
 
+####################################################################################################
+
+
 
 
     """ !!! HERE !!! """
 
+    """ COMMUNICATIONS WITH LOGIC """
     def on_release(self):
 
-        self.playOnBoard()
+        legality = self.playOnLogicBoard()
+        if legality == 'illegal':  return
 
-        next_stone_input = self.parent.parent.next_stone_input
+        next_stone_input = self.parent.parent.parent.next_stone_input
+        # next_stone_input = self.app.data['game_board']['next_stone']
 
         # if self.app.data['game_board']['next_stone'] == 'black':
         #     self.stone_color.rgba = self.black_stone_color
@@ -213,14 +219,47 @@ class GameBoardButton (ButtonBehavior, Widget):
                 next_stone_input.black_button.state = 'down'
                 next_stone_input.white_button.state = 'normal'
 
-    def playOnBoard(self):
-        self.app.data['player'][self.app.data['game_board']['next_stone']].makeMove(self.coord)
-        # self.app.data['board'].updateGuiBoard()
         self.app.data['board'].prettyPrint()
 
-    """ !!! HERE !!! """
 
 
+####################################################################################################
+####################################################################################################
+####################################################################################################
+    """ call to /GoCalc/logic/ """
+    def playOnLogicBoard(self):
+        player = self.app.data['player']
+        next_stone_color = self.app.data['game_board']['next_stone']
+        grid = self.app.data['board'].grid
+        pos_on_grid = self.app.data['board'].grid[self.coord[0]][self.coord[1]]
+
+        # Handle edit option to remove stone from board.
+        if pos_on_grid and (next_stone_color == pos_on_grid.color):
+            self.app.data['board'].grid[self.coord[0]][self.coord[1]].remove()
+            self.app.data['board'].updateAllBoardData()
+            return
+
+        move_legality = player[next_stone_color].makeMove(self.coord)
+        return move_legality
+####################################################################################################
+####################################################################################################
+####################################################################################################
+
+
+
+class CapturesDisplay (Label):
+    def __init__(self):
+        super(CapturesDisplay, self).__init__()
+        self.app = App.get_running_app()
+        self.black_captures = 0
+        self.white_captures = 0
+        self.template = "black:  {}        white:  {}"
+        self.text = self.template.format(self.black_captures, self.white_captures)
+
+    def updateText(self):
+        self.black_captures = self.app.data['player']['black'].captures
+        self.white_captures = self.app.data['player']['white'].captures
+        self.text = self.template.format(self.black_captures, self.white_captures)
 
 
 

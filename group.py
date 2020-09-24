@@ -3,6 +3,8 @@
 GoCalc/group.py
 """
 
+from kivy.app import App
+
 ####################################################################################################
 
 class Group:
@@ -46,6 +48,13 @@ class Group:
     def captured(self):
         opponent_color = 'black' if self.color == 'white' else 'white'
         self.board.players[opponent_color].captures += self.stones_count
+
+
+        app = App.get_running_app()
+        if app:  app.main.content_scroll.game_board_panel.captures_display.updateText()
+
+
+
         for stone in self.stones:  stone.remove()
         del self
 

@@ -24,7 +24,7 @@ class Stone:
 
 
     def getPrintChar(self):
-        return self.board.WHITE_STONE_CHAR if self.color == 'white' else self.board.BLACK_STONE_CHAR
+        return self.board.white_stone_char if self.color == 'white' else self.board.black_stone_char
 
 
 
@@ -113,7 +113,11 @@ class Stone:
                                                                                    #################
 
     def remove(self):
+
+        self.board.guiUpdateBoardDisplayButton('no_stone', self.pos)
+
         self.board.grid[self.pos[0]][self.pos[1]] = None
+        del self
 
 
 

@@ -32,38 +32,10 @@ from kivy.uix.button import Button
 
 from kivy.properties import NumericProperty, ObjectProperty
 
-from contentpanels.gameboardpanel import GameBoardPanel
-
-####################################################################################################
-
-
-
-
-
-""" !!! HERE !!! """
+from gui.contentpanels.gameboardpanel import GameBoardPanel
 
 from board import Board
 from player import Player
-
-board_settings = {
-    # Primary settings:
-    'BOARD_SIZE': 9,
-    # Console print characters:
-    'NO_STONE_CHAR':        '-',
-    'BLACK_STONE_CHAR':     '#',
-    'WHITE_STONE_CHAR':     'O',
-    'STAR_CHAR':            '*',
-    'KO_CHAR':              'K',
-    'BOARDER_CORNER_CHAR':  '+',
-    'BOARDER_HOR_CHAR':     '-',
-    'BOARDER_VERT_CHAR':    '|',
-}
-
-""" !!! HERE !!! """
-
-
-
-
 
 ####################################################################################################
 
@@ -86,9 +58,9 @@ APP_DATA = {
         'edit_mode': 'alternate', # 'alternate' or 'consecutive'
         'next_stone': 'black', # 'black' or 'white'
     },
-    'panel_select': {
-        'location': 'scroll' # Always remains as last index of ContentScroll.
-    }
+    # 'panel_select': {
+    #     'location': 'scroll' # Always remains as last index of ContentScroll.
+    # }
 }
 
 ####################################################################################################
@@ -104,7 +76,7 @@ def main():
 ####################################################################################################
 
 def doBeforeStart():
-    Builder.load_file('gocalc.kv')
+    Builder.load_file('gui/gocalc.kv')
     Window.size = APP_DATA['default_window_size']
 
 ####################################################################################################
@@ -120,7 +92,7 @@ class MainWindow (BoxLayout):
         self.content_scroll = ContentScroll()
         self.add_widget(self.content_scroll)
 
-        app.data['board'] = Board(board_settings)
+        app.data['board'] = Board(app.data['board_size'])
         app.data['player']['black'] = Player(app.data['board'], 'black')
         app.data['player']['white'] = Player(app.data['board'], 'white')
 
@@ -132,7 +104,6 @@ class GoCalcApp (App):
     def __init__(self, **kwargs):
         super(GoCalcApp, self).__init__(**kwargs)
         self.main = MainWindow(self)
-
 
     def build(self):  return self.main
 

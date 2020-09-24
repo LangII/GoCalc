@@ -35,7 +35,7 @@ class Player:
 
 
     def getPrintChar(self):
-        return self.board.WHITE_STONE_CHAR if self.color == 'white' else self.board.BLACK_STONE_CHAR
+        return self.board.white_stone_char if self.color == 'white' else self.board.black_stone_char
 
 
 
@@ -53,7 +53,7 @@ class Player:
             else:
                 # _is_capturing is necessary because of the not too often situation of a move with
                 # no liberties, but is legal because it's capturing.
-                if is_capturing:  self.board.playerMakesMove(self, pos, _is_capturing=True)
+                if is_capturing:  self.board.playerMakesMove(self, pos, is_capturing=True)
                 else:  self.board.playerMakesMove(self, pos)
         else:
             self.board.playerMakesMove(self, pos)

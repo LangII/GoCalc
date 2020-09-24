@@ -16,20 +16,6 @@ from bot import Bot
 
 settings = {}
 
-board_settings = {
-    # Primary settings:
-    'BOARD_SIZE': 9,
-    # Console print characters:
-    'NO_STONE_CHAR':        '-',
-    'BLACK_STONE_CHAR':     '#',
-    'WHITE_STONE_CHAR':     'O',
-    'STAR_CHAR':            '*',
-    'KO_CHAR':              'K',
-    'BOARDER_CORNER_CHAR':  '+',
-    'BOARDER_HOR_CHAR':     '-',
-    'BOARDER_VERT_CHAR':    '|',
-}
-
 bot_settings = {
     # How much the influence is biased in favor of the positions closer to the stone.
     'RAW_INFLUENCE_BIAS': 5,
@@ -56,32 +42,37 @@ def main():
     #
     # exit()
 
-    board = Board(board_settings)
+    board = Board()
 
     black_bot = Bot(board, 'black', bot_settings)
     white = Player(board, 'white')
 
     # for pos in [
-    #     [5, 0], [5, 1], [6, 2], [6, 3], [6, 4], [6, 5], [7, 5], [8, 5], [5, 2], [5, 3]
+    #     [5, 0], [5, 1], [6, 2], [6, 4], [6, 5], [7, 5], [8, 5], [5, 3]
     # ]:  white.makeMove(pos)
-    # for pos in [
-    #     [7, 2], [7, 3], [7, 4], [8, 2], [8, 4], [6, 1], [6, 2], [6, 0]
-    # ]:  black_bot.makeMove(pos)
+    for pos in [
+        # [7, 2], [7, 3], [7, 4], [8, 2], [8, 4],
+        # [6, 2], [6, 0],
+        [3, 4], [2, 5], [3, 6], [4, 6],
+        [5, 5], [4, 4]
+        # [3, 5]
+    ]:  black_bot.makeMove(pos)
 
-    # for pos in [
-    #     [2, 2], [3, 4], [6, 2], [5, 2], [7, 6], [6, 7], [8, 7]
-    # ]:  white.makeMove(pos)
+    for pos in [
+        # [2, 2], [3, 4], [6, 2], [5, 2], [7, 6], [6, 7], [8, 7]
+        [3, 5], [4, 5], [1, 1]
+    ]:  white.makeMove(pos)
     # for pos in [
     #     [6, 5], [4, 6], [5, 3], [2, 6], [4, 3], [6, 6], [5, 7]
     # ]:  black_bot.makeMove(pos)
 
-    black_bot.makeMove([4, 4])
+    # black_bot.makeMove([4, 4])
 
     board.prettyPrint()
 
     # print(black_bot.getAngularProxInflGrid())
 
-    print(black_bot.getWholeBoardRawInfluenceGrid(to_print=True))
+    # print(black_bot.getWholeBoardRawInfluenceGrid(to_print=True))
 
     # print("abs_life =", black_bot.groupHasAbsLife([7, 2]))
 

@@ -12,22 +12,35 @@ from kivy.app import App
 
 ####################################################################################################
 
+board_settings = {
+    # Primary settings:
+    'board_size': 9,
+    # Console print characters:
+    'no_stone_char':        '-',
+    'black_stone_char':     '#',
+    'white_stone_char':     'O',
+    'star_char':            '*',
+    'ko_char':              'K',
+    'boarder_corner_char':  '+',
+    'boarder_hor_char':     '-',
+    'boarder_vert_char':    '|',
+}
+
 class Board:
 
-    def __init__(self, _settings):
+    def __init__(self, board_size=0):
         # Main settings attributes:
-        self.app = App.get_running_app()
-        self.BOARD_SIZE = _settings['BOARD_SIZE']
-        self.NO_STONE_CHAR = _settings['NO_STONE_CHAR']
-        self.BLACK_STONE_CHAR = _settings['BLACK_STONE_CHAR']
-        self.WHITE_STONE_CHAR = _settings['WHITE_STONE_CHAR']
-        self.STAR_CHAR = _settings['STAR_CHAR']
-        self.KO_CHAR = _settings['KO_CHAR']
-        self.BOARDER_CORNER_CHAR = _settings['BOARDER_CORNER_CHAR']
-        self.BOARDER_HOR_CHAR = _settings['BOARDER_HOR_CHAR']
-        self.BOARDER_VERT_CHAR = _settings['BOARDER_VERT_CHAR']
+        self.board_size = board_size if board_size else board_settings['board_size']
+        self.no_stone_char = board_settings['no_stone_char']
+        self.black_stone_char = board_settings['black_stone_char']
+        self.white_stone_char = board_settings['white_stone_char']
+        self.star_char = board_settings['star_char']
+        self.ko_char = board_settings['ko_char']
+        self.boarder_corner_char = board_settings['boarder_corner_char']
+        self.boarder_hor_char = board_settings['boarder_hor_char']
+        self.boarder_vert_char = board_settings['boarder_vert_char']
         # Primary attributes:
-        self.size = self.convertInitGridSize(self.BOARD_SIZE)
+        self.size = self.convertInitGridSize(self.board_size)
         self.grid = self.getNewGrid(self.size)
         # Attributes for class containers:
         self.players = {'black': None, 'white': None}
@@ -68,7 +81,7 @@ class Board:
         for row in self.grid:
             print_row = []
             for stone in row:
-                if not stone:  print_char = self.NO_STONE_CHAR
+                if not stone:  print_char = self.no_stone_char
                 else:  print_char = stone.print_char
                 print_row += [ print_char ]
             print_grid += [ print_row ]
@@ -80,6 +93,17 @@ class Board:
         """ self.print_row_width (int) representing the length of the string that represents a
         printed grid row. """
         return len(self.getPrintMidRow(self.print_grid[0]))
+
+
+
+####################################################################################################
+                                                                                     ###   GUI   ###
+                                                                                     ###############
+
+    """ call to /GoCalc/gui/ """
+    def guiUpdateBoardDisplayButton(self, color, pos):
+        app = App.get_running_app()
+        if app:  app.main.content_scroll.game_board_panel.display.updateButton(color, pos)
 
 
 
@@ -99,10 +123,7 @@ class Board:
         a move that is played would be considered illegal, if not for the fact that the move
         performs a capture in the process. """
         # Setup hypothetical temporary board with player Stone and Group played on pos.
-
-        # temp_board = deepcopy(self)
-        temp_board = copy(self)
-
+        temp_board = deepcopy(self)
         temp_stone = Stone(temp_board, player.color, pos)
         temp_board.grid[pos[0]][pos[1]] = temp_stone
         temp_board.updateAllBoardData()
@@ -127,14 +148,7 @@ class Board:
 
 
 
-
-
-    """ !!! HERE !!! """
-
     def playerMakesMove(self, player, pos, is_capturing=False):
-
-        self.app.main.content_scroll.game_board_panel.display.updateButton(player.color, pos)
-
         stone = Stone(self, player.color, pos)
         self.grid[pos[0]][pos[1]] = stone
         if is_capturing:  stone.is_capturing = True
@@ -143,9 +157,7 @@ class Board:
         self.updateAllBoardData()
         if is_capturing:  stone.is_capturing = False
 
-    """ !!! HERE !!! """
-
-
+        self.guiUpdateBoardDisplayButton(player.color, pos)
 
 
 
@@ -202,7 +214,6 @@ class Board:
             # [1, 1, 2] = 2 groups:  1 group of 2 stones and 1 group of 1 stone
             # [1, 1, 2, 3] = 3 groups:  1 group of 2 stones, 1 group of 1 stone, and 1 group of 1 stone
             group_labels = [0] * len(stones)
-
             new_label = 1
             for i, stone in enumerate(stones):
                 # Assign new label to stone, if stone has yet to be labelled.
@@ -222,18 +233,19 @@ class Board:
                         # inner loop stone's label.
                         else:
                             new_labels = []
-                            for ga in group_labels:
-                                if ga == group_labels[i]:  new_labels += [ group_labels[other_i] ]
-                                else:  new_labels += [ ga ]
+                            for gl in group_labels:
+                                if gl == group_labels[i]:  new_labels += [ group_labels[other_i] ]
+                                else:  new_labels += [ gl ]
                             group_labels = new_labels
+
             # (groups) are created now that (group_labels) has been generated.
-            for master_label in range(max(group_labels)):
-                master_label += 1
+            for master_label in set(group_labels):
                 stones_to_group = []
                 for i, label in enumerate(group_labels):
                     if master_label == label:
                         stones_to_group += [ self.stones[color][i] ]
                 groups[color] += [ Group(self, stones_to_group) ]
+
         return groups
 
 
@@ -278,27 +290,27 @@ class Board:
 
 
     def getPrintTopBotRow(self):
-        hor_char_row = self.BOARDER_HOR_CHAR * (self.print_row_width - 2)
-        return self.BOARDER_CORNER_CHAR + hor_char_row + self.BOARDER_CORNER_CHAR
+        hor_char_row = self.boarder_hor_char * (self.print_row_width - 2)
+        return self.boarder_corner_char + hor_char_row + self.boarder_corner_char
 
 
 
     def getPrintMidSepRow(self):
         lines = '|' if self.print_with_lines else ' '
-        outer_chars = self.BOARDER_VERT_CHAR + '  {}  ' + self.BOARDER_VERT_CHAR
+        outer_chars = self.boarder_vert_char + '  {}  ' + self.boarder_vert_char
         inner_chars = '  '.join([lines] * len(self.print_grid[0]))
         return outer_chars.format(inner_chars)
 
 
 
     def getPrintTopBotSepRow(self):
-        return self.BOARDER_VERT_CHAR + (' ' * (self.print_row_width - 2)) + self.BOARDER_VERT_CHAR
+        return self.boarder_vert_char + (' ' * (self.print_row_width - 2)) + self.boarder_vert_char
 
 
 
     def getPrintMidRow(self, print_row):
         lines = '--' if self.print_with_lines else '  '
-        outer_chars = self.BOARDER_VERT_CHAR + '  {}  ' + self.BOARDER_VERT_CHAR
+        outer_chars = self.boarder_vert_char + '  {}  ' + self.boarder_vert_char
         inner_chars = lines.join(print_row)
         return outer_chars.format(inner_chars)
 
@@ -314,15 +326,15 @@ class Board:
 
 
     def getTopCoordsPrintLine(self, printed):
-        # Format top_coord_ to list of chars of only ' ' and NO_STONE_CHAR.
+        # Format top_coord_ to list of chars of only ' ' and no_stone_char.
         top_coords = deepcopy(printed.split('\n')[2])
-        top_coords = top_coords.replace(self.BOARDER_VERT_CHAR, ' ')
-        for each in [self.BLACK_STONE_CHAR, self.WHITE_STONE_CHAR]:
-            top_coords = top_coords.replace(each, self.NO_STONE_CHAR)
+        top_coords = top_coords.replace(self.boarder_vert_char, ' ')
+        for each in [self.black_stone_char, self.white_stone_char]:
+            top_coords = top_coords.replace(each, self.no_stone_char)
         top_coords = list(top_coords)
-        # Replace NO_STONE_CHAR with coord.
+        # Replace no_stone_char with coord.
         for coord in range(self.size[1]):
-            top_coords[top_coords.index(self.NO_STONE_CHAR)] = str(coord)
+            top_coords[top_coords.index(self.no_stone_char)] = str(coord)
         # Reallign white space for double digit coords.
         to_delete = []
         for i in range(len(top_coords)):
