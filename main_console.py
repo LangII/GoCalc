@@ -8,9 +8,9 @@ TO-DOS:
 -
 """
 
-from board import Board
-from player import Player
-from bot import Bot
+from logic.board import Board
+from logic.player import Player
+from logic.bot import Bot
 
 ####################################################################################################
 

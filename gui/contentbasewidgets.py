@@ -65,10 +65,3 @@ class PanelSettingsInput (BoxLayout):
     def __init__(self, title):
         super(PanelSettingsInput, self).__init__()
         self.title_label_text = title
-
-
-
-# class GroupOfToggleButtonsInput (GridLayout):
-#
-#     def __init__(self, cols=):
-#         super(GroupOfToggleButtonsInput, self).__init__()

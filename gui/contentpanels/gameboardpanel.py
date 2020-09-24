@@ -13,6 +13,8 @@ from kivy.graphics import Color, Rectangle, Line, Ellipse
 
 from gui.contentbasewidgets import ContentPanel, PanelSettings, PanelSettingsInput
 
+import messenger
+
 ####################################################################################################
 
 class GameBoardPanel (ContentPanel):
@@ -77,21 +79,6 @@ class GameBoardDisplay (Splitter):
             self.layout.add_widget(button)
             buttons[str(coord)] = button
         return buttons
-
-
-
-####################################################################################################
-####################################################################################################
-####################################################################################################
-    """ Called from /GoCalc/logic/. """
-    def updateButton(self, color, coord):
-        button = self.buttons[str(coord)]
-        if color == 'white':  button.stone_color.rgba = button.white_stone_color
-        elif color == 'black':  button.stone_color.rgba = button.black_stone_color
-        elif color == 'no_stone':  button.stone_color.rgba = button.no_stone_color
-####################################################################################################
-####################################################################################################
-####################################################################################################
 
 
 
@@ -182,28 +169,15 @@ class GameBoardButton (ButtonBehavior, Widget):
 
         return [x1, y1, x2, y2]
 
-
-
-####################################################################################################
-
-
-
-
-    """ !!! HERE !!! """
-
-    """ COMMUNICATIONS WITH LOGIC """
     def on_release(self):
+        move_legality = messenger.updateLogicBoardWithStone(self.coord)
+        if move_legality == 'illegal':  return
+        else:  self.updateNextStoneValues()
 
-        legality = self.playOnLogicBoard()
-        if legality == 'illegal':  return
+        self.app.data['board'].prettyPrint()
 
+    def updateNextStoneValues(self):
         next_stone_input = self.parent.parent.parent.next_stone_input
-        # next_stone_input = self.app.data['game_board']['next_stone']
-
-        # if self.app.data['game_board']['next_stone'] == 'black':
-        #     self.stone_color.rgba = self.black_stone_color
-        # elif self.app.data['game_board']['next_stone'] == 'white':
-        #     self.stone_color.rgba = self.white_stone_color
 
         if self.app.data['game_board']['edit_mode'] == 'alternate':
 
@@ -218,32 +192,6 @@ class GameBoardButton (ButtonBehavior, Widget):
                 next_stone_input.value = 'black'
                 next_stone_input.black_button.state = 'down'
                 next_stone_input.white_button.state = 'normal'
-
-        self.app.data['board'].prettyPrint()
-
-
-
-####################################################################################################
-####################################################################################################
-####################################################################################################
-    """ call to /GoCalc/logic/ """
-    def playOnLogicBoard(self):
-        player = self.app.data['player']
-        next_stone_color = self.app.data['game_board']['next_stone']
-        grid = self.app.data['board'].grid
-        pos_on_grid = self.app.data['board'].grid[self.coord[0]][self.coord[1]]
-
-        # Handle edit option to remove stone from board.
-        if pos_on_grid and (next_stone_color == pos_on_grid.color):
-            self.app.data['board'].grid[self.coord[0]][self.coord[1]].remove()
-            self.app.data['board'].updateAllBoardData()
-            return
-
-        move_legality = player[next_stone_color].makeMove(self.coord)
-        return move_legality
-####################################################################################################
-####################################################################################################
-####################################################################################################
 
 
 

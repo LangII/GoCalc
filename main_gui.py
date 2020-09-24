@@ -34,8 +34,8 @@ from kivy.properties import NumericProperty, ObjectProperty
 
 from gui.contentpanels.gameboardpanel import GameBoardPanel
 
-from board import Board
-from player import Player
+from logic.board import Board
+from logic.player import Player
 
 ####################################################################################################
 
