@@ -5,10 +5,12 @@ GoCalc/board.py
 
 from copy import deepcopy, copy
 
-from stone import Stone
-from group import Group
+from logic.stone import Stone
+from logic.group import Group
 
 from kivy.app import App
+
+import messenger
 
 ####################################################################################################
 
@@ -97,17 +99,6 @@ class Board:
 
 
 ####################################################################################################
-                                                                                     ###   GUI   ###
-                                                                                     ###############
-
-    """ call to /GoCalc/gui/ """
-    def guiUpdateBoardDisplayButton(self, color, pos):
-        app = App.get_running_app()
-        if app:  app.main.content_scroll.game_board_panel.display.updateButton(color, pos)
-
-
-
-####################################################################################################
                                                                                 ###   GAMEPLAY   ###
                                                                                 ####################
 
@@ -157,7 +148,7 @@ class Board:
         self.updateAllBoardData()
         if is_capturing:  stone.is_capturing = False
 
-        self.guiUpdateBoardDisplayButton(player.color, pos)
+        if App.get_running_app():  messenger.updateGuiBoardButton(player.color, pos)
 
 
 

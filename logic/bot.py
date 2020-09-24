@@ -5,9 +5,9 @@ GoCalc/bot.py
 
 from copy import deepcopy
 
-from player import Player
-from stone import Stone
-from group import Group
+from logic.player import Player
+from logic.stone import Stone
+from logic.group import Group
 
 ####################################################################################################
 

@@ -3,6 +3,10 @@
 GoCalc/stone.py
 """
 
+from kivy.app import App
+
+import messenger
+
 ####################################################################################################
 
 class Stone:
@@ -113,10 +117,8 @@ class Stone:
                                                                                    #################
 
     def remove(self):
-
-        self.board.guiUpdateBoardDisplayButton('no_stone', self.pos)
-
         self.board.grid[self.pos[0]][self.pos[1]] = None
+        if App.get_running_app():  messenger.updateGuiBoardButton('no_stone', self.pos)
         del self
 
 
