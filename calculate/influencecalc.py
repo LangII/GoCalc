@@ -92,33 +92,28 @@ def applyBiasToValue(value, bias_point, bias_value, bias_type):
     bias_less_than = bias_point < 0 and value < abs(bias_point)
     bias_greater_than = bias_point >= 0 and value >= abs(bias_point)
     if bias_less_than or bias_greater_than:
-        # Sub-routine only used to avoid repetition.
-        def calcWithBias(v, bp, bv, bt):
-            v -= bp
-            bv = 1 + bv
-            if bt in ['l', 'lin', 'linear']:  with_bias = v * bv
-            elif bt in ['e', 'exp', 'exponential']:  with_bias = v ** bv
-            with_bias += bp
-            return with_bias
-        # Calculations of diminishing bias has to be done after values are converted to positive,
-        # calculated, then re-converted back to negative.
+        # Controls for neg value bias_point (flip value about bias_point).
+        unflip_value = False
         if bias_point < 0:
-            bias_point = abs(bias_point)
+            bias_point = bias_point * -1
             value = bias_point + (bias_point - value)
-            with_bias = calcWithBias(value, bias_point, bias_value, bias_type)
-            with_bias = bias_point - (with_bias - bias_point)
-        elif bias_point >= 0:
-            # To allow for application of 0 value.
-            if value == 0:  value += 0.0000000001
-            with_bias = calcWithBias(value, bias_point, bias_value, bias_type)
+            reflip_value = True
+        # Apply bias_value.
+        value -= bias_point
+        bias_value = 1 + bias_value
+        if bias_type in ['l', 'lin', 'linear']:  with_bias = value * bias_value
+        elif bias_type in ['e', 'exp', 'exponential']:  with_bias = value ** bias_value
+        with_bias += bias_point
+        # Controls for neg value bias_point (unflip value about bias_point).
+        if unflip_value:  with_bias = bias_point - (with_bias - bias_point)
     return with_bias
 
 ####################################################################################################
 
 import matplotlib.pyplot as plt
 
-nums = [ i for i in range(11) ]
-nums_with_bias = [ applyBiasToValue(i, +5.0, +0.4, 'exp') for i in nums ]
+nums = [ (i * 1.5) + 2 for i in range(11) ]
+nums_with_bias = [ applyBiasToValue(i, -12.0, +0.2, 'exp') for i in nums ]
 
 # for i, num in enumerate(nums):
     # print(f"{num:05.02f} {nums_with_bias[i]:05.02f} {abs(num-nums_with_bias[i]):05.02f}")
