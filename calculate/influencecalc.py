@@ -59,8 +59,12 @@ def getInfluence(board):
 
 ####################################################################################################
 
+
+
 def getDistTwoPoints(pt1, pt2):
     return math.hypot(pt2[0] - pt1[0], pt2[1] - pt1[1])
+
+
 
 def getAngleTwoPoints(origin_pt, angle_pt):
     rad_angle = math.atan2(angle_pt[0] - origin_pt[0], angle_pt[1] - origin_pt[1])
@@ -68,13 +72,31 @@ def getAngleTwoPoints(origin_pt, angle_pt):
     deg360_angle = abs(180 + (180 - abs(-deg_angle)) if -deg_angle < 0 else deg_angle)
     return deg360_angle
 
-def applyScaleToValue(value, scale_from, scale_to):
-    to_scale = value - scale_from[0]
-    adjust = scale_to[1] / (scale_from[1] - scale_from[0])
-    to_scale = abs(to_scale * adjust)
-    return to_scale
 
-def applyBiasToValue(value, bias_point, bias_value, bias_type):
+
+def applyScale(values, scale_from=[], scale_to=[]):
+    """
+    value =         Value to have scale applied to.
+    scale_from =    Array with len() of 2, representing the start and end of the 'scale_from'
+                    number line.
+    scale_to =      Array with len() of 2, representing the start and end of the 'scale_to'
+                    number line.
+    """
+    # Controls for handling single value or array of values.
+    is_array = True
+    if not isinstance(values, (list, tuple, set)):  values, is_array = [values], False
+    values_to_scale = []
+    for value in values:
+        # Apply scale to value.
+        to_scale = value - scale_from[0]
+        adjust = scale_to[1] / (scale_from[1] - scale_from[0])
+        to_scale = abs(to_scale * adjust)
+        values_to_scale += [ to_scale ]
+    return values_to_scale if is_array else values_to_scale[0]
+
+
+
+def applyBias(values, bias_point=0.0, bias_value=0.0, bias_type='exp'):
     """
     value =         Value to have bias applied.
     bias_point =    Value designating whether 'value' is to have bias applied.  If 'bias_point' is
@@ -87,33 +109,43 @@ def applyBiasToValue(value, bias_point, bias_value, bias_type):
     bias_type =     Accepts 'l', 'lin', 'linear', 'e', 'exp', or 'exponential' designating whether
                     the growth rate is linear or exponential.
     """
-    with_bias = value
-    # Determine if bias needs to be applied at all.
-    bias_less_than = bias_point < 0 and value < abs(bias_point)
-    bias_greater_than = bias_point >= 0 and value >= abs(bias_point)
-    if bias_less_than or bias_greater_than:
-        # Controls for neg value bias_point (flip value about bias_point).
-        unflip_value = False
-        if bias_point < 0:
-            bias_point = bias_point * -1
-            value = bias_point + (bias_point - value)
-            reflip_value = True
-        # Apply bias_value.
-        value -= bias_point
-        bias_value = 1 + bias_value
-        if bias_type in ['l', 'lin', 'linear']:  with_bias = value * bias_value
-        elif bias_type in ['e', 'exp', 'exponential']:  with_bias = value ** bias_value
-        with_bias += bias_point
-        # Controls for neg value bias_point (unflip value about bias_point).
-        if unflip_value:  with_bias = bias_point - (with_bias - bias_point)
-    return with_bias
+    # Controls for handling single value or array of values.
+    is_array = True
+    if not isinstance(values, (list, tuple, set)):  values, is_array = [values], False
+    values_with_bias = []
+    for value in values:
+        bias_point_x, bias_value_x = bias_point, bias_value
+        with_bias = value
+        # Determine if bias needs to be applied.
+        bias_less_than = bias_point_x < 0 and value < abs(bias_point_x)
+        bias_greater_than = bias_point_x >= 0 and value >= abs(bias_point_x)
+        if bias_less_than or bias_greater_than:
+            # Controls for neg value bias_point (flip value about bias_point).
+            unflip_value = False
+            if bias_point < 0:
+                bias_point_x = bias_point_x * -1
+                value = bias_point_x + (bias_point_x - value)
+                unflip_value = True
+            # Apply bias_value.
+            value -= bias_point_x
+            bias_value_x = 1 + bias_value_x
+            if bias_type in ['l', 'lin', 'linear']:  with_bias = value * bias_value_x
+            elif bias_type in ['e', 'exp', 'exponential']:  with_bias = value ** bias_value_x
+            with_bias += bias_point_x
+            # Controls for neg value bias_point (unflip value about bias_point).
+            if unflip_value:  with_bias = bias_point_x - (with_bias - bias_point_x)
+        values_with_bias += [ with_bias ]
+    return values_with_bias if is_array else values_with_bias[0]
+
+
 
 ####################################################################################################
 
 import matplotlib.pyplot as plt
 
 nums = [ (i * 1.5) + 2 for i in range(11) ]
-nums_with_bias = [ applyBiasToValue(i, -12.0, +0.2, 'exp') for i in nums ]
+nums_with_bias = applyBias(nums, +5.0, +0.4, 'l')
+# nums_with_bias = [ applyBias(i, +12.0, +0.2, 'exp') for i in nums ]
 
 # for i, num in enumerate(nums):
     # print(f"{num:05.02f} {nums_with_bias[i]:05.02f} {abs(num-nums_with_bias[i]):05.02f}")
