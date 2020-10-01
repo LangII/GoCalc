@@ -3,18 +3,18 @@ import math
 
 ####################################################################################################
 
-def getDistTwoPoints(pt1, pt2):
+def getDistTwoPoints(pt1=[0, 0], pt2=[0, 0]):
     return math.hypot(pt2[0] - pt1[0], pt2[1] - pt1[1])
 
 
 
-def getAngleTwoPoints(vertex_pt, angle_pt):
-    """ Return angle between ray(vertex_pt, [0, 1]) and ray(vertex_pt, angle_pt) represented as
+def getAngleTwoPoints(vertex_pt=[0, 0], ray_pt=[0, 0]):
+    """ Return angle between ray(vertex_pt, [0, 1]) and ray(vertex_pt, ray_pt) represented as
     degrees between 0 and 360. """
-    rad_angle = math.atan2(angle_pt[0] - vertex_pt[0], angle_pt[1] - vertex_pt[1])
-    deg_angle = math.degrees(rad_angle)
-    deg360_angle = abs(180 + (180 - abs(-deg_angle)) if -deg_angle < 0 else deg_angle)
-    return deg360_angle
+    angle_rad = math.atan2(ray_pt[0] - vertex_pt[0], ray_pt[1] - vertex_pt[1])
+    angle_deg = math.degrees(angle_rad)
+    angle_deg360 = abs(180 + (180 - abs(-angle_deg)) if -angle_deg < 0 else angle_deg)
+    return angle_deg360
 
 
 
