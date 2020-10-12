@@ -1,7 +1,13 @@
 
+
+
 import math
 
+
+
 ####################################################################################################
+
+
 
 def getDistTwoPoints(pt1=[0, 0], pt2=[0, 0]):
     return math.hypot(pt2[0] - pt1[0], pt2[1] - pt1[1])
@@ -41,44 +47,65 @@ def applyScale(values, scale_from=[], scale_to=[]):
 
 
 
-def applyBias(values, bias_point=0.0, bias_value=0.0, bias_type='exp'):
+def applySkew(values, skew_point=0.0, skew_value=0.0, skew_type='exp'):
     """
-    value =         Value to have bias applied.
-    bias_point =    Value designating whether 'value' is to have bias applied.  If 'bias_point' is
-                    positive and 'value' is greater than 'bias_point' then bias will be applied.  if
-                    'bias_point' is negative and 'value' is less than 'bias_point' than bias will be
+    value =         Value to have skew applied.
+    skew_point =    Value designating whether 'value' is to have skew applied.  If 'skew_point' is
+                    positive and 'value' is greater than 'skew_point' then skew will be applied.  if
+                    'skew_point' is negative and 'value' is less than 'skew_point' than skew will be
                     applied.
-    bias_value =    Growth rate of the bias.  If 'bias_value' is positive then the growrth rate will
-                    be increasing in value away from 'bias_point'.  If 'bias_value' is negative then
-                    the growth rate will be diminish in value away from 'bias_point'.
-    bias_type =     Accepts 'l', 'lin', 'linear', 'e', 'exp', or 'exponential' designating whether
+    skew_value =    Growth rate of the skew.  If 'skew_value' is positive then the growrth rate will
+                    be increasing in value away from 'skew_point'.  If 'skew_value' is negative then
+                    the growth rate will be diminish in value away from 'skew_point'.
+    skew_type =     Accepts 'l', 'lin', 'linear', 'e', 'exp', or 'exponential' designating whether
                     the growth rate is linear or exponential.
-    Return value with bias applied.
+    Return value with skew applied.
     """
     # Controls for handling single value or array of values.
     is_array = True
     if not isinstance(values, (list, tuple, set)):  values, is_array = [values], False
-    values_with_bias = []
+    values_with_skew = []
     for value in values:
-        bias_point_x, bias_value_x = bias_point, bias_value
-        with_bias = value
-        # Determine if bias needs to be applied.
-        bias_less_than = bias_point_x < 0 and value < abs(bias_point_x)
-        bias_greater_than = bias_point_x >= 0 and value >= abs(bias_point_x)
-        if bias_less_than or bias_greater_than:
-            # Controls for neg value bias_point (flip value about bias_point).
+        skew_point_x, skew_value_x = skew_point, skew_value
+        with_skew = value
+        # Determine if skew needs to be applied.
+        skew_less_than = skew_point_x < 0 and value < abs(skew_point_x)
+        skew_greater_than = skew_point_x >= 0 and value >= abs(skew_point_x)
+        if skew_less_than or skew_greater_than:
+            # Controls for neg value skew_point (flip value about skew_point).
             unflip_value = False
-            if bias_point < 0:
-                bias_point_x = bias_point_x * -1
-                value = bias_point_x + (bias_point_x - value)
+            if skew_point < 0:
+                skew_point_x = skew_point_x * -1
+                value = skew_point_x + (skew_point_x - value)
                 unflip_value = True
-            # Apply bias_value.
-            value -= bias_point_x
-            bias_value_x = 1 + bias_value_x
-            if bias_type in ['l', 'lin', 'linear']:  with_bias = value * bias_value_x
-            elif bias_type in ['e', 'exp', 'exponential']:  with_bias = value ** bias_value_x
-            with_bias += bias_point_x
-            # Controls for neg value bias_point (unflip value about bias_point).
-            if unflip_value:  with_bias = bias_point_x - (with_bias - bias_point_x)
-        values_with_bias += [ with_bias ]
-    return values_with_bias if is_array else values_with_bias[0]
+            # Apply skew_value.
+            value -= skew_point_x
+            skew_value_x = 1 + skew_value_x
+            if skew_type in ['l', 'lin', 'linear']:  with_skew = value * skew_value_x
+            elif skew_type in ['e', 'exp', 'exponential']:  with_skew = value ** skew_value_x
+            with_skew += skew_point_x
+            # Controls for neg value skew_point (unflip value about skew_point).
+            if unflip_value:  with_skew = skew_point_x - (with_skew - skew_point_x)
+        values_with_skew += [ with_skew ]
+    return values_with_skew if is_array else values_with_skew[0]
+
+
+
+def applyClamp(value, min_max):
+    """ Return value if value is within the limits of min_max ([min_value, max_value]).  If value is
+    less than min_value return min_value or if value is greater than max_value return max_value. """
+    min_value, max_value = min_max
+    return max(min_value, min(value, max_value))
+
+
+
+# print(applyClamp(2, [1.9, 3.1]))
+
+# import matplotlib.pyplot as plt
+# nums = [ (i + 1) * 0.1 for i in range(10) ]
+# nums_with_bias = applyBias(nums, +0.2, +0.8, 'exp')
+#
+# for i in range(len(nums)):  plt.plot([ nums[i], nums_with_bias[i] ], [ 1, 2 ], 'b-')
+# plt.axis([-1, 2, 0.5, 2.5])
+# plt.grid(True)
+# plt.show()
