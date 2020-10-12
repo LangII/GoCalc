@@ -11,3 +11,13 @@ decision observation model object (2020-09-18):
 	and how variable inlfuences the decision of the calculator.
 	- influence:  How important this observation is to it's parent calculator.
 	-
+
+
+
+***   DECISION MODEL RELATIONSHIPS   ***
+
+decision_value = integer (value of decision)
+iteration_value = integer (value of decision for this iteration)
+score_accuracy = key integer (iteration of change): value integer (accuracy of score)
+
+Model needs to have pattern recognition from one iteration of model to the next.
