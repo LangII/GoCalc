@@ -1,6 +1,6 @@
 
 """
-GoCalc/stone.py
+GoCalc/gamelogic/stone.py
 """
 
 from kivy.app import App

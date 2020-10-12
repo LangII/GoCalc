@@ -1,12 +1,12 @@
 
 """
-GoCalc/board.py
+GoCalc/gamelogic/board.py
 """
 
 from copy import deepcopy, copy
 
-from logic.stone import Stone
-from logic.group import Group
+from gamelogic.stone import Stone
+from gamelogic.group import Group
 
 from kivy.app import App
 

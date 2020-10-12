@@ -1,6 +1,6 @@
 
 """
-GoCalc/group.py
+GoCalc/gamelogic/group.py
 """
 
 from kivy.app import App
