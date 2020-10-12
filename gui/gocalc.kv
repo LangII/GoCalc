@@ -5,6 +5,7 @@
 #:set PRISMARINE [0.0, 0.4, 0.4, 1]
 
 #:set BOARD_COLOR [0.85, 0.6, 0, 1]
+#:set DATA_BOARD_COLOR [1, 1, 1, 1]
 #:set BLACK_STONE_COLOR [0, 0, 0, 1]
 #:set WHITE_STONE_COLOR [1, 1, 1, 1]
 
@@ -149,8 +150,8 @@
     layout:  layout
     padding:  [0, 0, 0, 2] # needs custom padding
     GridLayout:
-        padding:  [2, 10, 2, 5] # needs custom padding
         id:  layout
+        padding:  [2, 10, 2, 5] # needs custom padding
         size_hint:  [1.0, None]
         height:  self.width
         cols:  self.parent.board_size
@@ -171,11 +172,30 @@
     valign:  'center'
     font_size:  13
     text_size:  self.size
-    # text:  self.parent.title_label_text
     padding_x:  GLOBAL_SPACING
+
     canvas.before:
         Color:
             rgba:  PRISMARINE
         Rectangle:
             pos:  self.pos
             size:  self.size
+
+
+
+<DataBoardDisplay>:
+    layout:  layout
+    padding:  [0, 0, 0, 2] # needs custom padding
+    GridLayout:
+        padding:  [2, 10, 2, 5] # needs custom padding
+        id:  layout
+        size_hint:  [1.0, None]
+        height:  self.width
+        cols:  self.parent.board_size
+
+
+
+<DataBoardButton>:
+    board_color:  DATA_BOARD_COLOR
+    black_stone_color:  BLACK_STONE_COLOR
+    white_stone_color:  WHITE_STONE_COLOR

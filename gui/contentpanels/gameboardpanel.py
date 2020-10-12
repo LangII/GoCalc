@@ -26,8 +26,9 @@ class GameBoardPanel (ContentPanel):
         self.app = App.get_running_app()
         self.board_size = self.app.data['board_size']
         self.grid_star_size = self.app.data['grid_star_size']
+
+        # Override ContentPanel attr (GameBoardPanel is unique).
         self.title_label.halign = 'center'
-        # Remove close_button because GameBoardPanel is a mandatory panel.
         self.close_button.parent.remove_widget(self.close_button)
 
         self.display = GameBoardDisplay()
@@ -35,11 +36,11 @@ class GameBoardPanel (ContentPanel):
 
         self.display.bind(height=self.displayHeightChange)
 
-        self.captures_display = CapturesDisplay()
-        self.add_widget(self.captures_display)
-
         self.settings = PanelSettings()
         self.add_widget(self.settings)
+
+        self.captures_display = CapturesDisplay()
+        self.settings.layout.add_widget(self.captures_display)
 
         self.mode_input = GameBoardModeInput()
         self.settings.layout.add_widget(self.mode_input)
@@ -120,6 +121,8 @@ class GameBoardButton (ButtonBehavior, Widget):
         with self.canvas.after:
             self.stone_color = Color(*self.no_stone_color)
             self.stone = Ellipse(size=self.size)
+            self.stone_line_color = Color(0, 0, 0, 0)
+            self.stone_line = Line()
 
     def getHorLineType(self):
         if self.coord[1] == 0:  return 'left'
@@ -140,53 +143,52 @@ class GameBoardButton (ButtonBehavior, Widget):
         self.board_rect.size = self.size
         self.grid_hor_line.points = self.getHorLinePoints()
         self.grid_vert_line.points = self.getVertLinePoints()
-        if self.grid_star:
-            pos_x = (self.pos[0] + (self.size[0] / 2)) - (self.grid_star.size[0] / 2)
-            pos_y = (self.pos[1] + (self.size[1] / 2)) - (self.grid_star.size[1] / 2)
-            self.grid_star.pos = pos_x, pos_y
+        if self.grid_star:  self.grid_star.pos = self.getGridStarPos()
         self.stone.pos = self.pos
         self.stone.size = self.size
+        self.stone_line.circle = self.getStoneLineCircleArgs()
 
     def getHorLinePoints(self):
         type = self.grid_hor_line_type
         pos_x, pos_y = self.board_rect.pos
         size_x, size_y = self.board_rect.size
-
         x1 = pos_x if type in ['center', 'right'] else pos_x + (size_x / 2)
         x2 = pos_x + size_x if type in ['center', 'left'] else pos_x + (size_x / 2)
         y1, y2 = [pos_y + (size_y / 2)] * 2
-
         return [x1, y1, x2, y2]
 
     def getVertLinePoints(self):
         type = self.grid_vert_line_type
         pos_x, pos_y = self.board_rect.pos
         size_x, size_y = self.board_rect.size
-
         y1 = pos_y + size_y if type in ['center', 'bottom'] else pos_y + (size_y / 2)
         y2 = pos_y if type in ['center', 'top'] else pos_y + (size_y / 2)
         x1, x2 = [pos_x + (size_x / 2)] * 2
-
         return [x1, y1, x2, y2]
+
+    def getGridStarPos(self):
+        pos_x = (self.pos[0] + (self.size[0] / 2)) - (self.grid_star.size[0] / 2)
+        pos_y = (self.pos[1] + (self.size[1] / 2)) - (self.grid_star.size[1] / 2)
+        return pos_x, pos_y
+
+    def getStoneLineCircleArgs(self):
+        return [self.center_x, self.center_y, self.width / 2]
 
     def on_release(self):
         move_legality = messenger.updateLogicBoardWithStone(self.coord)
         if move_legality == 'illegal':  return
         else:  self.updateNextStoneValues()
 
-        self.app.data['board'].prettyPrint()
+        # self.app.data['board'].prettyPrint()
 
     def updateNextStoneValues(self):
         next_stone_input = self.parent.parent.parent.next_stone_input
-
         if self.app.data['game_board']['edit_mode'] == 'alternate':
-
             if self.app.data['game_board']['next_stone'] == 'black':
                 self.app.data['game_board']['next_stone'] = 'white'
                 next_stone_input.value = 'white'
                 next_stone_input.white_button.state = 'down'
                 next_stone_input.black_button.state = 'normal'
-
             elif self.app.data['game_board']['next_stone'] == 'white':
                 self.app.data['game_board']['next_stone'] = 'black'
                 next_stone_input.value = 'black'

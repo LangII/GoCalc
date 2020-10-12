@@ -33,9 +33,10 @@ from kivy.uix.button import Button
 from kivy.properties import NumericProperty, ObjectProperty
 
 from gui.contentpanels.gameboardpanel import GameBoardPanel
+from gui.contentpanels.taxicabinflpanel import TaxiCabInflPanel
 
-from logic.board import Board
-from logic.player import Player
+from gamelogic.board import Board
+from gamelogic.player import Player
 
 ####################################################################################################
 
@@ -98,14 +99,21 @@ class MainWindow (BoxLayout):
 
 
 
-class GoCalcApp (App):
-    data = APP_DATA
-
-    def __init__(self, **kwargs):
-        super(GoCalcApp, self).__init__(**kwargs)
-        self.main = MainWindow(self)
-
-    def build(self):  return self.main
+        """ TESTING / DEBUGGING """
+        Window.bind(on_key_down=self.keyboardInput)
+    def keyboardInput(self, obj, num1, num2, text, *args):
+        if text == ' ':  self.spaceBarInput()
+    def spaceBarInput(self):
+        app = App.get_running_app()
+        # output1 = app.main.content_scroll.game_board_panel.width
+        # output2 = app.main.content_scroll.infl_calc_panel.width
+        print("\n<><><>")
+        # print("game_board_panel.width =", output1)
+        # print("infl_calc_panel.width =", output2)
+        for child in app.main.content_scroll.layout.children:
+            print(isinstance(child, InflCalcPanel))
+        print("<><><>")
+        """ TESTING / DEBUGGING """
 
 
 
@@ -114,12 +122,21 @@ class MainMenuBar (BoxLayout):
 
     def __init__(self):
         super(MainMenuBar, self).__init__()
+        self.app = App.get_running_app()
 
         """ TEMPORARY / FOR DISPLAY PURPOSES """
-        for button_title in ['main', 'options', 'help']:
+        self.main_button = Button(text='main', size_hint=[None, 1.0], width=self.button_width)
+        self.add_widget(self.main_button)
+        self.main_button.bind(on_release=self.doStuff)
+        # for button_title in ['main', 'options', 'help']:
+        for button_title in ['options', 'help']:
             self.add_widget(Button(
                 text=button_title, size_hint=[None, 1.0], width=self.button_width
             ))
+
+    def doStuff(self, *args, **kwargs):
+        print(self.app.main)
+        self.app.main.content_scroll.infl_calc_panel.display.height = self.app.main.content_scroll.game_board_panel.display.height
 
 
 
@@ -130,14 +147,32 @@ class ContentScroll (ScrollView):
         super(ContentScroll, self).__init__()
 
         self.game_board_panel = GameBoardPanel()
-
         self.layout.add_widget(self.game_board_panel)
+
+        self.taxi_cab_infl_panel = TaxiCabInflPanel()
+        self.layout.add_widget(self.taxi_cab_infl_panel)
 
         """ TEMPORARY / FOR DISPLAY PURPOSES """
         for i in range(20):
             self.layout.add_widget(Button(
                 text=f'{i + 1}', width=100, size_hint=[None, 1.0]
             ))
+
+
+
+class GoCalcApp (App):
+    data = APP_DATA
+
+    def __init__(self, **kwargs):
+        super(GoCalcApp, self).__init__(**kwargs)
+        self.main = MainWindow(self)
+        # self.add_widget(self.main)
+
+    # def on_start(self, *args):
+    #     print("here", self.main.content_scroll.infl_calc_panel.display.height)
+
+    def build(self):
+        return self.main
 
 
 

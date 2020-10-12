@@ -8,9 +8,19 @@ TO-DOS:
 -
 """
 
-from logic.board import Board
-from logic.player import Player
-from logic.bot import Bot
+# Dynamically add parent folder to path.
+import os, sys
+cur_dir = os.getcwd()
+insert_sys_path = cur_dir[:cur_dir.rfind('\\')]
+sys.path.insert(1, insert_sys_path)
+
+from gamelogic.board import Board
+from gamelogic.stone import Stone
+# from gamelogic.group import Group
+from gamelogic.player import Player
+from gamelogic.bot import Bot
+
+import calculate.influencecalc as infl_calc
 
 ####################################################################################################
 
@@ -44,31 +54,21 @@ def main():
 
     board = Board()
 
-    black_bot = Bot(board, 'black', bot_settings)
+    black = Player(board, 'black')
     white = Player(board, 'white')
 
     # for pos in [
-    #     [5, 0], [5, 1], [6, 2], [6, 4], [6, 5], [7, 5], [8, 5], [5, 3]
-    # ]:  white.makeMove(pos)
-    for pos in [
-        # [7, 2], [7, 3], [7, 4], [8, 2], [8, 4],
-        # [6, 2], [6, 0],
-        [3, 4], [2, 5], [3, 6], [4, 6],
-        [5, 5], [4, 4]
-        # [3, 5]
-    ]:  black_bot.makeMove(pos)
+    #     # [2, 3], [5, 4], [6, 2]
+    #     [1, 1], [2, 2], [3, 3], [4, 4], [5, 5], [6, 6], [7, 7], [8, 8]
+    # ]:  black.makeMove(pos)
 
     for pos in [
-        # [2, 2], [3, 4], [6, 2], [5, 2], [7, 6], [6, 7], [8, 7]
-        [3, 5], [4, 5], [1, 1]
+        [0, 1], [0, 2], [0, 3], [0, 4], [0, 5], [0, 6], [0, 7], [0, 8]
     ]:  white.makeMove(pos)
-    # for pos in [
-    #     [6, 5], [4, 6], [5, 3], [2, 6], [4, 3], [6, 6], [5, 7]
-    # ]:  black_bot.makeMove(pos)
-
-    # black_bot.makeMove([4, 4])
 
     board.prettyPrint()
+
+    infl_calc.getInfluence(board)
 
     # print(black_bot.getAngularProxInflGrid())
 
