@@ -7,11 +7,12 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import tensorflow as tf
 from tensorflow import keras
-from tensorflow.keras.callbacks import TensorBoard
+# from tensorflow.keras.callbacks import TensorBoard
 
 import math
 
-from calcfuncs import getDistTwoPoints, getAngleTwoPoints, applyScale, applySkew, applyClamp
+from functions import getDistTwoPoints, getAngleTwoPoints, applyScale, applySkew, applyClamp
+from layers import GetCoordsByStone2DLayer, Sort2DByColLayer, GetStoneDistAngle3DLayer
 
 """''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''' CONSTANTS """
 
@@ -54,6 +55,14 @@ def main():
 
     """
 
+    weights:
+        - raw_dist_decay:       How much the infl decays with distance from pos.
+        - barrier_decay:        How much more a proceeding opposing stone's infl decays.
+        - barrier_angle_cap:    How much of an angle is accepted to designate an proceeding opposing
+                                stone after a barrier stone.
+        - barrier_angle_decay:  How much more a proceeding opposing stone's infl decays based on
+                                angle from barrier stone.
+
     -   Need to first get the model to accurately produce the dist/angle sub tensors for each coord
         point on the squashed board.
 
@@ -69,13 +78,13 @@ def main():
     # input = keras.Input(shape=BOARD_SIZE, dtype='int8')
     input = BOARD
 
-    get_coords_by_no_stone = GetCoordsByStone2DLayer(stone=NO_STONE_VALUE)
+    get_coords_by_no_stone = GetCoordsByStone2DLayer(stone=NO_STONE_VALUE, testing=TESTING)
     no_stone_coords = get_coords_by_no_stone(input)
 
-    get_coords_by_black_stone = GetCoordsByStone2DLayer(stone=BLACK_STONE_VALUE)
+    get_coords_by_black_stone = GetCoordsByStone2DLayer(stone=BLACK_STONE_VALUE, testing=TESTING)
     black_stone_coords = get_coords_by_black_stone(input)
 
-    get_coords_by_white_stone = GetCoordsByStone2DLayer(stone=WHITE_STONE_VALUE)
+    get_coords_by_white_stone = GetCoordsByStone2DLayer(stone=WHITE_STONE_VALUE, testing=TESTING)
     white_stone_coords = get_coords_by_white_stone(input)
 
     all_coords = tf.concat([no_stone_coords, black_stone_coords, white_stone_coords], axis=0)
@@ -107,20 +116,20 @@ def main():
     infls = applyScale(infls, [0, max_dist], [0, 1])
     print("\ninfls ="), print(infls)
 
-    # Apply first bias to infls.
-    raw_infl_point_w = 0.6
-    raw_infl_bias_w = 0.2
+    # Apply first dist bias to infls.
+    first_dist_bias_gt_point_w = 0.6
+    first_dist_bias_w = 0.2
     infls = tf.map_fn(
         fn=lambda row: tf.cond(
-            row < raw_infl_point_w,
-            true_fn=lambda: (row * raw_infl_bias_w),
+            row < first_dist_bias_gt_point_w,
+            true_fn=lambda: (row * first_dist_bias_w),
             false_fn=lambda: row
         ),
         elems=infls
     )
     print("\ninfls ="), print(infls)
 
-    exit()
+    # exit()
 
     def getBools(t, all_t):
         return tf.map_fn(
@@ -133,18 +142,56 @@ def main():
             dtype='bool'
         )
 
-    def getInfls(sda_row, sda_tbl, infls):
-        row_i = tf.reshape(tf.where(getBools(sda_row, sda_tbl)), [-1])[0]
-        remaining_tbl = sda_tbl[row_i + 1:]
-        print(remaining_tbl)
-        """ row_i is the index of the current tensor.  it will be used to loop through the remaining
-        tensors within sda_tbl. """
-        return tf.constant(0, dtype='float32')
+    def calcBarrierBias(def_dist, def_angle, agr_dist, agr_angle, infl):
+        """
+        def_power = X # The amount infl is adjusted by.
+        1. The further away DEF_dist gets from ORIGIN, reduce def_power by X.
+        2. The further away AGR_angle is from DEF_angle, reduce def_power by X.
+        3. If AGR_angle is < DEF_angle + X or AGR_angle is > DEF_angle - X, apply def_power.
+        """
+        return infl
 
-    print(tf.map_fn(
-        fn=lambda row: getInfls(row, stone_dist_angle, infls),
+    def applyBarrierBias(def_row, agr_row, infl):
+        def_stone = def_row[0]
+        def_dist = def_row[1]
+        def_angle = def_row[2]
+        agr_stone = agr_row[0]
+        agr_dist = agr_row[1]
+        agr_angle = agr_row[2]
+        return tf.cond(
+            def_stone == agr_stone,
+            true_fn=lambda: infl,
+            false_fn=lambda: calcBarrierBias(def_dist, def_angle, agr_dist, agr_angle, infl)
+        )
+
+    """ Perform sub loop through each row of stone_dist_angle. """
+    def innerLoop(sub_row, row_i, stone_dist_angle, infls):
+        sub_row_i = tf.reshape(tf.where(getBools(sub_row, stone_dist_angle)), [-1])[0]
+        return tf.cond(
+            sub_row_i <= row_i,
+            true_fn=lambda: infls[sub_row_i],
+            false_fn=lambda: applyBarrierBias(
+                stone_dist_angle[row_i],
+                stone_dist_angle[sub_row_i],
+                infls[sub_row_i]
+            )
+        )
+
+    def outerLoop(row, stone_dist_angle, infls):
+        """ Get the current row being worked on. """
+        row_i = tf.reshape(tf.where(getBools(row, stone_dist_angle)), [-1])[0]
+        infls = tf.map_fn(
+            fn=lambda sub_row: innerLoop(sub_row, row_i, stone_dist_angle, infls),
+            elems=stone_dist_angle,
+        )
+        return infls
+
+    """ Loop through each row of stone_dist_angle. """
+    infls = tf.map_fn(
+        fn=lambda row: outerLoop(row, stone_dist_angle, infls),
         elems=stone_dist_angle
-    ))
+    )
+    print("\ninfls ="), print(infls)
 
     # print(stone_dist_angle)
     exit()
@@ -169,124 +216,6 @@ def main():
     #     epochs=3,
     #     callbacks=[tensorboard]
     # )
-
-"""'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''' LAYERS """
-
-class GetCoordsByStone2DLayer (keras.layers.Layer):
-    """
-    Return tensor[?, 3] of coords from input where value is self.stone_value.  Each row of return
-    tensor has data of [stone_value, y_coord, x_coord].  Number of rows is number of values in
-    input with value of self.stone_value.
-    """
-    def __init__(self, stone):
-        super(GetCoordsByStone2DLayer, self).__init__()
-        self.coord_height_dim = 1 if not TESTING else 0
-        self.stone_value = tf.constant(stone, dtype='int8')
-
-    def call(self, input):
-        # Convert input into parallel bool tensor, where True = self.stone_value.
-        input_as_bool = tf.equal(input, self.stone_value)
-        # Get tensor of coords from input_as_bool where value = True.
-        coords = tf.cast(tf.where(input_as_bool), dtype='int8')
-        # Make tensor of same height as coords, of self.stone_value to be joined with coords.
-        stone = tf.constant(
-            self.stone_value,
-            shape=[coords.shape[self.coord_height_dim], 1],
-            dtype='int8'
-        )
-        # Vertically join stone and coords.
-        stone_coords = tf.concat([stone, coords], axis=1)
-        return stone_coords
-
-class Sort2DByColLayer (keras.layers.Layer):
-    """
-    Return tensor[?, ?] of input tensor, with rows sorted by value of self.col.  self.multr
-    designates whether the sort is ascending or descending.
-    """
-    def __init__(self, col=0, rev=False):
-        super(Sort2DByColLayer, self).__init__()
-        self.col = col
-        self.multr = -1 if not rev else 1
-
-    def call(self, input):
-        # Sort a 2D tensor by values of self.col.  rev / self.multr indicates if the sort will be
-        # asc or desc.
-        return tf.gather(
-            input, tf.nn.top_k((input[:, self.col] * self.multr), k=input.shape[0]).indices
-        )
-
-class GetStoneDistAngle3DLayer (keras.layers.Layer):
-    """
-    Return tensor[?, ?, 3].  Return tensor 1st dim size is same as all_coord_input 1st dim size.
-    Return tensor 2nd dim size is same as stone_coord_input 1st dim size.  The 1st dim of the
-    return tensor is a squashed tensor of the original board input. Each 2nd dim sub tensor
-    of return tensor is a 2d tensor where each row represents a stone, and the values of each stone
-    are the stone's value itself (+1 or -1), the distance from the board's coord to the stone's
-    coord, and the angle from the board's coord to the stone's coord.
-    """
-    def __init__(self):
-        super(GetStoneDistAngle3DLayer, self).__init__()
-
-    def call(self, all_coord_input, stone_coord_input):
-        # Convert dtypes.
-        all_coord_input = tf.cast(all_coord_input, dtype='float32')
-        stone_coord_input = tf.cast(stone_coord_input, dtype='float32')
-        # Loop through all_coord_input.
-        return tf.map_fn(
-            fn=lambda coord: self.checkForStone(coord, stone_coord_input),
-            elems=all_coord_input
-        )
-
-    def checkForStone(self, coord, stone_coord_input):
-        # Check to see if current coord in loop is has a stone or not.  If current coord in loop
-        # does not have a stone then proceed with self.getOutput(), else return empty zeros tensor.
-        return tf.cond(
-            coord[0] == tf.constant(0, dtype='float32'),
-            true_fn=lambda: self.getOutput(coord, stone_coord_input),
-            false_fn=lambda: tf.zeros([stone_coord_input.shape[0], 3])
-        )
-
-    def getOutput(self, coord, stone_coord_input):
-        # Build and return 2nd dimension output tensor of values of stones, dists, and angles.
-        stones = stone_coord_input[:, :1]
-        dists = self.getDists(coord, stone_coord_input)
-        angles = self.getAngles(coord, stone_coord_input)
-        output = tf.concat([stones, dists, angles], axis=1)
-        output = Sort2DByColLayer(col=1, rev=False)(output)
-        return output
-
-    def getDists(self, coord, stone_coord_input):
-        # Calculate distance between coord and each stone_coord in stone_coord_input.
-        return tf.reshape(
-            tf.map_fn(
-                fn=lambda stone_coord: tf.norm(stone_coord[1:] - coord[1:], ord='euclidean'),
-                elems=stone_coord_input
-            ),
-            [-1, 1]
-        )
-
-    def getAngles(self, coord, stone_coord_input):
-        # Calculate angle (deg) between coord and each stone_coord in stone_coord_input.
-        return tf.reshape(
-            tf.map_fn(
-                fn=lambda stone_coord: tf.atan2(
-                    -(stone_coord[1] - coord[1]),
-                    stone_coord[2] - coord[2]
-                ) * (180 / math.pi),
-                elems=stone_coord_input,
-            ),
-            [-1, 1]
-        )
-
-"""
-weights:
-    - raw_dist_decay:       How much the infl decays with distance from pos.
-    - barrier_decay:        How much more a proceeding opposing stone's infl decays.
-    - barrier_angle_cap:    How much of an angle is accepted to designate an proceeding opposing
-                            stone after a barrier stone.
-    - barrier_angle_decay:  How much more a proceeding opposing stone's infl decays based on
-                            angle from barrier stone.
-"""
 
 """''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''' MAIN CALL """
 

@@ -1,13 +1,23 @@
 
+import os
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
+
+import tensorflow as tf
+from tensorflow import keras
+
+import math
+
+"""''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''"""
+
 class GetCoordsByStone2DLayer (keras.layers.Layer):
     """
     Return tensor[?, 3] of coords from input where value is self.stone_value.  Each row of return
     tensor has data of [stone_value, y_coord, x_coord].  Number of rows is number of values in
     input with value of self.stone_value.
     """
-    def __init__(self, stone):
+    def __init__(self, stone, testing=False):
         super(GetCoordsByStone2DLayer, self).__init__()
-        self.coord_height_dim = 1 if not TESTING else 0
+        self.coord_height_dim = 1 if not testing else 0
         self.stone_value = tf.constant(stone, dtype='int8')
 
     def call(self, input):
