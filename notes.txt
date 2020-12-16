@@ -14,6 +14,9 @@ decision observation model object (2020-09-18):
 
 
 
+
+
+
 ***   DECISION MODEL RELATIONSHIPS   ***
 
 decision_value = integer (value of decision)
@@ -21,3 +24,62 @@ iteration_value = integer (value of decision for this iteration)
 score_accuracy = key integer (iteration of change): value integer (accuracy of score)
 
 Model needs to have pattern recognition from one iteration of model to the next.
+
+
+
+
+
+
+
+
+***   EVALUATION MODEL   ***
+
+
+
+CLASS Evaluation:  (eval)
+
+input vars...
+scale_to = [0.0, 100.0]
+obs = dict ((string) obs name: (object) obs)
+
+generated vars...
+obs_tree = (json) Data representation of observations.
+obs_value_input_model
+
+
+
+CLASS Observation:  (obs)
+
+input vars...
+name = (string)
+scale_from_low = (float)
+scale_from_high = (float)
+neg_skew_point = (float)
+neg_skew_type = 'lin' or 'exp'
+neg_skew_value = ((+/-)float)
+pos_skew_point = (float)
+pos_skew_type = 'lin' or 'exp'
+pos_skew_value = ((+/-)float)
+weight = (float)
+
+generated vars...
+score = (float) 0.0 to 100.0
+sib_infl = (float) 0.0 to 100.0
+eval_infl = (float) 0.0 to 100.0
+score_w_sib_infl = (float) 0.0 to 100.0
+score_w_eval_infl = (float) 0.0 to 100.0
+
+tree_pos vars...
+parent = (object) obs
+siblings = (array of objects) obs
+children = (array of objects) obs
+
+
+
+
+
+
+
+
+
+

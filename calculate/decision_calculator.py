@@ -5,6 +5,7 @@
 
 import random
 import pandas
+from copy import deepcopy
 
 ####################################################################################################
 
@@ -14,7 +15,7 @@ def main():
         'price': {
             'type': 'numerical',
             'scale_to': [0.00, 100.00],
-            'scale_from': [1.00, 0.80],
+            'scale_from': [100.00, 50.00],
             'bias_point': 0,
             'bias_value': 0,
             'weight': 0.50,
@@ -22,40 +23,51 @@ def main():
         'appearance': {
             'type': 'numerical',
             'scale_to': [0.00, 100.00],
-            'scale_from': [0.00, 1.00],
-            'bias_point': +50.00,
-            'bias_value': 0.80,
+            'scale_from': [0.0, 100.0],
+            # 'bias_point': +50.00,
+            # 'bias_value': 0.80,
+            'bias_point': 0,
+            'bias_value': 0,
             'weight': 0.50,
         }
     }
 
     calc = DecisionCalculator(consider)
 
-    # Get apple_options
-    apple_options = []
-    num_of_apples = 10
-    prices = [1.00, 0.90, 0.80]
-    price_weights = [0.50, 0.25, 0.25]
-    appearance_weight = 1.0
-    for i in range(num_of_apples):
-        apple = {}
-        apple['name'] = f'apple{i:02d}'
-        apple['price'] = random.choices(prices, weights=price_weights)[0]
-        apple['appearance'] = 1 - (random.random() ** appearance_weight)
-        apple_options += [ apple ]
+    # # Get apple_options
+    # apple_options = []
+    # num_of_apples = 10
+    # prices = [1.00, 0.90, 0.80]
+    # price_weights = [0.50, 0.25, 0.25]
+    # appearance_weight = 1.0
+    # for i in range(num_of_apples):
+    #     apple = {}
+    #     apple['name'] = f'apple{i:02d}'
+    #     apple['price'] = random.choices(prices, weights=price_weights)[0]
+    #     apple['appearance'] = 1 - (random.random() ** appearance_weight)
+    #     apple_options += [ apple ]
 
-    # apple_options = [
-    #     {'price': 0.00, 'appearance': 0.00},
-    #     {'price': 0.20, 'appearance': 0.20},
-    #     {'price': 0.40, 'appearance': 0.40},
-    #     {'price': 0.60, 'appearance': 0.60},
-    #     {'price': 0.80, 'appearance': 0.80},
-    #     {'price': 1.00, 'appearance': 1.00},
-    # ]
+    apple_options = [
+        {'apple': 1, 'price': 80.00, 'appearance': 70.0},
+        {'apple': 2, 'price': 70.00, 'appearance': 80.0},
+        {'apple': 3, 'price': 60.00, 'appearance': 50.0},
+        {'apple': 4, 'price': 60.00, 'appearance': 60.0},
+        {'apple': 5, 'price': 90.00, 'appearance': 80.0},
+        {'apple': 6, 'price': 100.00, 'appearance': 70.0},
+    ]
 
-    decision = calc.getDecisionMatrix(apple_options)
+    # print(calc.consider)
 
-    print(pandas.DataFrame(decision))
+    for i in range(8):
+
+        calc.consider['price'].weight = random.uniform(0.0, 1.0)
+        calc.consider['appearance'].weight = 1.0 - calc.consider['price'].weight
+
+        decision = pandas.DataFrame(calc.getDecisionMatrix(apple_options))
+
+        print("")
+        print(f"price_weight = {calc.consider['price'].weight:04.2f} | appearance_weight = {calc.consider['appearance'].weight:04.2f}")
+        print(decision)
 
     exit()
 
@@ -87,6 +99,7 @@ class DecisionCalculator:
 
     def getDecisionMatrix(self, options):
         decision_matrix = []
+        options = deepcopy(options)
         for option in options:
             for id, considering in self.consider.items():
                 option[f'{id}_score'] = considering.getScore(option[id])
@@ -122,7 +135,7 @@ class Consider:
 
     def getScore(self, value):
         value = self.applyScaleToValue(value)
-        value = self.applyBiasToValue(value)
+        # value = self.applyBiasToValue(value)
         value = self.applyClampToValue(value)
         value = self.applyWeightToValue(value)
         return value
