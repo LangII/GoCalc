@@ -175,7 +175,7 @@ def main():
                 stone_dist_angle[sub_row_i],
                 infls[sub_row_i]
             )
-        )
+        )#
 
     def outerLoop(row, stone_dist_angle, infls):
         """ Get the current row being worked on. """
