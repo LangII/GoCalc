@@ -194,7 +194,7 @@ def main():
     print("\ninfls ="), print(infls)
 
     # print(stone_dist_angle)
-    exit()
+    # exit()
 
     """                                                                                             <<< TESTING """
 
