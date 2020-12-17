@@ -104,7 +104,7 @@ class GetStoneDistAngle3DLayer (keras.layers.Layer):
 
     def getAngles(self, coord, stone_coord_input):
         """ Calculate angle (360d) between coord and each stone_coord in stone_coord_input. """
-        # Have to reshape for zipping later.
+        # Have to reshape for future concatenation.
         return tf.reshape(
             # Outer loop is for converting neg 180 values to pos 360 values.
             tf.map_fn(
