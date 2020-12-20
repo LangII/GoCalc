@@ -1,4 +1,6 @@
 
+
+
 import os
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
@@ -7,16 +9,22 @@ from tensorflow import keras
 
 import math
 
+from functions import sort2dByCol
+
+
+
 """''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''"""
 
-class GetCoordsByStone2DLayer (keras.layers.Layer):
+
+
+class GetCoords2dByStone (keras.layers.Layer):
     """
     Return tensor[?, 3] of coords from input where value is self.stone_value.  Each row of return
     tensor has data of [stone_value, y_coord, x_coord].  Number of rows is number of values in
     input with value of self.stone_value.
     """
     def __init__(self, stone, testing=False):
-        super(GetCoordsByStone2DLayer, self).__init__()
+        super(GetCoords2dByStone, self).__init__()
         self.coord_height_dim = 1 if not testing else 0
         self.stone_value = tf.constant(stone, dtype='int8')
 
@@ -35,24 +43,9 @@ class GetCoordsByStone2DLayer (keras.layers.Layer):
         stone_coords = tf.concat([stone, coords], axis=1)
         return stone_coords
 
-class Sort2DByColLayer (keras.layers.Layer):
-    """
-    Return tensor[?, ?] of input tensor, with rows sorted by value of self.col.  self.multr
-    designates whether the sort is ascending or descending.
-    """
-    def __init__(self, col=0, rev=False):
-        super(Sort2DByColLayer, self).__init__()
-        self.col = col
-        self.multr = -1 if not rev else 1
 
-    def call(self, input):
-        # Sort a 2D tensor by values of self.col.  rev / self.multr indicates if the sort will be
-        # asc or desc.
-        return tf.gather(
-            input, tf.nn.top_k((input[:, self.col] * self.multr), k=input.shape[0]).indices
-        )
 
-class GetStoneDistAngle3DLayer (keras.layers.Layer):
+class GetStoneDistAngle3d (keras.layers.Layer):
     """
     Return tensor[?, ?, 3].  Return tensor 1st dim size is same as all_coord_input 1st dim size.
     Return tensor 2nd dim size is same as stone_coord_input 1st dim size.  The 1st dim of the
@@ -62,7 +55,7 @@ class GetStoneDistAngle3DLayer (keras.layers.Layer):
     coord, and the angle from the board's coord to the stone's coord.
     """
     def __init__(self):
-        super(GetStoneDistAngle3DLayer, self).__init__()
+        super(GetStoneDistAngle3d, self).__init__()
 
     def call(self, all_coord_input, stone_coord_input):
         # Convert dtypes.
@@ -89,7 +82,7 @@ class GetStoneDistAngle3DLayer (keras.layers.Layer):
         dists = self.getDists(coord, stone_coord_input)
         angles = self.getAngles(coord, stone_coord_input)
         output = tf.concat([stones, dists, angles], axis=1)
-        output = Sort2DByColLayer(col=1, rev=False)(output)
+        output = sort2dByCol(output, 1)
         return output
 
     def getDists(self, coord, stone_coord_input):
@@ -121,3 +114,48 @@ class GetStoneDistAngle3DLayer (keras.layers.Layer):
             ),
             [-1, 1]
         )
+
+
+
+class ApplyLtLinWeight1d (keras.layers.Layer):
+    """
+    Takes 1d tensor and outputs parallel tensor where each value is converted to (value * lin_w) if
+    (value < lt_w).
+    """
+    def __init__(self, lt_w, lin_w):
+        super(ApplyLtLinWeight1d, self).__init__()
+        self.lt_w = lt_w
+        self.lin_w = lin_w
+
+    def call(self, input):
+        return tf.map_fn(
+            fn=lambda each: tf.cond(
+                each < self.lt_w,
+                true_fn=lambda: (each * self.lin_w),
+                false_fn=lambda: each
+            ),
+            elems=input
+        )
+
+
+
+####################################################################################################
+
+
+
+# class Sort2DByColLayer (keras.layers.Layer):
+#     """
+#     Return tensor[?, ?] of input tensor, with rows sorted by value of self.col.  self.multr
+#     designates whether the sort is ascending or descending.
+#     """
+#     def __init__(self, col=0, rev=False):
+#         super(Sort2DByColLayer, self).__init__()
+#         self.col = col
+#         self.multr = -1 if not rev else 1
+#
+#     def call(self, input):
+#         # Sort a 2D tensor by values of self.col.  rev / self.multr indicates if the sort will be
+#         # asc or desc.
+#         return tf.gather(
+#             input, tf.nn.top_k((input[:, self.col] * self.multr), k=input.shape[0]).indices
+#         )
