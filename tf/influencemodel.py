@@ -12,7 +12,7 @@ from tensorflow import keras
 import math
 
 from functions import (
-    applyScale, sort2dByCol, getIndexOfRowIn2d
+    applyScale, sort2dByCol, getIndexOfRowIn2d, printNotFloatPt, roundFloat
 )
 from layers import (
     GetCoords2dByStone, GetStoneDistAngle3d, GetInfluences3d, ApplyLtLinWeight1d
@@ -101,159 +101,23 @@ def main():
     all_coords = sort2dByCol(all_coords, 2)
     all_coords = sort2dByCol(all_coords, 1)
 
-    all_coords = all_coords[:1, :] # Currently testing influence calc (only using single coord).
+    # all_coords = all_coords[:1, :] # Currently testing influence calc (only using single coord).
 
     stone_dist_angle = GetStoneDistAngle3d()(all_coords, all_stone_coords)
 
     # print("\nstone_dist_angle ="), print(stone_dist_angle)
 
 
-    # influences = GetInfluences3d(BOARD_SIZE)(stone_dist_angle)
-    # exit()
-
-    """                                                                                             TESTING >>> """
-
-
-
-    """ TURNOVER NOTES:  Next to do is translate testing functions here into a class in layers.py.
-    Then start unit testing influence's barrier bias calculations. """
-
-
-
-    """ testing on a single stone_dist_angle (coord [0, 0]) """
-    stone_dist_angle = stone_dist_angle[0]
-    print("\nstone_dist_angle ="), print(stone_dist_angle)
-    # exit()
-
-    global infls
-    max_dist = tf.norm(tf.constant(BOARD.shape, dtype='float32'), ord='euclidean')
-    infls = max_dist - stone_dist_angle[:, 1]
-    infls = tf.reshape(infls, [-1, 1]) # for printing
-    print("\ninfls (original) ="), print(infls)
-
-    # Normalize infls.
-    infls = applyScale(
-        infls,
-        tf.concat([tf.constant(0, dtype='float32'), max_dist], axis=0),
-        tf.constant([0, 1], dtype='float32')
-    )
-    print("\ninfls (normalized) ="), print(infls)
-
-    # Apply first dist bias to infls.
-    dist_bias_lt_point_w = 0.6
-    dist_bias_w = 0.2
-    infls = ApplyLtLinWeight1d(dist_bias_lt_point_w, dist_bias_w)(infls)
-    print("\ninfls (with dist bias) ="), print(infls)
-
-    def getBools(t, all_t):
-        return tf.map_fn(
-            fn=lambda t1: tf.cond(
-                tf.reduce_all(tf.equal(t, t1)),
-                true_fn=lambda: tf.constant(True, dtype='bool'),
-                false_fn=lambda: tf.constant(False, dtype='bool')
-            ),
-            elems=all_t,
-            dtype='bool'
-        )
-
-    def calcBarrierBias(def_dist, def_angle, agr_dist, agr_angle, infl):
-        """
-        def_power = X # The amount infl is adjusted by.
-        1. The further away DEF_dist gets from ORIGIN, reduce def_power by X.
-        2. The further away AGR_angle is from DEF_angle, reduce def_power by X.
-            - I think +/- 90d should be the max.
-        3. If AGR_angle is < DEF_angle + X or AGR_angle is > DEF_angle - X, apply def_power.
-        """
-
-        """
-        angle1, angle2, dif = 180, 355, 45
-        angle_dif = abs(angle1 - angle2)
-        if angle_dif > 180:  angle_dif = 360 - angle_dif
-        if angle_dif <= dif:  print('within dif')
-        else:  print('not within dif')
-        print("angle1    =", angle1)
-        print("angle2    =", angle2)
-        print("dif       =", dif)
-        print("angle_dif =", angle_dif)
-        """
-
-        # print("")
-        # print("def_dist  =", def_dist)
-        # print("def_angle =", def_angle)
-        # print("agr_dist  =", agr_dist)
-        # print("agr_angle =", agr_angle)
-        # print("infl      =", infl)
-
-        angle_bias_lt_point_w = 45
-        angle_bias_w = 0.2
-
-        # Have to use tf.cond to get angle_dif to handle angle wrap from 360 back to 0.
-        angle_dif = tf.abs(def_angle - agr_angle)
-        angle_dif = tf.cond(angle_dif > 180, true_fn=lambda: 360 - angle_dif, false_fn=lambda: angle_dif)
-
-        # Apply bias to infl.
-        infl = tf.cond(
-            angle_dif < angle_bias_lt_point_w,
-            true_fn=lambda: infl * angle_bias_w,
-            false_fn=lambda: infl
-        )
-
-        # print("")
-        # print(infl)
-        # exit()
-
-        return infl
-
-    def applyBarrierBias(def_row, agr_row, infl):
-        def_stone, def_dist, def_angle = def_row[0], def_row[1], def_row[2]
-        agr_stone, agr_dist, agr_angle = agr_row[0], agr_row[1], agr_row[2]
-        return tf.cond(
-            def_stone == agr_stone,
-            true_fn=lambda: infl,
-            false_fn=lambda: calcBarrierBias(def_dist, def_angle, agr_dist, agr_angle, infl)
-        )
-
-    """ Perform sub loop through each row of stone_dist_angle. """
-    def innerLoop(sub_row, row_i, stone_dist_angle, infls):
-        sub_row_i = tf.reshape(tf.where(getBools(sub_row, stone_dist_angle)), [-1])[0]
-        return tf.cond(
-            sub_row_i <= row_i,
-            true_fn=lambda: infls[sub_row_i],
-            false_fn=lambda: applyBarrierBias(
-                stone_dist_angle[row_i],
-                stone_dist_angle[sub_row_i],
-                infls[sub_row_i]
-            )
-        )
-
-    # def outerLoop(row, stone_dist_angle, infls):
-    def outerLoop(row, stone_dist_angle):
-        """  """
-        global infls
-        # Get the current row being worked on.
-        row_i = tf.reshape(tf.where(getBools(row, stone_dist_angle)), [-1])[0]
-        infls = tf.map_fn(
-            fn=lambda sub_row: innerLoop(sub_row, row_i, stone_dist_angle, infls),
-            elems=stone_dist_angle,
-        )
-        return infls
-
-    """ Loop through each row of stone_dist_angle. """
-    # infls = tf.map_fn(
-    tf.map_fn(
-        # fn=lambda row: outerLoop(row, stone_dist_angle, infls),
-        fn=lambda row: outerLoop(row, stone_dist_angle),
-        elems=stone_dist_angle
-    )
-
-    # infls = FloatRoundLayer(7)(infls)
-    print("\ninfls (with barrier bias) =")
-    np.set_printoptions(precision=8, suppress=True)
-    print(infls.numpy())
-
+    influences = GetInfluences3d(BOARD_SIZE)(stone_dist_angle)
+    # printNotFloatPt(influences)
+    influences = tf.map_fn(fn=lambda x: tf.reduce_sum(x), elems=influences)
+    influences = tf.reshape(influences, [9, 9])
+    influences = roundFloat(influences)
+    print(influences)
+    print(tf.reduce_sum(influences))
     exit()
 
-    """                                                                                             <<< TESTING """
+
 
     # get_fuseki_table = GetFusekiTableLayer(stone=BLACK_STONE_VALUE)
     # fuseki_tbl = get_fuseki_table(no_stone_coord, all_stone_coord)
@@ -279,6 +143,147 @@ def main():
 if __name__ == '__main__':  main()
 
 """'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''' OBSOLETE """
+
+""" GetInfluences3d """
+# """                                                                                             TESTING >>> """
+#
+# """ TURNOVER NOTES:  Next to do is translate testing functions here into a class in layers.py.
+# Then start unit testing influence's barrier bias calculations. """
+#
+# """ testing on a single stone_dist_angle (coord [0, 0]) """
+# stone_dist_angle = stone_dist_angle[0]
+# print("\nstone_dist_angle ="), print(stone_dist_angle)
+# # exit()
+#
+# global infls
+# max_dist = tf.norm(tf.constant(BOARD.shape, dtype='float32'), ord='euclidean')
+# infls = max_dist - stone_dist_angle[:, 1]
+# infls = tf.reshape(infls, [-1, 1]) # for printing
+# print("\ninfls (original) ="), print(infls)
+#
+# # Normalize infls.
+# infls = applyScale(
+#     infls,
+#     tf.concat([tf.constant(0, dtype='float32'), max_dist], axis=0),
+#     tf.constant([0, 1], dtype='float32')
+# )
+# print("\ninfls (normalized) ="), print(infls)
+#
+# # Apply first dist bias to infls.
+# dist_bias_lt_point_w = 0.6
+# dist_bias_w = 0.2
+# infls = ApplyLtLinWeight1d(dist_bias_lt_point_w, dist_bias_w)(infls)
+# print("\ninfls (with dist bias) ="), print(infls)
+#
+# def getBools(t, all_t):
+#     return tf.map_fn(
+#         fn=lambda t1: tf.cond(
+#             tf.reduce_all(tf.equal(t, t1)),
+#             true_fn=lambda: tf.constant(True, dtype='bool'),
+#             false_fn=lambda: tf.constant(False, dtype='bool')
+#         ),
+#         elems=all_t,
+#         dtype='bool'
+#     )
+#
+# def calcBarrierBias(def_dist, def_angle, agr_dist, agr_angle, infl):
+#     """
+#     def_power = X # The amount infl is adjusted by.
+#     1. The further away DEF_dist gets from ORIGIN, reduce def_power by X.
+#     2. The further away AGR_angle is from DEF_angle, reduce def_power by X.
+#         - I think +/- 90d should be the max.
+#     3. If AGR_angle is < DEF_angle + X or AGR_angle is > DEF_angle - X, apply def_power.
+#     """
+#
+#     """
+#     angle1, angle2, dif = 180, 355, 45
+#     angle_dif = abs(angle1 - angle2)
+#     if angle_dif > 180:  angle_dif = 360 - angle_dif
+#     if angle_dif <= dif:  print('within dif')
+#     else:  print('not within dif')
+#     print("angle1    =", angle1)
+#     print("angle2    =", angle2)
+#     print("dif       =", dif)
+#     print("angle_dif =", angle_dif)
+#     """
+#
+#     # print("")
+#     # print("def_dist  =", def_dist)
+#     # print("def_angle =", def_angle)
+#     # print("agr_dist  =", agr_dist)
+#     # print("agr_angle =", agr_angle)
+#     # print("infl      =", infl)
+#
+#     angle_bias_lt_point_w = 45
+#     angle_bias_w = 0.2
+#
+#     # Have to use tf.cond to get angle_dif to handle angle wrap from 360 back to 0.
+#     angle_dif = tf.abs(def_angle - agr_angle)
+#     angle_dif = tf.cond(angle_dif > 180, true_fn=lambda: 360 - angle_dif, false_fn=lambda: angle_dif)
+#
+#     # Apply bias to infl.
+#     infl = tf.cond(
+#         angle_dif < angle_bias_lt_point_w,
+#         true_fn=lambda: infl * angle_bias_w,
+#         false_fn=lambda: infl
+#     )
+#
+#     # print("")
+#     # print(infl)
+#     # exit()
+#
+#     return infl
+#
+# def applyBarrierBias(def_row, agr_row, infl):
+#     def_stone, def_dist, def_angle = def_row[0], def_row[1], def_row[2]
+#     agr_stone, agr_dist, agr_angle = agr_row[0], agr_row[1], agr_row[2]
+#     return tf.cond(
+#         def_stone == agr_stone,
+#         true_fn=lambda: infl,
+#         false_fn=lambda: calcBarrierBias(def_dist, def_angle, agr_dist, agr_angle, infl)
+#     )
+#
+# """ Perform sub loop through each row of stone_dist_angle. """
+# def innerLoop(sub_row, row_i, stone_dist_angle, infls):
+#     sub_row_i = tf.reshape(tf.where(getBools(sub_row, stone_dist_angle)), [-1])[0]
+#     return tf.cond(
+#         sub_row_i <= row_i,
+#         true_fn=lambda: infls[sub_row_i],
+#         false_fn=lambda: applyBarrierBias(
+#             stone_dist_angle[row_i],
+#             stone_dist_angle[sub_row_i],
+#             infls[sub_row_i]
+#         )
+#     )
+#
+# # def outerLoop(row, stone_dist_angle, infls):
+# def outerLoop(row, stone_dist_angle):
+#     """  """
+#     global infls
+#     # Get the current row being worked on.
+#     row_i = tf.reshape(tf.where(getBools(row, stone_dist_angle)), [-1])[0]
+#     infls = tf.map_fn(
+#         fn=lambda sub_row: innerLoop(sub_row, row_i, stone_dist_angle, infls),
+#         elems=stone_dist_angle,
+#     )
+#     return infls
+#
+# """ Loop through each row of stone_dist_angle. """
+# # infls = tf.map_fn(
+# tf.map_fn(
+#     # fn=lambda row: outerLoop(row, stone_dist_angle, infls),
+#     fn=lambda row: outerLoop(row, stone_dist_angle),
+#     elems=stone_dist_angle
+# )
+#
+# # infls = FloatRoundLayer(7)(infls)
+# print("\ninfls (with barrier bias) =")
+# np.set_printoptions(precision=8, suppress=True)
+# print(infls.numpy())
+#
+# exit()
+#
+# """                                                                                             <<< TESTING """
 
 """ print board plot """
 # plt.imshow(board, cmap=plt.cm.binary)

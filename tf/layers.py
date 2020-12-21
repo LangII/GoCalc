@@ -118,102 +118,91 @@ class GetStoneDistAngle3d (keras.layers.Layer):
 
 
 class GetInfluences3d (keras.layers.Layer):
+    """ Take the data sets of stone_dist_angle for each board coord pos and calculate each coord's
+    player influence by applying weights.  Angular bias requires deep calculations with multiple
+    loop layers. """
     def __init__(self, board_shape):
         super(GetInfluences3d, self).__init__()
         self.board_shape = board_shape
         self.max_dist = tf.norm(tf.constant(self.board_shape, dtype='float32'), ord='euclidean')
-
         # WEIGHTS (TESTING)
-        self.dist_bias_lt_w = 0.6
-        self.dist_bias_lin_w = 0.2
+        self.dist_bias_lt_w = 0.5
+        self.dist_bias_lin_w = 0.5
         self.angle_bias_lt_w = 45.0
-        self.angle_bias_lin_w = 0.2
+        self.angle_bias_lin_w = 0.5
 
 
     def call(self, stone_dist_angle_input):
+        # Loop through each coord's stone_dist_angle data set to get each coord's influence.
         return tf.map_fn(
             fn=lambda each: self.getEachInfluences(each),
             elems=stone_dist_angle_input
         )
 
     def getEachInfluences(self, stone_dist_angle):
-
-        self.infls = tf.constant(0)
-
-        self.infls = self.max_dist - stone_dist_angle[:, 1]
-        self.infls = tf.reshape(self.infls, [-1, 1]) # for printing
-        # print("\ninfls (original) ="), print(self.infls)
-
+        # Initiate, modify, and return infls.
+        self.infls = self.max_dist - stone_dist_angle[:, 1] # Initialize infls.
         self.normalizeInfls()
-        # print("\ninfls (normalized) ="), print(self.infls)
-
-        self.infls = ApplyLtLinWeight1d(self.dist_bias_lt_w, self.dist_bias_lin_w)(self.infls)
-        # print("\ninfls (with dist bias) ="), print(self.infls)
-
-        self.updateInflsWithBarrierBias(stone_dist_angle)
-        np.set_printoptions(precision=8, suppress=True)
-        print("\ninfls (with barrier bias) ="), print(self.infls.numpy())
-
-        exit()
-
+        self.updateInflsWithDistBias()
+        self.updateInflsWithAngleBias(stone_dist_angle)
+        self.infls = self.infls * stone_dist_angle[:, 0] # Update infls with stone values.
         return self.infls
 
     def normalizeInfls(self):
+        # Normalize infls based on scale of max possible distance on board.
         self.infls = applyScale(
             self.infls,
             tf.concat([tf.constant(0, dtype='float32'), self.max_dist], axis=0),
             tf.constant([0, 1], dtype='float32')
         )
 
-    def updateInflsWithBarrierBias(self, stone_dist_angle):
-        something = tf.map_fn(
+    def updateInflsWithDistBias(self):
+        # Calculate fall off of dist bias with class weights.
+        self.infls = ApplyLtLinWeight1d(self.dist_bias_lt_w, self.dist_bias_lin_w)(self.infls)
+
+    def updateInflsWithAngleBias(self, stone_dist_angle):
+        # Calculate fall off of angle bias with class weights.  Requires deeper calculations with
+        # an outer loop and an inner loop through the stone_dist_angle data set.
+        tf.map_fn(
             fn=lambda row: self.outerLoop(row, stone_dist_angle),
             elems=stone_dist_angle
         )
 
-
-
     def outerLoop(self, outer_row, stone_dist_angle):
-        print("\nstone_dist_angle =", stone_dist_angle)
-        print("\nouter_row =", outer_row)
-        # print("starting outerLoop()")
         outer_row_i = getIndexOfRowIn2d(outer_row, stone_dist_angle)
-        # print("outer_row_i =", outer_row_i)
-        print("\nself.infls =", self.infls)
         self.infls = tf.map_fn(
             fn=lambda inner_row: self.innerLoop(inner_row, outer_row_i, stone_dist_angle),
             elems=stone_dist_angle,
         )
-        print("\nself.infls =", self.infls)
-        # return None
-        # print("\nself.infls =", self.infls)
-        # print("MADE IT HERE") ; exit()
-        return self.infls
-
-
+        # map_fn (in updateInflsWithBarrierBias()) requires a return value.
+        return tf.constant(0.0)
 
     def innerLoop(self, inner_row, outer_row_i, stone_dist_angle):
         inner_row_i = getIndexOfRowIn2d(inner_row, stone_dist_angle)
         return tf.cond(
             inner_row_i <= outer_row_i,
             true_fn=lambda: self.infls[inner_row_i],
-            false_fn=lambda: self.applyBarrierBias(
-                stone_dist_angle[outer_row_i],
-                stone_dist_angle[inner_row_i],
+            false_fn=lambda: self.applyAngleBias(
+                stone_dist_angle[outer_row_i, 0],
+                stone_dist_angle[outer_row_i, 2],
+                stone_dist_angle[inner_row_i, 0],
+                stone_dist_angle[inner_row_i, 2],
                 self.infls[inner_row_i]
             )
         )
 
-    def applyBarrierBias(self, def_row, agr_row, infl):
-        def_stone, def_dist, def_angle = def_row[0], def_row[1], def_row[2]
-        agr_stone, agr_dist, agr_angle = agr_row[0], agr_row[1], agr_row[2]
+    def applyAngleBias(self, def_stone, def_angle, agr_stone, agr_angle, infl):
+        # Apply angle bias under the condition that it's necessary.  It is not necessary if
+        # the defensive stone and aggressive stone are the same.
         return tf.cond(
             def_stone == agr_stone,
             true_fn=lambda: infl,
-            false_fn=lambda: self.calcBarrierBias(def_dist, def_angle, agr_dist, agr_angle, infl)
+            false_fn=lambda: self.calcAngleBias(def_angle, agr_angle, infl)
         )
 
-    def calcBarrierBias(self, def_dist, def_angle, agr_dist, agr_angle, infl):
+    def calcAngleBias(self, def_angle, agr_angle, infl):
+        """ Get the angle difference and apply the bias weights if the angle difference is within
+        the weight value. """
         angle_dif = tf.abs(def_angle - agr_angle)
         # Handle angle wrap from 360 to 0.
         angle_dif = tf.cond(
@@ -221,7 +210,6 @@ class GetInfluences3d (keras.layers.Layer):
             true_fn=lambda: 360 - angle_dif,
             false_fn=lambda: angle_dif
         )
-        # print("MADE IT HERE") ; exit()
         # Apply bias to infl.
         return tf.cond(
             angle_dif < self.angle_bias_lt_w,
