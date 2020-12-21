@@ -12,10 +12,10 @@ from tensorflow import keras
 import math
 
 from functions import (
-    applyScale, sort2dByCol
+    applyScale, sort2dByCol, getIndexOfRowIn2d
 )
 from layers import (
-    GetCoords2dByStone, GetStoneDistAngle3d, ApplyLtLinWeight1d
+    GetCoords2dByStone, GetStoneDistAngle3d, GetInfluences3d, ApplyLtLinWeight1d
 )
 
 """''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''' CONSTANTS """
@@ -105,6 +105,12 @@ def main():
 
     stone_dist_angle = GetStoneDistAngle3d()(all_coords, all_stone_coords)
 
+    # print("\nstone_dist_angle ="), print(stone_dist_angle)
+
+
+    # influences = GetInfluences3d(BOARD_SIZE)(stone_dist_angle)
+    # exit()
+
     """                                                                                             TESTING >>> """
 
 
@@ -117,6 +123,7 @@ def main():
     """ testing on a single stone_dist_angle (coord [0, 0]) """
     stone_dist_angle = stone_dist_angle[0]
     print("\nstone_dist_angle ="), print(stone_dist_angle)
+    # exit()
 
     global infls
     max_dist = tf.norm(tf.constant(BOARD.shape, dtype='float32'), ord='euclidean')

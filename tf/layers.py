@@ -9,7 +9,11 @@ from tensorflow import keras
 
 import math
 
-from functions import sort2dByCol
+from functions import sort2dByCol, applyScale, getIndexOfRowIn2d
+
+
+
+import numpy as np
 
 
 
@@ -110,6 +114,124 @@ class GetStoneDistAngle3d (keras.layers.Layer):
             ),
             [-1, 1]
         )
+
+
+
+class GetInfluences3d (keras.layers.Layer):
+    def __init__(self, board_shape):
+        super(GetInfluences3d, self).__init__()
+        self.board_shape = board_shape
+        self.max_dist = tf.norm(tf.constant(self.board_shape, dtype='float32'), ord='euclidean')
+
+        # WEIGHTS (TESTING)
+        self.dist_bias_lt_w = 0.6
+        self.dist_bias_lin_w = 0.2
+        self.angle_bias_lt_w = 45.0
+        self.angle_bias_lin_w = 0.2
+
+
+    def call(self, stone_dist_angle_input):
+        return tf.map_fn(
+            fn=lambda each: self.getEachInfluences(each),
+            elems=stone_dist_angle_input
+        )
+
+    def getEachInfluences(self, stone_dist_angle):
+
+        self.infls = tf.constant(0)
+
+        self.infls = self.max_dist - stone_dist_angle[:, 1]
+        self.infls = tf.reshape(self.infls, [-1, 1]) # for printing
+        # print("\ninfls (original) ="), print(self.infls)
+
+        self.normalizeInfls()
+        # print("\ninfls (normalized) ="), print(self.infls)
+
+        self.infls = ApplyLtLinWeight1d(self.dist_bias_lt_w, self.dist_bias_lin_w)(self.infls)
+        # print("\ninfls (with dist bias) ="), print(self.infls)
+
+        self.updateInflsWithBarrierBias(stone_dist_angle)
+        np.set_printoptions(precision=8, suppress=True)
+        print("\ninfls (with barrier bias) ="), print(self.infls.numpy())
+
+        exit()
+
+        return self.infls
+
+    def normalizeInfls(self):
+        self.infls = applyScale(
+            self.infls,
+            tf.concat([tf.constant(0, dtype='float32'), self.max_dist], axis=0),
+            tf.constant([0, 1], dtype='float32')
+        )
+
+    def updateInflsWithBarrierBias(self, stone_dist_angle):
+        something = tf.map_fn(
+            fn=lambda row: self.outerLoop(row, stone_dist_angle),
+            elems=stone_dist_angle
+        )
+
+
+
+    def outerLoop(self, outer_row, stone_dist_angle):
+        print("\nstone_dist_angle =", stone_dist_angle)
+        print("\nouter_row =", outer_row)
+        # print("starting outerLoop()")
+        outer_row_i = getIndexOfRowIn2d(outer_row, stone_dist_angle)
+        # print("outer_row_i =", outer_row_i)
+        print("\nself.infls =", self.infls)
+        self.infls = tf.map_fn(
+            fn=lambda inner_row: self.innerLoop(inner_row, outer_row_i, stone_dist_angle),
+            elems=stone_dist_angle,
+        )
+        print("\nself.infls =", self.infls)
+        # return None
+        # print("\nself.infls =", self.infls)
+        # print("MADE IT HERE") ; exit()
+        return self.infls
+
+
+
+    def innerLoop(self, inner_row, outer_row_i, stone_dist_angle):
+        inner_row_i = getIndexOfRowIn2d(inner_row, stone_dist_angle)
+        return tf.cond(
+            inner_row_i <= outer_row_i,
+            true_fn=lambda: self.infls[inner_row_i],
+            false_fn=lambda: self.applyBarrierBias(
+                stone_dist_angle[outer_row_i],
+                stone_dist_angle[inner_row_i],
+                self.infls[inner_row_i]
+            )
+        )
+
+    def applyBarrierBias(self, def_row, agr_row, infl):
+        def_stone, def_dist, def_angle = def_row[0], def_row[1], def_row[2]
+        agr_stone, agr_dist, agr_angle = agr_row[0], agr_row[1], agr_row[2]
+        return tf.cond(
+            def_stone == agr_stone,
+            true_fn=lambda: infl,
+            false_fn=lambda: self.calcBarrierBias(def_dist, def_angle, agr_dist, agr_angle, infl)
+        )
+
+    def calcBarrierBias(self, def_dist, def_angle, agr_dist, agr_angle, infl):
+        angle_dif = tf.abs(def_angle - agr_angle)
+        # Handle angle wrap from 360 to 0.
+        angle_dif = tf.cond(
+            angle_dif > 180,
+            true_fn=lambda: 360 - angle_dif,
+            false_fn=lambda: angle_dif
+        )
+        # print("MADE IT HERE") ; exit()
+        # Apply bias to infl.
+        return tf.cond(
+            angle_dif < self.angle_bias_lt_w,
+            true_fn=lambda: infl * self.angle_bias_lin_w,
+            false_fn=lambda: infl
+        )
+
+
+
+####################################################################################################
 
 
 
