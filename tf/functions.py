@@ -47,6 +47,28 @@ def sort2dByCol(t, col=0, dir=-1):
 
 
 
+def getIndexOfRowIn2d(row, tens_2d):
+    """
+    row =
+    tens_2d =
+    """
+    return tf.reshape(
+        tf.where(
+            tf.map_fn(
+                fn=lambda row_x: tf.cond(
+                    tf.reduce_all(tf.equal(row, row_x)),
+                    true_fn=lambda: tf.constant(True, dtype='bool'),
+                    false_fn=lambda: tf.constant(False, dtype='bool')
+                ),
+                elems=tens_2d,
+                dtype='bool'
+            )
+        ),
+        [-1]
+    )[0]
+
+
+
 ####################################################################################################
 
 
