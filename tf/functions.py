@@ -2,6 +2,7 @@
 """ Need to update old functions to tensor format. """
 
 import tensorflow as tf
+import numpy as np
 
 import math
 
@@ -66,6 +67,12 @@ def getIndexOfRowIn2d(row, tens_2d):
         ),
         [-1]
     )[0]
+
+
+
+def printNotFloatPt(t):
+    np.set_printoptions(precision=8, suppress=True)
+    print(t.numpy())
 
 
 
