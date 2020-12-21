@@ -1,8 +1,8 @@
 
 
 
-import os
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
+# import os
+# os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
 import tensorflow as tf
 from tensorflow import keras
@@ -13,16 +13,14 @@ from functions import sort2dByCol
 
 
 
-"""''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''"""
+####################################################################################################
 
 
 
 class GetCoords2dByStone (keras.layers.Layer):
-    """
-    Return tensor[?, 3] of coords from input where value is self.stone_value.  Each row of return
-    tensor has data of [stone_value, y_coord, x_coord].  Number of rows is number of values in
-    input with value of self.stone_value.
-    """
+    """ Return tensor[?, 3] of coords from input where value is self.stone_value.  Each row of
+    return tensor has data of [stone_value, y_coord, x_coord].  Number of rows is number of values
+    in input with value of self.stone_value. """
     def __init__(self, stone, testing=False):
         super(GetCoords2dByStone, self).__init__()
         self.coord_height_dim = 1 if not testing else 0
@@ -46,14 +44,12 @@ class GetCoords2dByStone (keras.layers.Layer):
 
 
 class GetStoneDistAngle3d (keras.layers.Layer):
-    """
-    Return tensor[?, ?, 3].  Return tensor 1st dim size is same as all_coord_input 1st dim size.
+    """ Return tensor[?, ?, 3].  Return tensor 1st dim size is same as all_coord_input 1st dim size.
     Return tensor 2nd dim size is same as stone_coord_input 1st dim size.  The 1st dim of the
     return tensor is a squashed tensor of the original board input. Each 2nd dim sub tensor
     of return tensor is a 2d tensor where each row represents a stone, and the values of each stone
     are the stone's value itself (+1 or -1), the distance from the board's coord to the stone's
-    coord, and the angle from the board's coord to the stone's coord.
-    """
+    coord, and the angle from the board's coord to the stone's coord. """
     def __init__(self):
         super(GetStoneDistAngle3d, self).__init__()
 
@@ -118,17 +114,17 @@ class GetStoneDistAngle3d (keras.layers.Layer):
 
 
 class ApplyLtLinWeight1d (keras.layers.Layer):
-    """
-    Takes 1d tensor and outputs parallel tensor where each value is converted to (value * lin_w) if
-    (value < lt_w).
-    """
+    """ Takes 1d tensor and outputs parallel tensor where each value is converted to (each * lin_w)
+    if (each < lt_w). """
     def __init__(self, lt_w, lin_w):
         super(ApplyLtLinWeight1d, self).__init__()
         self.lt_w = lt_w
         self.lin_w = lin_w
 
     def call(self, input):
+        # Loop through each element of input.
         return tf.map_fn(
+            # Apply calculation to each if condition returns true.
             fn=lambda each: tf.cond(
                 each < self.lt_w,
                 true_fn=lambda: (each * self.lin_w),

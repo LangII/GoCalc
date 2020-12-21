@@ -118,11 +118,7 @@ def main():
     stone_dist_angle = stone_dist_angle[0]
     print("\nstone_dist_angle ="), print(stone_dist_angle)
 
-    # Get raw infls.
-
-    """ HERE!!! """
     global infls
-
     max_dist = tf.norm(tf.constant(BOARD.shape, dtype='float32'), ord='euclidean')
     infls = max_dist - stone_dist_angle[:, 1]
     infls = tf.reshape(infls, [-1, 1]) # for printing

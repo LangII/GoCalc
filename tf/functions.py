@@ -1,7 +1,5 @@
 
-"""
-Need to update old functions to tensor format.
-"""
+""" Need to update old functions to tensor format. """
 
 import tensorflow as tf
 
