@@ -6,14 +6,12 @@
 
 import tensorflow as tf
 from tensorflow import keras
+import numpy as np
+import pandas as pd
 
 import math
 
 from functions import sort2dByCol, applyScale, getIndexOfRowIn2d
-
-
-
-import numpy as np
 
 
 
@@ -256,6 +254,13 @@ class GetInfluences3d (keras.layers.Layer):
         # map_fn (in updateInflsWithBarrierBias()) requires a return value.
         return tf.constant(0.0)
 
+    def saveSingleInflSteps(self, single_stone_dist_angle, file_name):
+        infl_steps = self.getSingleInflSteps(single_stone_dist_angle)
+        infl_steps_df = pd.DataFrame(tf.concat([single_stone_dist_angle, infl_steps], axis=1).numpy())
+        cols = ['stone', 'dist', 'angle', 'init', 'norm', 'dist_b']
+        cols += [ f'angle_b_{i}' for i in range(single_stone_dist_angle.shape[0]) ] + ['final']
+        infl_steps_df.columns = cols
+        infl_steps_df.to_csv(file_name)
 
 
 ####################################################################################################
