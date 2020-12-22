@@ -50,8 +50,9 @@ def sort2dByCol(t, col=0, dir=-1):
 
 def getIndexOfRowIn2d(row, tens_2d):
     """
-    row =
-    tens_2d =
+    row =       Tensor(1D) to be found in tens_2d.
+    tens_2d =   Tensor(2D) where row is to be found.
+    Return tensor(0D) of index of row in tens_2d.
     """
     return tf.reshape(
         tf.where(
@@ -70,8 +71,9 @@ def getIndexOfRowIn2d(row, tens_2d):
 
 
 
-def printNotFloatPt(t):
-    np.set_printoptions(precision=8, suppress=True)
+def printNotFloatPt(t, prec=8):
+    """ Prints t, not in the format of scientific method. """
+    np.set_printoptions(precision=prec, suppress=True)
     print(t.numpy())
 
 
