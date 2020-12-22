@@ -125,12 +125,12 @@ class GetInfluences3d (keras.layers.Layer):
         super(GetInfluences3d, self).__init__()
         self.board_shape = board_shape
         self.max_dist = tf.norm(tf.constant(self.board_shape, dtype='float32'), ord='euclidean')
+
         # WEIGHTS (TESTING)
         self.dist_bias_lt_w = 0.5
         self.dist_bias_lin_w = 0.5
         self.angle_bias_lt_w = 45.0
         self.angle_bias_lin_w = 0.5
-
 
     def call(self, stone_dist_angle_input):
         # Loop through each coord's stone_dist_angle data set to get each coord's influence.
@@ -140,12 +140,14 @@ class GetInfluences3d (keras.layers.Layer):
         )
 
     def getEachInfluences(self, stone_dist_angle):
-        # Initiate, modify, and return infls.
-        self.infls = self.max_dist - stone_dist_angle[:, 1] # Initialize infls.
+        """ Initiate, modify, and return infls. """
+        # Initialize infls.
+        self.infls = self.max_dist - stone_dist_angle[:, 1]
         self.normalizeInfls()
         self.updateInflsWithDistBias()
         self.updateInflsWithAngleBias(stone_dist_angle)
-        self.infls = self.infls * stone_dist_angle[:, 0] # Update infls with stone values.
+        # Update infls with stone values.
+        self.infls = self.infls * stone_dist_angle[:, 0]
         return self.infls
 
     def normalizeInfls(self):
@@ -216,6 +218,43 @@ class GetInfluences3d (keras.layers.Layer):
             true_fn=lambda: infl * self.angle_bias_lin_w,
             false_fn=lambda: infl
         )
+
+    """ The "Steps" functions are for analytics and testing purposes.  They're separate functions to
+    not slow down the model with unnecessary conditionals. """
+
+    def getSingleInflSteps(self, single_stone_dist_angle):
+        """ Through out the initiation and updates of infls, concatenate each update of infls to
+        infl_steps. This is for analysis to ensure accuracy of each layer of calculations. """
+        # Initialize infls.
+        self.infls = self.max_dist - single_stone_dist_angle[:, 1]
+        self.infl_steps = tf.reshape(self.infls, [-1, 1])
+        self.normalizeInfls()
+        self.infl_steps = tf.concat([self.infl_steps, tf.reshape(self.infls, [-1, 1])], axis=1)
+        self.updateInflsWithDistBias()
+        self.infl_steps = tf.concat([self.infl_steps, tf.reshape(self.infls, [-1, 1])], axis=1)
+        self.updateInflsWithAngleBiasForSteps(single_stone_dist_angle)
+        # Update infls with stone values.
+        self.infls = self.infls * single_stone_dist_angle[:, 0]
+        self.infl_steps = tf.concat([self.infl_steps, tf.reshape(self.infls, [-1, 1])], axis=1)
+        return self.infl_steps
+
+    def updateInflsWithAngleBiasForSteps(self, stone_dist_angle):
+        # Calculate fall off of angle bias with class weights.  Requires deeper calculations with
+        # an outer loop and an inner loop through the stone_dist_angle data set.
+        tf.map_fn(
+            fn=lambda row: self.outerLoopForSteps(row, stone_dist_angle),
+            elems=stone_dist_angle
+        )
+
+    def outerLoopForSteps(self, outer_row, stone_dist_angle):
+        outer_row_i = getIndexOfRowIn2d(outer_row, stone_dist_angle)
+        self.infls = tf.map_fn(
+            fn=lambda inner_row: self.innerLoop(inner_row, outer_row_i, stone_dist_angle),
+            elems=stone_dist_angle,
+        )
+        self.infl_steps = tf.concat([self.infl_steps, tf.reshape(self.infls, [-1, 1])], axis=1)
+        # map_fn (in updateInflsWithBarrierBias()) requires a return value.
+        return tf.constant(0.0)
 
 
 

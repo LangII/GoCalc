@@ -78,6 +78,11 @@ def printNotFloatPt(t, prec=8):
 
 
 
+def getCoordiByCoordyx(y, x, board_w):
+    return (board_w * y) + x
+
+
+
 ####################################################################################################
 
 

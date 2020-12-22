@@ -1,5 +1,7 @@
 
-import os
+
+
+import os, sys
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
 import numpy as np
@@ -12,13 +14,19 @@ from tensorflow import keras
 import math
 
 from functions import (
-    applyScale, sort2dByCol, getIndexOfRowIn2d, printNotFloatPt, roundFloat
+    applyScale, sort2dByCol, getIndexOfRowIn2d, printNotFloatPt, roundFloat, getCoordiByCoordyx
 )
 from layers import (
     GetCoords2dByStone, GetStoneDistAngle3d, GetInfluences3d, ApplyLtLinWeight1d
 )
 
-"""''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''' CONSTANTS """
+np.set_printoptions(linewidth=300)
+
+
+
+####################################################################################################
+
+
 
 BLACK_STONE_VALUE = +1
 WHITE_STONE_VALUE = -1
@@ -53,7 +61,11 @@ BOARD = tf.constant([
 # TESTING = False
 TESTING = True
 
-"""'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''' MAIN """
+
+
+####################################################################################################
+
+
 
 def main():
 
@@ -98,23 +110,39 @@ def main():
     all_coords = sort2dByCol(all_coords, 1)
 
     all_stone_coords = tf.concat([black_stone_coords, white_stone_coords], axis=0)
-    all_coords = sort2dByCol(all_coords, 2)
-    all_coords = sort2dByCol(all_coords, 1)
+    all_stone_coords = sort2dByCol(all_stone_coords, 2)
+    all_stone_coords = sort2dByCol(all_stone_coords, 1)
 
-    # all_coords = all_coords[:1, :] # Currently testing influence calc (only using single coord).
+    """ Testing influence calc (only using single coord). """
+    coord_y, coord_x = 0, 0
+    coord_i = (BOARD_SIZE[0] * coord_y) + coord_x
+    all_coords = all_coords[coord_i]
+    all_coords = tf.reshape(all_coords, [1, -1])
+    # print(all_coords) ; exit()
 
     stone_dist_angle = GetStoneDistAngle3d()(all_coords, all_stone_coords)
+    # print(stone_dist_angle) ; exit()
 
-    # print("\nstone_dist_angle ="), print(stone_dist_angle)
+    get_influences = GetInfluences3d(BOARD_SIZE)
+    # influences = get_influences(stone_dist_angle)
+    # print(influences) ; exit()
+    infl_steps = get_influences.getSingleInflSteps(stone_dist_angle[0])
+    # infl_steps = roundFloat(infl_steps, 4)
+    print("")
+    print(all_stone_coords)
+    print("")
+    print(stone_dist_angle)
+    print("")
+    print(infl_steps)
+    exit()
 
-
-    influences = GetInfluences3d(BOARD_SIZE)(stone_dist_angle)
-    # printNotFloatPt(influences)
+    # Show final GetInfluences3d results.
     influences = tf.map_fn(fn=lambda x: tf.reduce_sum(x), elems=influences)
-    influences = tf.reshape(influences, [9, 9])
+    influences = tf.reshape(influences, BOARD_SIZE)
+    influences_sum = tf.reduce_sum(influences)
     influences = roundFloat(influences)
     print(influences)
-    print(tf.reduce_sum(influences))
+    print(influences_sum)
     exit()
 
 
@@ -138,11 +166,19 @@ def main():
     #     callbacks=[tensorboard]
     # )
 
-"""''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''' MAIN CALL """
+
+
+####################################################################################################
+
+
 
 if __name__ == '__main__':  main()
 
-"""'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''' OBSOLETE """
+
+
+####################################################################################################
+
+
 
 """ GetInfluences3d """
 # """                                                                                             TESTING >>> """
