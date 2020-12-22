@@ -115,6 +115,7 @@ def main():
 
     """ Testing influence calc (only using single coord). """
     coord_y, coord_x = 0, 0
+    # coord_y, coord_x = 4, 4
     coord_i = (BOARD_SIZE[0] * coord_y) + coord_x
     all_coords = all_coords[coord_i]
     all_coords = tf.reshape(all_coords, [1, -1])
@@ -130,10 +131,20 @@ def main():
     # infl_steps = roundFloat(infl_steps, 4)
     print("")
     print(all_stone_coords)
+    all_stone_coords = tf.cast(all_stone_coords, dtype='float32')
     print("")
     print(stone_dist_angle)
     print("")
-    print(infl_steps)
+    infl_steps_df = pd.DataFrame(tf.concat([stone_dist_angle[0], infl_steps], axis=1).numpy())
+    # infl_steps_df.columns = ['init', 'norm', 'dist_b']
+    steps_cols = ['stone', 'dist', 'angle', 'init', 'norm', 'dist_b']
+    steps_cols += [ f'angle_b_{i}' for i in range(all_stone_coords.shape[0]) ]
+    steps_cols += ['final']
+    infl_steps_df.columns = steps_cols
+    # print(all_stone_coords.numpy().shape)
+    # exit()
+    infl_steps_df.to_csv('infl_steps_report_01.csv')
+    print(infl_steps_df)
     exit()
 
     # Show final GetInfluences3d results.
