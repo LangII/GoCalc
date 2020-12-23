@@ -26,18 +26,17 @@ class GetCoords2dByStone (keras.layers.Layer):
     def __init__(self, stone, testing=False):
         super(GetCoords2dByStone, self).__init__()
         self.coord_height_dim = 1 if not testing else 0
-        self.stone_value = tf.constant(stone, dtype='int8')
+        self.stone_value = tf.constant(stone)
 
     def call(self, input):
         # Convert input into parallel bool tensor, where True = self.stone_value.
         input_as_bool = tf.equal(input, self.stone_value)
         # Get tensor of coords from input_as_bool where value = True.
-        coords = tf.cast(tf.where(input_as_bool), dtype='int8')
+        coords = tf.cast(tf.where(input_as_bool), dtype='int32')
         # Make tensor of same height as coords, of self.stone_value to be joined with coords.
         stone = tf.constant(
             self.stone_value,
             shape=[coords.shape[self.coord_height_dim], 1],
-            dtype='int8'
         )
         # Vertically join stone and coords.
         stone_coords = tf.concat([stone, coords], axis=1)
@@ -60,11 +59,12 @@ class GetStoneDistAngle3d (keras.layers.Layer):
         all_coord_input = tf.cast(all_coord_input, dtype='float32')
         stone_coord_input = tf.cast(stone_coord_input, dtype='float32')
         # Loop through all_coord_input.
-        return tf.map_fn(
+        return tf.vectorized_map(
             fn=lambda coord: self.checkForStone(coord, stone_coord_input),
             elems=all_coord_input
         )
 
+    @tf.function
     def checkForStone(self, coord, stone_coord_input):
         # Check to see if current coord in loop is has a stone or not.  If current coord in loop
         # does not have a stone then proceed with self.getOutput(), else return empty zeros tensor.
@@ -74,6 +74,7 @@ class GetStoneDistAngle3d (keras.layers.Layer):
             false_fn=lambda: tf.zeros([stone_coord_input.shape[0], 3])
         )
 
+    @tf.function
     def getOutput(self, coord, stone_coord_input):
         # Build and return 2nd dimension output tensor of values of stones, dists, and angles.
         stones = stone_coord_input[:, :1]
@@ -83,16 +84,18 @@ class GetStoneDistAngle3d (keras.layers.Layer):
         output = sort2dByCol(output, 1)
         return output
 
+    @tf.function
     def getDists(self, coord, stone_coord_input):
         # Calculate distance between coord and each stone_coord in stone_coord_input.
         return tf.reshape(
-            tf.map_fn(
+            tf.vectorized_map(
                 fn=lambda stone_coord: tf.norm(stone_coord[1:] - coord[1:], ord='euclidean'),
                 elems=stone_coord_input
             ),
             [-1, 1]
         )
 
+    @tf.function
     def getAngles(self, coord, stone_coord_input):
         """ Calculate angle (360d) between coord and each stone_coord in stone_coord_input. """
         # Have to reshape for future concatenation.
@@ -101,18 +104,21 @@ class GetStoneDistAngle3d (keras.layers.Layer):
             tf.map_fn(
                 fn=lambda x: tf.cond(x > 0, true_fn=lambda: x, false_fn=lambda: 360 + x),
                 # Inner loop calculates the angle of the coord with tf.atan2.
-                elems=tf.map_fn(
-                    fn=lambda stone_coord: tf.atan2(
-                        -(stone_coord[1] - coord[1]),
-                        stone_coord[2] - coord[2]
-                    # Convert from rad to deg.
-                    ) * (180 / math.pi),
-                    elems=stone_coord_input,
-                )
+                elems=self.getRawAngles(coord, stone_coord_input)
             ),
             [-1, 1]
         )
 
+    @tf.function
+    def getRawAngles(self, coord, stone_coord_input):
+        return tf.vectorized_map(
+            fn=lambda stone_coord: tf.atan2(
+                -(stone_coord[1] - coord[1]),
+                stone_coord[2] - coord[2]
+            # Convert from rad to deg.
+            ) * (180 / math.pi),
+            elems=stone_coord_input
+        )
 
 
 class GetInfluences3d (keras.layers.Layer):
@@ -146,6 +152,10 @@ class GetInfluences3d (keras.layers.Layer):
         self.updateInflsWithAngleBias(stone_dist_angle)
         # Update infls with stone values.
         self.infls = self.infls * stone_dist_angle[:, 0]
+
+        # Convert from each stone's influence to overall influence for no stone coord.
+        self.infls = tf.reduce_sum(self.infls)
+
         return self.infls
 
     def normalizeInfls(self):
@@ -172,7 +182,7 @@ class GetInfluences3d (keras.layers.Layer):
         outer_row_i = getIndexOfRowIn2d(outer_row, stone_dist_angle)
         self.infls = tf.map_fn(
             fn=lambda inner_row: self.innerLoop(inner_row, outer_row_i, stone_dist_angle),
-            elems=stone_dist_angle,
+            elems=stone_dist_angle
         )
         # map_fn (in updateInflsWithBarrierBias()) requires a return value.
         return tf.constant(0.0)
@@ -248,7 +258,7 @@ class GetInfluences3d (keras.layers.Layer):
         outer_row_i = getIndexOfRowIn2d(outer_row, stone_dist_angle)
         self.infls = tf.map_fn(
             fn=lambda inner_row: self.innerLoop(inner_row, outer_row_i, stone_dist_angle),
-            elems=stone_dist_angle,
+            elems=stone_dist_angle
         )
         self.infl_steps = tf.concat([self.infl_steps, tf.reshape(self.infls, [-1, 1])], axis=1)
         # map_fn (in updateInflsWithBarrierBias()) requires a return value.
@@ -261,6 +271,63 @@ class GetInfluences3d (keras.layers.Layer):
         cols += [ f'angle_b_{i}' for i in range(single_stone_dist_angle.shape[0]) ] + ['final']
         infl_steps_df.columns = cols
         infl_steps_df.to_csv(file_name)
+
+
+
+class GetInflPredictions3d (keras.layers.Layer):
+    def __init__(self, stone_value):
+        super(GetInflPredictions3d, self).__init__()
+        self.stone_value = tf.reshape(tf.constant(stone_value, dtype='int32'), [1])
+
+    def call(self, all_coords, board):
+        all_coords = tf.cast(all_coords, dtype='float32')
+        return tf.map_fn(
+            fn=lambda coord: self.eachCoordLoop(coord, board),
+            elems=all_coords
+        )
+
+    def eachCoordLoop(self, coord, board):
+        return tf.cond(
+            coord[0] == tf.constant(0, dtype='float32'),
+            true_fn=lambda: self.predInfl(coord, board),
+            false_fn=lambda: tf.constant(0, dtype='float32')
+        )
+
+    def predInfl(self, coord, board):
+        print(coord)
+        with_pred_stone = tf.SparseTensor([coord[1:]], self.stone_value, board.shape)
+        with_pred_stone = tf.sparse.to_dense(with_pred_stone)
+        board = board + with_pred_stone
+
+        get_coords_by_no_stone = GetCoords2dByStone(stone=0, testing=True)
+        no_stone_coords = get_coords_by_no_stone(board)
+
+        get_coords_by_black_stone = GetCoords2dByStone(stone=1, testing=True)
+        black_stone_coords = get_coords_by_black_stone(board)
+
+        get_coords_by_white_stone = GetCoords2dByStone(stone=-1, testing=True)
+        white_stone_coords = get_coords_by_white_stone(board)
+
+        all_coords = tf.concat([no_stone_coords, black_stone_coords, white_stone_coords], axis=0)
+        all_coords = sort2dByCol(all_coords, 2)
+        all_coords = sort2dByCol(all_coords, 1)
+
+        all_stone_coords = tf.concat([black_stone_coords, white_stone_coords], axis=0)
+        all_stone_coords = sort2dByCol(all_stone_coords, 2)
+        all_stone_coords = sort2dByCol(all_stone_coords, 1)
+
+        get_stone_dist_angle = GetStoneDistAngle3d()
+        all_stone_dist_angle = get_stone_dist_angle(all_coords, all_stone_coords)
+
+        get_influences = GetInfluences3d([9, 9])
+        influences = get_influences(all_stone_dist_angle)
+        influences = tf.reshape(influences, [9, 9])
+        infl_score = tf.reduce_sum(influences)
+        print(infl_score)
+        return infl_score
+
+
+
 
 
 ####################################################################################################

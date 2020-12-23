@@ -17,7 +17,8 @@ from functions import (
     applyScale, sort2dByCol, getIndexOfRowIn2d, printNotFloatPt, roundFloat, getCoordiByCoordyx
 )
 from layers import (
-    GetCoords2dByStone, GetStoneDistAngle3d, GetInfluences3d, ApplyLtLinWeight1d
+    GetCoords2dByStone, GetStoneDistAngle3d, GetInfluences3d, ApplyLtLinWeight1d,
+    GetInflPredictions3d
 )
 
 np.set_printoptions(linewidth=300)
@@ -44,7 +45,7 @@ BOARD = tf.constant([
     [ 0,  0, -1,  0,  0, -1, +1,  0,  0],
     [ 0,  0,  0,  0,  0,  0,  0,  0,  0],
     [ 0,  0,  0,  0,  0,  0,  0,  0,  0]
-], dtype='int8')
+])
 
 # BOARD = tf.constant([
 #     [ 0,  0,  0,  0,  0,  0,  0,  0,  0],
@@ -86,10 +87,19 @@ def main():
 
     """
 
-    # nums1 = tf.constant([1, 2, 3, 4, 5])
-    # print(tf.cond(
-    #     nums1 < 3, lambda: nums1 * 2, lambda: nums1
-    # ))
+    # nums = tf.constant([
+    #     [ 0,  0, +1],
+    #     [-1,  0, +1],
+    #     [ 0, -1,  0]
+    # ], dtype='float32')
+    # print(nums.shape)
+    # exit()
+    # coord = [[0, 1]]
+    # change_to = tf.constant([1], dtype='float32')
+    # adding = tf.SparseTensor(coord, change_to, nums.shape)
+    # adding = tf.sparse.to_dense(adding)
+    # new_nums = nums + adding
+    # print(new_nums)
     # exit()
 
     """ TESTING """
@@ -108,44 +118,73 @@ def main():
     all_coords = tf.concat([no_stone_coords, black_stone_coords, white_stone_coords], axis=0)
     all_coords = sort2dByCol(all_coords, 2)
     all_coords = sort2dByCol(all_coords, 1)
+    # print(all_coords)
 
     all_stone_coords = tf.concat([black_stone_coords, white_stone_coords], axis=0)
     all_stone_coords = sort2dByCol(all_stone_coords, 2)
     all_stone_coords = sort2dByCol(all_stone_coords, 1)
+    # print(all_stone_coords)
 
-    """ Testing influence calc (only using single coord). """
-    coord_y, coord_x = 0, 0
-    # coord_y, coord_x = 4, 4
-    coord_i = (BOARD_SIZE[0] * coord_y) + coord_x
-    all_coords = all_coords[coord_i]
-    all_coords = tf.reshape(all_coords, [1, -1])
-    # print(all_coords) ; exit()
+    # exit()
 
-    stone_dist_angle = GetStoneDistAngle3d()(all_coords, all_stone_coords)
-    # print(stone_dist_angle) ; exit()
+    # """ Testing influence calc (only using single coord). """
+    # coord_y, coord_x = 0, 0
+    # all_coords = all_coords[(BOARD_SIZE[0] * coord_y) + coord_x]
+    # all_coords = tf.reshape(all_coords, [1, -1])
+    # # print(all_coords) ; exit()
+
+    get_stone_dist_angle = GetStoneDistAngle3d()
+    all_stone_dist_angle = get_stone_dist_angle(all_coords, all_stone_coords)
+    # print(all_stone_dist_angle) ; exit()
+
+
+
+    """ TURNOVER NOTES:  Working on speeding up / optimizing with @tf.function and vectorized_map. """
+
+
 
     get_influences = GetInfluences3d(BOARD_SIZE)
-    # influences = get_influences(stone_dist_angle)
-    # print(influences) ; exit()
-    infl_steps = get_influences.getSingleInflSteps(stone_dist_angle[0])
-    # infl_steps = roundFloat(infl_steps, 4)
-    print("")
-    print(all_stone_coords)
-    all_stone_coords = tf.cast(all_stone_coords, dtype='float32')
-    print("")
-    print(stone_dist_angle)
-    print("")
-    infl_steps_df = pd.DataFrame(tf.concat([stone_dist_angle[0], infl_steps], axis=1).numpy())
-    # infl_steps_df.columns = ['init', 'norm', 'dist_b']
-    steps_cols = ['stone', 'dist', 'angle', 'init', 'norm', 'dist_b']
-    steps_cols += [ f'angle_b_{i}' for i in range(all_stone_coords.shape[0]) ]
-    steps_cols += ['final']
-    infl_steps_df.columns = steps_cols
-    # print(all_stone_coords.numpy().shape)
-    # exit()
-    infl_steps_df.to_csv('infl_steps_report_01.csv')
-    print(infl_steps_df)
+    influences = get_influences(all_stone_dist_angle)
+    influences = tf.reshape(influences, BOARD_SIZE)
+    print(influences) ; exit()
+
+    """ Testing getting influences for black to move in all possible positions. """
+
+    infl_pred = GetInflPredictions3d(BLACK_STONE_VALUE)(all_coords, input)
+    infl_pred = tf.reshape(infl_pred, BOARD_SIZE)
+    print(infl_pred)
+
     exit()
+
+
+
+
+    # get_influences.saveSingleInflSteps(stone_dist_angle[0], 'test_reports/infl_steps_report_03.csv')
+    # exit()
+
+    # infl_steps = get_influences.getSingleInflSteps(stone_dist_angle[0])
+    # # infl_steps = roundFloat(infl_steps, 4)
+    # print("")
+    # print(all_stone_coords)
+    # all_stone_coords = tf.cast(all_stone_coords, dtype='float32')
+    # print("")
+    # print(stone_dist_angle)
+    # print("")
+    # infl_steps_df = pd.DataFrame(tf.concat([stone_dist_angle[0], infl_steps], axis=1).numpy())
+    # # infl_steps_df.columns = ['init', 'norm', 'dist_b']
+    # steps_cols = ['stone', 'dist', 'angle', 'init', 'norm', 'dist_b']
+    # steps_cols += [ f'angle_b_{i}' for i in range(all_stone_coords.shape[0]) ]
+    # steps_cols += ['final']
+    # infl_steps_df.columns = steps_cols
+    # # print(all_stone_coords.numpy().shape)
+    # # exit()
+    # infl_steps_df.to_csv('infl_steps_report_01.csv')
+    # print(infl_steps_df)
+    # exit()
+
+
+
+
 
     # Show final GetInfluences3d results.
     influences = tf.map_fn(fn=lambda x: tf.reduce_sum(x), elems=influences)
