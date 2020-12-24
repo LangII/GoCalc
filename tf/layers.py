@@ -59,12 +59,12 @@ class GetStoneDistAngle3d (keras.layers.Layer):
         all_coord_input = tf.cast(all_coord_input, dtype='float32')
         stone_coord_input = tf.cast(stone_coord_input, dtype='float32')
         # Loop through all_coord_input.
-        return tf.vectorized_map(
+        # return tf.vectorized_map(
+        return tf.map_fn(
             fn=lambda coord: self.checkForStone(coord, stone_coord_input),
             elems=all_coord_input
         )
 
-    @tf.function
     def checkForStone(self, coord, stone_coord_input):
         # Check to see if current coord in loop is has a stone or not.  If current coord in loop
         # does not have a stone then proceed with self.getOutput(), else return empty zeros tensor.
@@ -74,7 +74,6 @@ class GetStoneDistAngle3d (keras.layers.Layer):
             false_fn=lambda: tf.zeros([stone_coord_input.shape[0], 3])
         )
 
-    @tf.function
     def getOutput(self, coord, stone_coord_input):
         # Build and return 2nd dimension output tensor of values of stones, dists, and angles.
         stones = stone_coord_input[:, :1]
@@ -84,18 +83,16 @@ class GetStoneDistAngle3d (keras.layers.Layer):
         output = sort2dByCol(output, 1)
         return output
 
-    @tf.function
     def getDists(self, coord, stone_coord_input):
         # Calculate distance between coord and each stone_coord in stone_coord_input.
         return tf.reshape(
-            tf.vectorized_map(
+            tf.map_fn(
                 fn=lambda stone_coord: tf.norm(stone_coord[1:] - coord[1:], ord='euclidean'),
                 elems=stone_coord_input
             ),
             [-1, 1]
         )
 
-    @tf.function
     def getAngles(self, coord, stone_coord_input):
         """ Calculate angle (360d) between coord and each stone_coord in stone_coord_input. """
         # Have to reshape for future concatenation.
@@ -109,9 +106,8 @@ class GetStoneDistAngle3d (keras.layers.Layer):
             [-1, 1]
         )
 
-    @tf.function
     def getRawAngles(self, coord, stone_coord_input):
-        return tf.vectorized_map(
+        return tf.map_fn(
             fn=lambda stone_coord: tf.atan2(
                 -(stone_coord[1] - coord[1]),
                 stone_coord[2] - coord[2]

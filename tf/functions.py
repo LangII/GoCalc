@@ -12,7 +12,7 @@ import math
 
 
 
-@tf.function
+# @tf.function
 def applyScale(t, scale_from=[], scale_to=[]):
     """
     t =             Input tensor.
@@ -27,7 +27,7 @@ def applyScale(t, scale_from=[], scale_to=[]):
 
 
 
-@tf.function
+# @tf.function
 def roundFloat(t, round_to=2):
     """
     t =         Input tensor.
@@ -39,7 +39,7 @@ def roundFloat(t, round_to=2):
 
 
 
-@tf.function
+# @tf.function(experimental_relax_shapes=True)
 def sort2dByCol(t, col=0, dir=-1):
     """
     t =     2D input tensor.
@@ -51,7 +51,7 @@ def sort2dByCol(t, col=0, dir=-1):
 
 
 
-@tf.function
+@tf.function(experimental_relax_shapes=True)
 def getIndexOfRowIn2d(row, tens_2d):
     """
     row =       Tensor(1D) to be found in tens_2d.
@@ -61,12 +61,14 @@ def getIndexOfRowIn2d(row, tens_2d):
     return tf.reshape(
         tf.where(
             tf.vectorized_map(
+            # tf.map_fn(
                 fn=lambda row_x: tf.cond(
                     tf.reduce_all(tf.equal(row, row_x)),
                     true_fn=lambda: tf.constant(True, dtype='bool'),
                     false_fn=lambda: tf.constant(False, dtype='bool')
                 ),
-                elems=tens_2d
+                elems=tens_2d,
+                # dtype='bool'
             )
         ),
         [-1]
@@ -74,6 +76,7 @@ def getIndexOfRowIn2d(row, tens_2d):
 
 
 
+# @tf.function
 def printNotFloatPt(t, prec=8):
     """ Prints t, not in the format of scientific method. """
     np.set_printoptions(precision=prec, suppress=True)
@@ -81,6 +84,7 @@ def printNotFloatPt(t, prec=8):
 
 
 
+# @tf.function
 def getCoordiByCoordyx(y, x, board_w):
     return (board_w * y) + x
 

@@ -49,15 +49,15 @@ BOARD = tf.constant([
 
 # BOARD = tf.constant([
 #     [ 0,  0,  0,  0,  0,  0,  0,  0,  0],
-#     [ 0, +1,  0,  0,  0,  0,  0,  0,  0],
 #     [ 0,  0,  0,  0,  0,  0,  0,  0,  0],
 #     [ 0,  0,  0,  0,  0,  0,  0,  0,  0],
-#     [ 0,  0,  0,  0,  0,  0,  0,  0,  0],
-#     [ 0,  0,  0,  0,  0,  0,  0,  0,  0],
-#     [ 0,  0,  0,  0,  0,  0,  0,  0,  0],
+#     [ 0,  0,  0,  0, +1,  0,  0,  0,  0],
+#     [ 0,  0,  0,  0, +1,  0,  0,  0,  0],
+#     [ 0,  0,  0,  0,  0,  0,  0, -1,  0],
+#     [ 0,  0,  0,  0,  0,  0, -1,  0,  0],
 #     [ 0,  0,  0,  0,  0,  0,  0,  0,  0],
 #     [ 0,  0,  0,  0,  0,  0,  0,  0,  0]
-# ], dtype='int8')
+# ])
 
 # TESTING = False
 TESTING = True
@@ -111,16 +111,27 @@ def main():
 
     get_coords_by_black_stone = GetCoords2dByStone(stone=BLACK_STONE_VALUE, testing=TESTING)
     black_stone_coords = get_coords_by_black_stone(input)
+    # print(black_stone_coords)
 
     get_coords_by_white_stone = GetCoords2dByStone(stone=WHITE_STONE_VALUE, testing=TESTING)
     white_stone_coords = get_coords_by_white_stone(input)
+    # print(white_stone_coords)
+    # exit()
 
-    all_coords = tf.concat([no_stone_coords, black_stone_coords, white_stone_coords], axis=0)
+    all_coords = tf.cond(
+        white_stone_coords.shape[0] != 0,
+        true_fn=lambda: tf.concat([no_stone_coords, black_stone_coords, white_stone_coords], axis=0),
+        false_fn=lambda: tf.concat([no_stone_coords, black_stone_coords], axis=0)
+    )
     all_coords = sort2dByCol(all_coords, 2)
     all_coords = sort2dByCol(all_coords, 1)
     # print(all_coords)
 
-    all_stone_coords = tf.concat([black_stone_coords, white_stone_coords], axis=0)
+    all_stone_coords = tf.cond(
+        white_stone_coords.shape[0] != 0,
+        true_fn=lambda: tf.concat([black_stone_coords, white_stone_coords], axis=0),
+        false_fn=lambda: black_stone_coords
+    )
     all_stone_coords = sort2dByCol(all_stone_coords, 2)
     all_stone_coords = sort2dByCol(all_stone_coords, 1)
     # print(all_stone_coords)
@@ -135,7 +146,7 @@ def main():
 
     get_stone_dist_angle = GetStoneDistAngle3d()
     all_stone_dist_angle = get_stone_dist_angle(all_coords, all_stone_coords)
-    # print(all_stone_dist_angle) ; exit()
+    # print(all_stone_dist_angle[0]) ; exit()
 
 
 
@@ -143,23 +154,30 @@ def main():
 
 
 
-    get_influences = GetInfluences3d(BOARD_SIZE)
-    influences = get_influences(all_stone_dist_angle)
-    influences = tf.reshape(influences, BOARD_SIZE)
-    print(influences) ; exit()
+    # get_influences = GetInfluences3d(BOARD_SIZE)
+    #
+    # influences = get_influences(all_stone_dist_angle)
+    # influences = tf.reshape(influences, BOARD_SIZE)
+    # # influences = roundFloat(influences, 4)
+    # print(influences) ; exit()
+
+    # infl_steps = get_influences.getSingleInflSteps(all_stone_dist_angle[0])
+    # print(infl_steps) ; print(tf.reduce_sum(infl_steps[:, -1:]))
+    # get_influences.saveSingleInflSteps(all_stone_dist_angle[0], 'test_reports/infl_steps_report_04.csv')
+    # exit()
+
+
 
     """ Testing getting influences for black to move in all possible positions. """
 
+
+
     infl_pred = GetInflPredictions3d(BLACK_STONE_VALUE)(all_coords, input)
     infl_pred = tf.reshape(infl_pred, BOARD_SIZE)
-    print(infl_pred)
-
-    exit()
+    print(infl_pred) ; exit()
 
 
 
-
-    # get_influences.saveSingleInflSteps(stone_dist_angle[0], 'test_reports/infl_steps_report_03.csv')
     # exit()
 
     # infl_steps = get_influences.getSingleInflSteps(stone_dist_angle[0])
