@@ -31,6 +31,8 @@ BOARD = tf.constant([
 ])
 # print(""), print(BOARD)
 
+""" GET COORDS """
+
 empty_coords = tf.cast(tf.where(tf.equal(BOARD, 0)), dtype='int32')
 # print(""), print(empty_coords)
 
@@ -39,6 +41,8 @@ black_coords = tf.cast(tf.where(tf.equal(BOARD, +1)), dtype='int32')
 
 # white_coords = tf.cast(tf.where(tf.equal(BOARD, -1)), dtype='int32')
 # print(white_coords)
+
+""" GET DISTS """
 
 dist_black_size = black_coords.shape[0]
 dist_empty_coords = tf.tile(empty_coords, tf.constant([1, dist_black_size], dtype='int32'))
@@ -54,7 +58,14 @@ dist_black_coords = tf.cast(dist_black_coords, dtype='float32')
 
 norm_coord = dist_empty_coords - dist_black_coords
 flat_norm_coord = tf.reshape(norm_coord, [-1, 2])
-
 black_dist = tf.norm(flat_norm_coord, ord='euclidean', axis=1)
 black_dist = tf.reshape(black_dist, norm_coord.shape[:-1])
-print(""), print(black_dist)
+# print(""), print(black_dist)
+
+""" GET ANGLES """
+
+import math
+print(tf.atan2(
+    tf.constant([1, 2], dtype='float32'),
+    tf.constant([1, 1], dtype='float32')
+) * (180 / math.pi))
