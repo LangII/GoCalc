@@ -48,10 +48,8 @@ print("\nBOARD =", BOARD)
 # BOARD = tf.constant([
 #     [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
 #     [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
-#     [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
-#     [ 0,  0,  0, +1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, +1,  0,  0,  0],
-#     [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
-#     [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
+#     [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, +1,  0,  0,  0],
+#     [ 0,  0,  0, -1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
 #     [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
 #     [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
 #     [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
@@ -61,7 +59,9 @@ print("\nBOARD =", BOARD)
 #     [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
 #     [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
 #     [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
-#     [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, +1,  0,  0],
+#     [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
+#     [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
+#     [ 0,  0,  0, -1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, +1,  0,  0],
 #     [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, +1,  0,  0,  0,  0],
 #     [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
 #     [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0]
@@ -234,9 +234,44 @@ pred_white_angles = tf.where(pred_white_angles > 0, pred_white_angles, pred_whit
 
 
 
-pred_move = 0
-print("\npred_moves =", pred_moves[pred_move])
-print("\npred_black_dists =", pred_black_dists[pred_move])
-print("\npred_black_angles =", pred_black_angles[pred_move])
-print("\npred_white_dists =", pred_white_dists[pred_move])
-print("\npred_white_angles =", pred_white_angles[pred_move])
+""" pred_dists_angles is a concatenated and sorted version of pred_black_dists, pred_black_angles,
+pred_white_dists, and pred_white_angles.  It's values are the base for which all infl_model
+calculations are calculated from. """
+
+pred_black_dists_resh = tf.reshape(pred_black_dists, pred_black_dists.shape.as_list() + [1])
+pred_black_angles_resh = tf.reshape(pred_black_angles, pred_black_angles.shape.as_list() + [1])
+black_stone_values = tf.constant(BLACK_STONE_VALUE, dtype='float32')
+black_stone_values = tf.fill(pred_black_dists_resh.shape, black_stone_values)
+pred_black_dists_angles = tf.concat(
+    [black_stone_values, pred_black_dists_resh, pred_black_angles_resh], axis=3
+)
+
+pred_white_dists_resh = tf.reshape(pred_white_dists, pred_white_dists.shape.as_list() + [1])
+pred_white_angles_resh = tf.reshape(pred_white_angles, pred_white_angles.shape.as_list() + [1])
+white_stone_values = tf.constant(WHITE_STONE_VALUE, dtype='float32')
+white_stone_values = tf.fill(pred_white_dists_resh.shape, white_stone_values)
+pred_white_dists_angles = tf.concat(
+    [white_stone_values, pred_white_dists_resh, pred_white_angles_resh], axis=3
+)
+
+pred_dists_angles = tf.concat([pred_black_dists_angles, pred_white_dists_angles], axis=2)
+
+pred_dists_angles_resh = tf.reshape(pred_dists_angles, [-1] + pred_dists_angles.shape.as_list()[-2:])
+pred_dists_angles_resh = tf.vectorized_map(
+    fn=lambda stone_set: sort2dByCol(stone_set, 1),
+    elems=pred_dists_angles_resh
+)
+
+pred_dists_angles = tf.reshape(pred_dists_angles_resh, pred_dists_angles.shape)
+print("\npred_dists_angles =", pred_dists_angles)
+
+
+
+
+
+# pred_move = 9
+# print("\npred_moves =", pred_moves[pred_move])
+# print("\npred_black_dists =", pred_black_dists[pred_move])
+# print("\npred_black_angles =", pred_black_angles[pred_move])
+# print("\npred_white_dists =", pred_white_dists[pred_move])
+# print("\npred_white_angles =", pred_white_angles[pred_move])
