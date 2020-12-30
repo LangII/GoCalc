@@ -11,33 +11,39 @@ from tensorflow import keras
 import math
 
 from functions import (
-    applyScale, sort2dByCol, getIndexOfRowIn2d, printNotFloatPt, roundFloat, getCoordiByCoordyx
+    applyScale, sort2dByCol, getIndexOfRowIn2d, printNotFloatPt, roundFloat, getCoordiByCoordyx,
+    applyLtLinWeights
 )
 from layers import (
     GetCoords2dByStone, GetStoneDistAngle3d, GetInfluences3d, ApplyLtLinWeight1d,
     GetInflPredictions3d
 )
 
-np.set_printoptions(linewidth=300)
+np.set_printoptions(
+    linewidth=300,
+    # threshold=sys.maxsize,
+    threshold=300,
+    edgeitems=10,
+)
 
 NO_STONE_VALUE = 0
 BLACK_STONE_VALUE = +1
 WHITE_STONE_VALUE = -1
 
-BOARD = tf.constant([
-    [ 0,  0,  0,  0],
-    [-1,  0, +1,  0],
-    [ 0, -1,  0,  0],
-    [ 0,  0, +1,  0],
-], dtype='int32')
-print("\nBOARD =", BOARD)
+# BOARD = tf.constant([
+#     [ 0,  0,  0,  0],
+#     [-1,  0, +1,  0],
+#     [ 0, -1,  0,  0],
+#     [ 0,  0, +1,  0],
+# ], dtype='int32')
+# print("\nBOARD =", BOARD)
 
 # BOARD = tf.constant([
 #     [ 0,  0,  0,  0,  0,  0,  0,  0,  0],
 #     [ 0,  0,  0,  0,  0,  0,  0,  0,  0],
 #     [ 0,  0,  0, +1,  0, -1,  0,  0,  0],
 #     [ 0,  0,  0,  0,  0,  0,  0, -1,  0],
-#     [ 0,  0, +1,  0,  0,  0, +1,  0,  0],
+#     [ 0,  0, +1,  0, -1,  0, +1,  0,  0],
 #     [ 0,  0,  0,  0,  0,  0,  0,  0,  0],
 #     [ 0,  0, -1,  0,  0, -1, +1,  0,  0],
 #     [ 0,  0,  0,  0,  0,  0,  0,  0,  0],
@@ -45,28 +51,28 @@ print("\nBOARD =", BOARD)
 # ], dtype='int32')
 # print("\nBOARD =", BOARD)
 
-# BOARD = tf.constant([
-#     [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
-#     [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
-#     [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, +1,  0,  0,  0],
-#     [ 0,  0,  0, -1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
-#     [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
-#     [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
-#     [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
-#     [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
-#     [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
-#     [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
-#     [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
-#     [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
-#     [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
-#     [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
-#     [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
-#     [ 0,  0,  0, -1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, +1,  0,  0],
-#     [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, +1,  0,  0,  0,  0],
-#     [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
-#     [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0]
-# ], dtype='int32')
-# print("\nBOARD =", BOARD)
+BOARD = tf.constant([
+    [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
+    [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
+    [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, +1,  0,  0,  0],
+    [ 0,  0,  0, -1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
+    [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, -1,  0,  0,  0],
+    [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
+    [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
+    [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
+    [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
+    [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
+    [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
+    [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
+    [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
+    [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
+    [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
+    [ 0,  0,  0, -1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, +1,  0,  0],
+    [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, +1,  0,  0,  0,  0],
+    [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
+    [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0]
+], dtype='int32')
+print("\nBOARD =", BOARD)
 
 ####################################################################################################$
 
@@ -153,20 +159,20 @@ for calculating pred_black_dist and pred_white_dist. """
 
 pred_empty_coords_shape = pred_empty_coords.get_shape().as_list()
 pred_empty_coords_shape.insert(2, 1)
-pred_empty_coords = tf.reshape(pred_empty_coords, pred_empty_coords_shape)
+pred_empty_coords_resh = tf.reshape(pred_empty_coords, pred_empty_coords_shape)
 
 pred_black_size = pred_black_coords.shape[1]
-pred_empty_tiled_b = tf.tile(pred_empty_coords, tf.constant([1, 1, pred_black_size, 1]))
+pred_empty_tiled_b = tf.tile(pred_empty_coords_resh, tf.constant([1, 1, pred_black_size, 1]))
 # print("\npred_empty_tiled_b =", pred_empty_tiled_b)
 
 pred_white_size = pred_white_coords.shape[1]
-pred_empty_tiled_w = tf.tile(pred_empty_coords, tf.constant([1, 1, pred_white_size, 1]))
+pred_empty_tiled_w = tf.tile(pred_empty_coords_resh, tf.constant([1, 1, pred_white_size, 1]))
 # print("\npred_empty_tiled_w =", pred_empty_tiled_w)
 
 
 
 
-PRED_EMPTY_SIZE = pred_empty_coords.shape[1]
+PRED_EMPTY_SIZE = pred_empty_coords_resh.shape[1]
 
 """ pred_black_tiled and pred_white_tiled takes the values from pred_black_coords and
 pred_white_coords and tiles them for calculating pred_black_dists, pred_white_dists,
@@ -263,15 +269,137 @@ pred_dists_angles_resh = tf.vectorized_map(
 )
 
 pred_dists_angles = tf.reshape(pred_dists_angles_resh, pred_dists_angles.shape)
-print("\npred_dists_angles =", pred_dists_angles)
+# print("\npred_dists_angles =", pred_dists_angles)
 
 
 
 
 
-# pred_move = 9
+DIST_LT_W = 4
+DIST_LIN_W = 0.8
+ANGLES_LT_W = 45
+ANGLES_LIN_W = 0.8
+
+""" pred_infls """
+pred_dists_angles_resh = tf.reshape(pred_dists_angles, [-1] + pred_dists_angles.shape.as_list()[-2:])
+# print(pred_dists_angles_resh)
+
+max_dist = tf.norm(tf.constant(BOARD.shape, dtype='float32'), ord='euclidean')
+stone_values = pred_dists_angles_resh[:, :, 0]
+pred_raw_infls = (max_dist - pred_dists_angles_resh[:, :, 1]) * stone_values
+
+pred_raw_infls = applyScale(pred_raw_infls, [0, max_dist], [0, 1])
+
+# print(pred_raw_infls)
+
+pred_infls_w_dist_w = tf.where(pred_raw_infls < DIST_LT_W, pred_raw_infls * DIST_LIN_W, pred_raw_infls)
+# print(pred_infls_w_dist_w)
+
+angles_per_empty = pred_dists_angles_resh.shape[1]
+pred_angles_infls = pred_dists_angles_resh[:, :, 2]
+# print(pred_angles_infls)
+
+pred_angles_infls_resh_x = tf.reshape(pred_angles_infls, pred_angles_infls.shape + [1])
+pred_angles_infls_tiled_x = tf.tile(pred_angles_infls_resh_x, [1, 1, angles_per_empty])
+# print(pred_angles_infls_tiled_x)
+
+pred_angles_infls_shape = pred_angles_infls.shape.as_list()
+pred_angles_infls_shape.insert(1, 1)
+pred_angles_infls_resh_y = tf.reshape(pred_angles_infls, pred_angles_infls_shape)
+pred_angles_infls_tiled_y = tf.tile(pred_angles_infls_resh_y, [1, angles_per_empty, 1])
+# print(pred_angles_infls_tiled_y)
+
+pred_angles_dif = tf.abs(pred_angles_infls_tiled_x - pred_angles_infls_tiled_y)
+pred_angles_dif = tf.where(pred_angles_dif > 180, 360 - pred_angles_dif, pred_angles_dif)
+# print(pred_angles_dif)
+
+pred_angles_infls = tf.where(pred_angles_dif <= ANGLES_LT_W, ANGLES_LIN_W, 0)
+# print(pred_angles_infls
+
+stone_cancel_x = tf.reshape(pred_dists_angles_resh[:, :, 0], [-1, pred_dists_angles_resh.shape[1], 1])
+stone_cancel_x = tf.tile(stone_cancel_x, [1, 1, angles_per_empty])
+# print(stone_cancel_x)
+
+stone_cancel_y = tf.reshape(pred_dists_angles_resh[:, :, 0], [-1, 1, pred_dists_angles_resh.shape[1]])
+stone_cancel_y = tf.tile(stone_cancel_y, [1, angles_per_empty, 1])
+# print(stone_cancel_y)
+
+stone_cancel = stone_cancel_x * stone_cancel_y * -1
+stone_cancel = tf.where(stone_cancel == -1, 0, stone_cancel)
+# print(stone_cancel)
+
+pred_angles_infls = pred_angles_infls * stone_cancel
+pred_angles_infls = tf.where(pred_angles_infls == 0, 1, pred_angles_infls)
+# print(pred_angles_infls)
+
+mirror_coords = tf.cast(tf.where(tf.equal(tf.zeros(pred_angles_infls.shape[1:]), 0)), dtype='int32')
+mirror_y = -tf.cast(mirror_coords[:, 0], dtype='float32')
+mirror_x = tf.cast(mirror_coords[:, 1], dtype='float32')
+mirror_angles = tf.atan2(mirror_y, mirror_x) * (180 / math.pi)
+mirror_angles = tf.where(mirror_angles > 0, mirror_angles, mirror_angles + 360)
+mirror_mask = tf.where(mirror_angles < 315, True, False)
+mirror_mask = tf.reshape(mirror_mask, [1] + pred_angles_infls.shape[1:])
+mirror_mask = tf.tile(mirror_mask, [pred_angles_infls.shape[0], 1, 1])
+# print(mirror_mask)
+
+pred_angles_infls = tf.where(mirror_mask, pred_angles_infls, tf.constant(1, dtype='float32'))
+pred_angles_infls = tf.reduce_prod(pred_angles_infls, axis=2)
+# print(pred_angles_infls)
+
+
+
+
+# slicer = tf.range(2, angles_per_empty + 2, dtype='float32')
+# slicer = tf.reshape(tf.tile(slicer, [pred_angles_infls.shape[0]]), [-1, 1])
+# filler = tf.fill(slicer.shape, tf.constant(1, dtype='float32'))
+# pred_angles_infls_resh = tf.reshape(pred_angles_infls, [-1, pred_angles_infls.shape[-1]])
+# print(slicer)
+# print(pred_angles_infls_resh)
+# multiplier_map = tf.concat([slicer, filler, pred_angles_infls_resh], axis=1)
+# print(multiplier_map)
+
+# """ TURNOVER NOTES:  Wow...  I am very much in the weeds on this.  So, trying to calculate angle
+# influences using only tensor play.  I currently have a pretty strong set of tensors to get the final
+# output (like stone_cancel (mask) and pred_angles_dif), now I need to figure out how to ignore the
+# un-needed values in pred_angles_infls.  The plan is to use the multiplier_map where the first value
+# of each row is the amount to slice the row by.  I think this should work, but I still need to play
+# around with the slicer.  Then after all that this section needs a serious clean up. """
+
+# exit()
+
+# """ This mapping is slowing it down!!! """
+
+# angle_infls = tf.reshape(tf.map_fn(
+#     fn=lambda row: tf.reduce_prod(row[1:tf.cast(row[0], dtype='int32')]),
+#     elems=multiplier_map,
+#     # fallback_to_while_loop=False
+# ), [-1, angles_per_empty])
+# # print(angle_infls)
+
+# pred_angles_infls = tf.reduce_prod(pred_angles_infls, axis=1)
+# print(pred_angles_infls)
+
+
+
+
+
+# print(pred_infls_w_dist_w)
+
+pred_infls = pred_infls_w_dist_w * pred_angles_infls
+#
+pred_infls = tf.reduce_sum(pred_infls, axis=1)
+pred_infls = tf.reshape(pred_infls, pred_dists_angles.shape.as_list()[:2])
+pred_infls = tf.reduce_sum(pred_infls, axis=1)
+
+pred_infls = tf.SparseTensor(tf.cast(empty_coords, dtype='int64'), pred_infls, BOARD.shape)
+pred_infls = tf.sparse.to_dense(pred_infls)
+pred_infls = roundFloat(pred_infls, 2)
+print("\npred_infls =", pred_infls)
+
+# pred_move = 0
 # print("\npred_moves =", pred_moves[pred_move])
 # print("\npred_black_dists =", pred_black_dists[pred_move])
 # print("\npred_black_angles =", pred_black_angles[pred_move])
 # print("\npred_white_dists =", pred_white_dists[pred_move])
 # print("\npred_white_angles =", pred_white_angles[pred_move])
+# print("\npred_dists_angles =", pred_dists_angles[pred_move])

@@ -24,9 +24,9 @@ from layers import (
 np.set_printoptions(linewidth=300)
 
 BOARD = tf.constant([
-    [ 0,  0, +1,  0],
-    [ 0, +1, +1,  0],
-    [+1,  0,  0, +1],
+    [ 0,  0,  0,  0],
+    [ 0, -1, +1,  0],
+    [-1,  0,  0, -1],
     [ 0, +1, +1,  0],
 ])
 # print(""), print(BOARD)

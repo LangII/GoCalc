@@ -90,6 +90,16 @@ def getCoordiByCoordyx(y, x, board_w):
 
 
 
+def applyLtLinWeights(t, lt, lin):
+    return tf.where(t < lt, t * lin, t)
+
+
+
+def getCount(t, v):
+    return tf.reduce_sum(tf.cast(tf.equal(t, v), dtype='int32'))
+
+
+
 ####################################################################################################
 
 
