@@ -54,8 +54,8 @@ WHITE_STONE_VALUE = -1
 BOARD = tf.constant([
     [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
     [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
-    [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, +1,  0,  0,  0],
-    [ 0,  0,  0, -1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
+    [ 0,  0,  0,  0,  0, +1,  0,  0,  0,  0,  0,  0,  0,  0,  0, +1,  0,  0,  0],
+    [ 0,  0,  0, -1,  0, -1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
     [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, -1,  0,  0,  0],
     [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
     [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
@@ -80,12 +80,10 @@ print("\nBOARD =", BOARD)
 
 
 
-""" TESTING """
-# test_coords = [[0, 1], [1, 3], [2, 2]]
-# # test_values = [1] * len(test_coords)
-# test_values = [1, 2, 3]
-# test_sparse = tf.sparse.to_dense(tf.SparseTensor(test_coords, test_values, [5, 5]))
-# print(test_sparse)
+# """ TESTING """
+# a = [1, 2, 3, 4]
+# a[2:3] = [5]
+# print(a)
 # exit()
 
 
@@ -197,6 +195,8 @@ pred_white_tiled = tf.tile(pred_white_coords_reshaped, tf.constant([1, PRED_EMPT
 PRED_BLACK_NORMALS = pred_black_tiled - pred_empty_tiled_b
 PRED_WHITE_NORMALS = pred_white_tiled - pred_empty_tiled_w
 
+# print(PRED_BLACK_NORMALS)
+
 """ pred_black_dists and pred_white_dists are complex tensors.  The outer most dimension (D1)
 represents board positions for every possible move that could come next.  The next inner dimension
 (D2) represents every empty position on the board (for each board of (D1)).  The next inner
@@ -276,9 +276,9 @@ pred_dists_angles = tf.reshape(pred_dists_angles_resh, pred_dists_angles.shape)
 
 
 DIST_LT_W = 4
-DIST_LIN_W = 0.8
+DIST_LIN_W = 0.2
 ANGLES_LT_W = 45
-ANGLES_LIN_W = 0.8
+ANGLES_LIN_W = 0.2
 
 """ pred_infls """
 pred_dists_angles_resh = tf.reshape(pred_dists_angles, [-1] + pred_dists_angles.shape.as_list()[-2:])
@@ -290,7 +290,7 @@ pred_raw_infls = (max_dist - pred_dists_angles_resh[:, :, 1]) * stone_values
 
 pred_raw_infls = applyScale(pred_raw_infls, [0, max_dist], [0, 1])
 
-# print(pred_raw_infls)
+print(pred_raw_infls)
 
 pred_infls_w_dist_w = tf.where(pred_raw_infls < DIST_LT_W, pred_raw_infls * DIST_LIN_W, pred_raw_infls)
 # print(pred_infls_w_dist_w)
@@ -394,7 +394,7 @@ pred_infls = tf.reduce_sum(pred_infls, axis=1)
 pred_infls = tf.SparseTensor(tf.cast(empty_coords, dtype='int64'), pred_infls, BOARD.shape)
 pred_infls = tf.sparse.to_dense(pred_infls)
 pred_infls = roundFloat(pred_infls, 2)
-print("\npred_infls =", pred_infls)
+# print("\npred_infls =", pred_infls)
 
 # pred_move = 0
 # print("\npred_moves =", pred_moves[pred_move])
