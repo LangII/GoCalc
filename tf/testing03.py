@@ -13,16 +13,14 @@ import math
 from functions import (
     applyScale, sort2dByCol, roundFloat, getCount, reshapeInsertDim, reshapeAddDim, reshapeMergeDims
 )
-# from layers import (
-#     GetCoords2dByStone, GetStoneDistAngle3d, GetInfluences3d, ApplyLtLinWeight1d,
-#     GetInflPredictions3d
-# )
 
 np.set_printoptions(
-    linewidth=300,
-    threshold=sys.maxsize,
-    # threshold=300,
-    edgeitems=10,
+    linewidth=300, # <- How many characters per line before new line.
+    threshold=300, # <- How many lines allowed before summarized print.
+    # threshold=sys.maxsize, # <- How many lines allowed before summarized print. (no summarization)
+    edgeitems=10, # <- When summarized, how many edge values are printed.
+    # precision=4, # <- How many decimal places on floats.
+    # suppress=True, # <- Suppress scientific notation.
 )
 
 ####################################################################################################
@@ -84,9 +82,12 @@ BOARD_SHAPE = BOARD.shape.as_list()
 EMPTY_COUNT = getCount(BOARD, EMPTY_VALUE)
 BLACK_COUNT = getCount(BOARD, BLACK_VALUE)
 WHITE_COUNT = getCount(BOARD, WHITE_VALUE)
+BOTH_COUNT = BLACK_COUNT + WHITE_COUNT
 EMPTY_COUNT_PER_PRED = EMPTY_COUNT - 1
 BLACK_COUNT_PER_PRED = BLACK_COUNT if PRED_VALUE == WHITE_VALUE else BLACK_COUNT + 1
 WHITE_COUNT_PER_PRED = WHITE_COUNT if PRED_VALUE == BLACK_VALUE else WHITE_COUNT + 1
+BOTH_COUNT_PER_PRED = BLACK_COUNT_PER_PRED + WHITE_COUNT_PER_PRED
+EMPTY_COUNT_ALL_PRED = EMPTY_COUNT * EMPTY_COUNT_PER_PRED
 MAX_DIST = math.hypot(*BOARD_SHAPE)
 
 print("")
@@ -108,10 +109,16 @@ ANGLES_LINEAR_WEIGHT = 0.2
 
 
 
+"""'''''''''''''''''''''''''''''''''''''''''''''''''
+'''  GET PRIMARY TENSOR FOR WEIGHT APPLICATION   '''
+'''''''''''''''''''''''''''''''''''''''''''''''''"""
+
+
+
 """ empty_stone_coords """
 """ A list of all coords with no stone. """
 empty_stone_coords = tf.cast(tf.where(tf.equal(BOARD, 0)), dtype='int32')
-# print(empty_stone_coords)
+# print("\nempty_stone_coords =", empty_stone_coords)
 
 
 
@@ -198,9 +205,14 @@ pred_white_angles = getPredValueAngles(pred_white_normals)
 
 
 
-""" pred_stone_dists_angles """
+""" pred_stones_dists_angles """
 """ Tensor representing each stone's data (value, dist, angle) in relation to each empty coord, for
-each pred move board (each empty coord's sub dim is sorted by stone's dist). """
+each pred move board (each empty coord's sub dim is sorted by stone's dist).
+NOTE:  pred_stones_dists_angles is the primary tensor to be fed into the model's weights application
+layers.
+NOTE:  pred_stones_dists_angles' shape remains to not have the outer layer representing each
+predicted next move.  This is for the purpose of faster calculations and the output must be reshaped
+after calculations. """
 def getPredValueStoneDistsAngles(pred_value_dists, pred_value_angles, stone_value):
     pred_value_dists_resh = reshapeAddDim(pred_value_dists)
     pred_value_angles_resh = reshapeAddDim(pred_value_angles)
@@ -213,40 +225,132 @@ pred_black_stone_dists_angles = getPredValueStoneDistsAngles(
 pred_white_stone_dists_angles = getPredValueStoneDistsAngles(
     pred_white_dists, pred_white_angles, WHITE_VALUE
 )
-pred_stone_dists_angles = tf.concat(
+pred_stones_dists_angles = tf.concat(
     [pred_black_stone_dists_angles, pred_white_stone_dists_angles], axis=2
 )
-pred_stone_dists_angles = reshapeMergeDims(pred_stone_dists_angles, [0, 1])
-pred_stone_dists_angles = tf.vectorized_map(
+pred_stones_dists_angles = reshapeMergeDims(pred_stones_dists_angles, [0, 1])
+pred_stones_dists_angles = tf.vectorized_map(
     fn=lambda pred_empty: sort2dByCol(pred_empty, 1),
-    elems=pred_stone_dists_angles
+    elems=pred_stones_dists_angles
 )
-# print("\npred_stone_dists_angles =", pred_stone_dists_angles)
+# print("\npred_stones_dists_angles =", pred_stones_dists_angles)
 
 
 
-""" pred_raw_infls """
+""" pred_stones """
+""" pred_dists """
+""" pred_angles """
+""" Tensors needed for tensor play in calculating predicted influences. """
+pred_stones = pred_stones_dists_angles[:, :, 0]
+pred_dists = pred_stones_dists_angles[:, :, 1]
+pred_angles = pred_stones_dists_angles[:, :, 2]
+
+
+
+"""'''''''''''''''''''''''''''
+'''   GET RAW INFLUENCES   '''
+'''''''''''''''''''''''''''"""
+
+
+
+""" raw_infls """
+""" Tensor representing the raw base influences of each stone on each empty coord for each
+predicted next move."""
+raw_infls = (MAX_DIST - pred_dists) * pred_stones
+raw_infls = applyScale(raw_infls, [0, MAX_DIST], [0, 1])
+# print("\nraw_infls =", raw_infls)
+
+
+
+"""''''''''''''''''''''''''''''''''''''''''
+'''   GET DISTANCE WEIGHT ADJUSTMENTS   '''
+''''''''''''''''''''''''''''''''''''''''"""
+
+
+""" infls_dist_decay_weight_adjs """
+""" Tensor representing the decay of values of raw_infls based on dist. """
+infls_dist_decay_weight_adjs = tf.cast(tf.where(
+    pred_dists > DIST_DECAY_GREATERTHAN_WEIGHT, DIST_DECAY_LINEAR_WEIGHT, 1
+), dtype='float32')
+# print("\ninfls_dist_decay_weight_adjs =", infls_dist_decay_weight_adjs)
+
+
+
+""" infls_dist_zero_weight_adjs """
+""" Tensor representing the zero out of values of raw_infls based on dist. """
+infls_dist_zero_weight_adjs = tf.cast(tf.where(
+    pred_dists > DIST_ZERO_GREATERTHAN_WEIGHT, 0, 1
+), dtype='float32')
+# print("\ninfls_dist_zero_weight_adjs =", infls_dist_zero_weight_adjs)
+
+
+
+"""'''''''''''''''''''''''''''''''''''''''
+'''   GET BARRIER WEIGHT ADJUSTMENTS   '''
+'''''''''''''''''''''''''''''''''''''''"""
+
+
+
+""" angle_difs """
+""" A tensor (with mirrored values) representing a matrix of angular differences between each stone
+within each empty coord within each predicted next move. """
+angle_tiled_y = tf.tile(reshapeInsertDim(pred_angles, 1), [1, BOTH_COUNT_PER_PRED, 1])
+angle_tiled_x = tf.tile(reshapeAddDim(pred_angles), [1, 1, BOTH_COUNT_PER_PRED])
+angle_difs = tf.abs(angle_tiled_x - angle_tiled_y)
+angle_difs = tf.where(angle_difs > 180, 360 - angle_difs, angle_difs)
+# print("\nangle_difs =", angle_difs)
+
+
+
+""" raw_angle_infls """
 """  """
-pred_raw_infls = (MAX_DIST - pred_stone_dists_angles[:, :, 1]) * pred_stone_dists_angles[:, :, 0]
-pred_raw_infls = applyScale(pred_raw_infls, [0, MAX_DIST], [0, 1])
-# print("\npred_raw_infls =", pred_raw_infls)
+raw_angle_infls = tf.where(angle_difs <= ANGLES_LESSTHAN_WEIGHT, ANGLES_LINEAR_WEIGHT, 1)
+# print("\nraw_angle_infls", raw_angle_infls)
 
 
 
-""" pred_dist_decay_weight_adjs """
-pred_dist_decay_weight_adjs = tf.cast(tf.where(
-    pred_stone_dists_angles[:, :, 1] > DIST_DECAY_GREATERTHAN_WEIGHT,
-    DIST_DECAY_LINEAR_WEIGHT, 1
-), dtype='float32')
-# print("\npred_dist_decay_weight_adjs =", pred_dist_decay_weight_adjs)
+""" angle_mirror_mask """
+"""  """
+mirror_shape = [BOTH_COUNT_PER_PRED] * 2
+mirror_coords = tf.cast(tf.where(tf.equal(tf.zeros(mirror_shape), 0)), dtype='int32')
+mirror_y = -tf.cast(mirror_coords[:, 0], dtype='float32')
+mirror_x = tf.cast(mirror_coords[:, 1], dtype='float32')
+mirror_angles = tf.atan2(mirror_y, mirror_x) * (180 / math.pi)
+mirror_angles = tf.where(mirror_angles > 0, mirror_angles, mirror_angles + 360)
+angle_mirror_mask = tf.where(mirror_angles < 315, True, False)
+angle_mirror_mask = tf.reshape(angle_mirror_mask, [1] + mirror_shape)
+angle_mirror_mask = tf.tile(angle_mirror_mask, [EMPTY_COUNT_ALL_PRED, 1, 1])
+# print("\nangle_mirror_mask =", angle_mirror_mask)
 
 
 
-""" pred_dist_zero_weight_adjs """
-pred_dist_zero_weight_adjs = tf.cast(tf.where(
-    pred_stone_dists_angles[:, :, 1] > DIST_ZERO_GREATERTHAN_WEIGHT,
-    0, 1
-), dtype='float32')
-# print("\pred_dist_zero_weight_adjs =", pred_dist_zero_weight_adjs)
+""" angle_stones_mask """
+"""  """
+stones_tiled_y = tf.reshape(pred_stones, [-1, 1, BOTH_COUNT_PER_PRED])
+stones_tiled_y = tf.tile(stones_tiled_y, [1, BOTH_COUNT_PER_PRED, 1])
+stones_tiled_x = tf.reshape(pred_stones, [-1, BOTH_COUNT_PER_PRED, 1])
+stones_tiled_x = tf.tile(stones_tiled_x, [1, 1, BOTH_COUNT_PER_PRED])
+angle_stones_mask = stones_tiled_y * stones_tiled_x
+angle_stones_mask = tf.where(angle_stones_mask == -1, True, False)
+# print("\nangle_stones_mask =", angle_stones_mask)
 
-print(pred_dist_decay_weight_adjs * pred_dist_zero_weight_adjs)
+
+
+""" masked_angle_infls """
+"""  """
+masked_angle_infls = tf.where(angle_stones_mask, raw_angle_infls, 1)
+masked_angle_infls = tf.where(angle_mirror_mask, masked_angle_infls, 1)
+# print("\nmasked_angle_infls =", masked_angle_infls)
+
+
+
+""" infls_angle_decay_weight_adjs """
+"""  """
+infls_angle_decay_weight_adjs = tf.reduce_prod(masked_angle_infls, axis=2)
+print("\ninfls_angle_decay_weight_adjs =", infls_angle_decay_weight_adjs)
+
+
+
+"""'''''''''''''''''''''''''''''''''''''''
+'''   GET SUPPORT WEIGHT ADJUSTMENTS   '''
+'''''''''''''''''''''''''''''''''''''''"""
