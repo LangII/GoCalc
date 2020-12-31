@@ -1,12 +1,15 @@
 # GoCalc
 
-Go (board game) AI; trying to bring visualization and human understanding to AI.
+Go (board game) AI
+
+
+
+Trying to bring visualization and human understanding to AI.
 Primary external libraries used:  kivy, tensorflow, keras, numpy, pandas, and matplotlib.
 
 
 
 ![Screenshot](readme_pic01.PNG)
-
 (calculating stone influence per empty position in each predicted move)
 
 
