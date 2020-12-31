@@ -290,14 +290,18 @@ pred_raw_infls = (max_dist - pred_dists_angles_resh[:, :, 1]) * stone_values
 
 pred_raw_infls = applyScale(pred_raw_infls, [0, max_dist], [0, 1])
 
-print(pred_raw_infls)
+# print(pred_raw_infls)
 
 pred_infls_w_dist_w = tf.where(pred_raw_infls < DIST_LT_W, pred_raw_infls * DIST_LIN_W, pred_raw_infls)
 # print(pred_infls_w_dist_w)
 
+
+
+
+
 angles_per_empty = pred_dists_angles_resh.shape[1]
+# print(angles_per_empty)
 pred_angles_infls = pred_dists_angles_resh[:, :, 2]
-# print(pred_angles_infls)
 
 pred_angles_infls_resh_x = tf.reshape(pred_angles_infls, pred_angles_infls.shape + [1])
 pred_angles_infls_tiled_x = tf.tile(pred_angles_infls_resh_x, [1, 1, angles_per_empty])
@@ -326,7 +330,7 @@ stone_cancel_y = tf.tile(stone_cancel_y, [1, angles_per_empty, 1])
 
 stone_cancel = stone_cancel_x * stone_cancel_y * -1
 stone_cancel = tf.where(stone_cancel == -1, 0, stone_cancel)
-# print(stone_cancel)
+print(stone_cancel)
 
 pred_angles_infls = pred_angles_infls * stone_cancel
 pred_angles_infls = tf.where(pred_angles_infls == 0, 1, pred_angles_infls)
