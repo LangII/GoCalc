@@ -1,5 +1,4 @@
 # GoCalc
-**Go (board game) AI**\
 \
 \
 \
