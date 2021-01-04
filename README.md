@@ -1,11 +1,11 @@
 # GoCalc
-**Go (board game) AI**
+**Go (board game) AI**\
 \
 \
 \
 **Overview:**\
 \
-Trying to bring visualization and human understanding to AI.\
+Developing artificial intelligence to play the board game of Go, where the program's primary purpose is not necessarily be a great Go player, but instead to explain to users why the AI makes the decisions that it does, and where the information to make the decisions come from.\
 Primary external libraries used:  kivy, tensorflow, keras, numpy, pandas, and matplotlib.\
 \
 \
