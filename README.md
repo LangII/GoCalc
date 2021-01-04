@@ -1,7 +1,5 @@
 # GoCalc
 \
-\
-\
 **Overview:**\
 \
 Developing artificial intelligence to play the board game of Go, where the program's primary purpose is not necessarily be a great Go player, but instead to explain to users why the AI makes the decisions that it does, and where the information to make the decisions come from.\
