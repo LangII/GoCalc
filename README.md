@@ -11,10 +11,16 @@ Primary external libraries used:  kivy, tensorflow, keras, numpy, pandas, and ma
 \
 \
 \
-**Most recent pic/vid (older pics/vids below):**\
+**Current highlight pic/vid (older pics/vids below):**\
 \
 ![](readme_vid01.gif)\
 (demo of game board interface, 2021-01-03)\
+\
+\
+\
+**Currently working on:**\
+\
+Currently the output prediction of the influence model favors the center too much.  Working on redesigning the calculations to understand the benefits of developing territory near the walls over the center.\
 \
 \
 \
@@ -29,6 +35,9 @@ Long term plans is to include a dashboard for more detailed statistical analysis
 \
 \
 **older pics/vids:**\
+\
+![](readme_pic02.png)\
+(current result of influence model's output prediction, 2021-01-04)\
 \
 ![](readme_pic01.PNG)\
 (calculating stone influence per empty position in each predicted move, 2020-12-31)
