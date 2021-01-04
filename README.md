@@ -8,7 +8,7 @@ Primary external libraries used:  kivy, tensorflow, keras, numpy, pandas, and ma
 \
 \
 \
-**Current highlight pic/vid (older pics/vids below):**\
+**Current highlight pic/vid (other pics/vids below):**\
 \
 ![](readme_vid01.gif)\
 (demo of game board interface, 2021-01-03)\
@@ -31,7 +31,7 @@ Long term plans is to include a dashboard for more detailed statistical analysis
 \
 \
 \
-**older pics/vids:**\
+**other pics/vids:**\
 \
 ![](readme_pic02.png)\
 (current result of influence model's output prediction, 2021-01-04)\
