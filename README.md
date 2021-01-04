@@ -7,7 +7,7 @@ Primary external libraries used:  kivy, tensorflow, keras, numpy, pandas, and ma
 
 Most recent pic/vid of work-in-progress:
 (demo of ui, 2021-01-03)
-![](readme_vid01.mp4)
+![](readme_vid01.gif)
 
 (calculating stone influence per empty position in each predicted move, 2020-12-31)
 ![Screenshot](readme_pic01.PNG)
