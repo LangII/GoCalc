@@ -1,5 +1,5 @@
 # GoCalc
-## Go (board game) AI
+**Go (board game) AI**
 \
 \
 Trying to bring visualization and human understanding to AI.\
@@ -24,8 +24,8 @@ Long term plans is to include a dashboard for more detailed statistical analysis
 calculations.\
 \
 \
-## past pics/vids...
+**past pics/vids...**
 \
 \
 (calculating stone influence per empty position in each predicted move, 2020-12-31)\
-![](readme_pic01.PNG)\
+![](readme_pic01.PNG)
