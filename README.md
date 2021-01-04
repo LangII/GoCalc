@@ -7,8 +7,8 @@ Primary external libraries used:  kivy, tensorflow, keras, numpy, pandas, and ma
 \
 \
 Most recent pic/vid of work-in-progress (older pics/vids below):\
-(demo of game board interface, 2021-01-03)\
 ![](readme_vid01.gif)\
+(demo of game board interface, 2021-01-03)\
 \
 \
 Basic layout of user interface is constructed.  Each horizontal panel will represent a prediction model.\
@@ -27,5 +27,5 @@ calculations.\
 **past pics/vids...**
 \
 \
-(calculating stone influence per empty position in each predicted move, 2020-12-31)\
-![](readme_pic01.PNG)
+![](readme_pic01.PNG)\
+(calculating stone influence per empty position in each predicted move, 2020-12-31)
