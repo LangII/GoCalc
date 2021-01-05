@@ -395,14 +395,6 @@ pred_infls = tf.reduce_sum(pred_infls, axis=1)
 pred_infls = tf.reshape(pred_infls, pred_dists_angles.shape.as_list()[:2])
 pred_infls = tf.reduce_sum(pred_infls, axis=1)
 
-pred_infls = tf.SparseTensor(tf.cast(empty_coords, dtype='int64'), pred_infls, BOARD.shape)
-pred_infls = tf.sparse.to_dense(pred_infls)
-pred_infls = roundFloat(pred_infls, 2)
-# print("\npred_infls =", pred_infls)
-
-# pred_move = 0
-# print("\npred_moves =", pred_moves[pred_move])
-# print("\npred_black_dists =", pred_black_dists[pred_move])
 # print("\npred_black_angles =", pred_black_angles[pred_move])
 # print("\npred_white_dists =", pred_white_dists[pred_move])
 # print("\npred_white_angles =", pred_white_angles[pred_move])

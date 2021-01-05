@@ -438,13 +438,13 @@ wall_dists_min = tf.argmin(wall_dists, axis=1)
 
 
 
-closest_wall_coords = tf.gather_nd(
+closest_wall_coords = tf.reshape(tf.gather_nd(
     wall_coords,
     tf.concat([
         reshapeAddDim(tf.cast(tf.range(EMPTY_COUNT_ALL_PRED), dtype='int64')),
         reshapeAddDim(wall_dists_min)
     ], axis=1)
-)
+), [EMPTY_COUNT, EMPTY_COUNT_PER_PRED, 2])
 # print(closest_wall_coords)
 
 
@@ -462,6 +462,16 @@ Then run the calculations for support adjustments:
     - If closest stone in "opposite" list is a like stone, apply support adjustment.
         - This is considering that the closest_wall_coords has been appended as like stones.
 """
+
+
+
+# print(pred_empty_coords)
+
+# pred_empty_coords_resh = reshapeMergeDims(pred_empty_coords, [0, 1])
+# print(pred_empty_coords_resh)
+
+closest_wall_normals = closest_wall_coords - tf.cast(pred_empty_coords, dtype='int64')
+print(closest_wall_normals)
 
 
 
