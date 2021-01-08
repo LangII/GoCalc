@@ -77,7 +77,7 @@ BLACK_VALUE = +1
 WHITE_VALUE = -1
 
 PRED_VALUE = BLACK_VALUE
-# BOT_VALUE = WHITE_VALUE
+# PRED_VALUE = WHITE_VALUE
 
 BOARD_SHAPE = BOARD.shape.as_list()
 EMPTY_COUNT = getCount(BOARD, EMPTY_VALUE)
@@ -195,12 +195,12 @@ pred_white_normals = getPredValueNormals(
 """ pred_white_dists """
 """ Tensors representing the distance between each empty coord and each value coord for each
 predicted next move. """
-def getPredValueDists(pred_value_normals):
-    flat_pred_value_normals = tf.reshape(tf.cast(pred_value_normals, dtype='float32'), [-1, 2])
+def getDistsFromNormals(normals):
+    flat_pred_value_normals = tf.reshape(tf.cast(normals, dtype='float32'), [-1, 2])
     pred_value_dists = tf.norm(flat_pred_value_normals, ord='euclidean', axis=1)
-    return tf.reshape(pred_value_dists, pred_value_normals.shape[:-1])
-pred_black_dists = getPredValueDists(pred_black_normals)
-pred_white_dists = getPredValueDists(pred_white_normals)
+    return tf.reshape(pred_value_dists, normals.shape[:-1])
+pred_black_dists = getDistsFromNormals(pred_black_normals)
+pred_white_dists = getDistsFromNormals(pred_white_normals)
 # print(pred_black_dists, "<- pred_black_dists")
 # print(pred_white_dists, "<- pred_white_dists")
 
@@ -210,13 +210,13 @@ pred_white_dists = getPredValueDists(pred_white_normals)
 """ pred_white_angles """
 """ Tensors representing the angle of each value coord from each empty coord for each predicted
 next move. """
-def getPredValueAngles(pred_value_normals):
-    y_normals = tf.cast(pred_value_normals[:, :, :, 0] * -1, dtype='float32')
-    x_normals = tf.cast(pred_value_normals[:, :, :, 1], dtype='float32')
+def getAnglesFromNormals(normals):
+    y_normals = tf.cast(normals[:, :, :, 0] * -1, dtype='float32')
+    x_normals = tf.cast(normals[:, :, :, 1], dtype='float32')
     pred_value_angles = tf.atan2(y_normals, x_normals) * (180 / math.pi)
     return tf.where(pred_value_angles >= 0, pred_value_angles, pred_value_angles + 360)
-pred_black_angles = getPredValueAngles(pred_black_normals)
-pred_white_angles = getPredValueAngles(pred_white_normals)
+pred_black_angles = getAnglesFromNormals(pred_black_normals)
+pred_white_angles = getAnglesFromNormals(pred_white_normals)
 # print(pred_black_angles, "<- pred_black_angles")
 # print(pred_white_angles, "<- pred_white_angles")
 
@@ -230,18 +230,14 @@ layers.
 NOTE:  pred_stones_dists_angles' shape remains to not have the outer layer representing each
 predicted next move.  This is for the purpose of faster calculations and the output must be reshaped
 after calculations. """
-def getPredValueStoneDistsAngles(pred_value_dists, pred_value_angles, stone_value):
+def getStoneDistsAngles(pred_value_dists, pred_value_angles, stone_value):
     pred_value_dists_resh = reshapeAddDim(pred_value_dists)
     pred_value_angles_resh = reshapeAddDim(pred_value_angles)
     stone_value = tf.constant(stone_value, dtype='float32')
     pred_value_stones = tf.fill(pred_value_dists_resh.shape, stone_value)
     return tf.concat([pred_value_stones, pred_value_dists_resh, pred_value_angles_resh], axis=3)
-pred_black_stone_dists_angles = getPredValueStoneDistsAngles(
-    pred_black_dists, pred_black_angles, BLACK_VALUE
-)
-pred_white_stone_dists_angles = getPredValueStoneDistsAngles(
-    pred_white_dists, pred_white_angles, WHITE_VALUE
-)
+pred_black_stone_dists_angles = getStoneDistsAngles(pred_black_dists, pred_black_angles, BLACK_VALUE)
+pred_white_stone_dists_angles = getStoneDistsAngles(pred_white_dists, pred_white_angles, WHITE_VALUE)
 pred_stones_dists_angles = tf.concat(
     [pred_black_stone_dists_angles, pred_white_stone_dists_angles], axis=2
 )
@@ -398,7 +394,7 @@ greater than requirements, then the calculation will be made based on the closes
 
 
 
-# print(pred_stones_dists_angles)
+# print(pred_stones_dists_angles, "<- pred_stones_dists_angles")
 
 # print(pred_empty_coords)
 
@@ -438,14 +434,14 @@ wall_dists_min = tf.argmin(wall_dists, axis=1)
 
 
 
-closest_wall_coords = tf.reshape(tf.gather_nd(
+wall_coords = tf.reshape(tf.gather_nd(
     wall_coords,
     tf.concat([
         reshapeAddDim(tf.cast(tf.range(EMPTY_COUNT_ALL_PRED), dtype='int64')),
         reshapeAddDim(wall_dists_min)
     ], axis=1)
 ), [EMPTY_COUNT, EMPTY_COUNT_PER_PRED, 2])
-# print(closest_wall_coords)
+# print(wall_coords)
 
 
 
@@ -465,15 +461,32 @@ Then run the calculations for support adjustments:
 
 
 
-# print(pred_empty_coords)
+# print(pred_empty_coords, "<- pred_empty_coords")
 
 # pred_empty_coords_resh = reshapeMergeDims(pred_empty_coords, [0, 1])
 # print(pred_empty_coords_resh)
 
-closest_wall_normals = closest_wall_coords - tf.cast(pred_empty_coords, dtype='int64')
-print(closest_wall_normals, "<- closest_wall_normals")
+wall_normals = wall_coords - tf.cast(pred_empty_coords, dtype='int64')
+wall_normals = reshapeInsertDim(wall_normals, 2)
+# print(wall_normals, "<- wall_normals")
 
+wall_dists = getDistsFromNormals(wall_normals)
+# print(wall_dists, "<- wall_dists")
 
+wall_angles = getAnglesFromNormals(wall_normals)
+# print(wall_angles, "<- wall_angles")
+
+wall_stone_dists_angles = getStoneDistsAngles(wall_dists, wall_angles, PRED_VALUE)
+wall_stone_dists_angles = reshapeMergeDims(wall_stone_dists_angles, [0, 1])
+# print(wall_stone_dists_angles, "<- wall_stone_dists_angles")
+
+pred_sda_w_wall = tf.concat([pred_stones_dists_angles, wall_stone_dists_angles], axis=1)
+print(pred_sda_w_wall)
+
+"""
+I now have wall stones present in pred_stones_dists_angles (as pred_sda_w_wall).  Should be all set
+to start calculating support adjustments.
+"""
 
 # i = 117643
 # print("")
