@@ -16,8 +16,8 @@ from functions import (
 
 np.set_printoptions(
     linewidth=220, # <- How many characters per line before new line.
-    # threshold=300, # <- How many lines allowed before summarized print.
-    threshold=sys.maxsize, # <- How many lines allowed before summarized print. (no summarization)
+    threshold=300, # <- How many lines allowed before summarized print.
+    # threshold=sys.maxsize, # <- How many lines allowed before summarized print. (no summarization)
     edgeitems=10, # <- When summarized, how many edge values are printed.
     suppress=True, # <- Suppress scientific notation.
     precision=4, # <- How many decimal places on floats.
@@ -135,7 +135,7 @@ ANGLES_LINEAR_WEIGHT = 0.2
 """ empty_coords """
 """ A list of all coords with no stone. """
 empty_coords = tf.cast(tf.where(tf.equal(BOARD, 0)), dtype='int32')
-# print("\nempty_coords =", empty_coords)
+# print(empty_coords, "<- empty_coords")
 
 
 
@@ -146,7 +146,7 @@ def getPredMoves(coord):
 pred_moves = tf.vectorized_map(fn=lambda coord: getPredMoves(coord), elems=empty_coords)
 tiled_board = tf.tile(tf.reshape(BOARD, [1, *BOARD_SHAPE]), [EMPTY_COUNT, 1, 1])
 pred_moves = pred_moves + tiled_board
-# print("\npred_moves =", pred_moves)
+# print(pred_moves, "<- pred_moves")
 
 
 
@@ -161,9 +161,9 @@ def getPredValueCoords(pred_moves, value):
 pred_empty_coords = getPredValueCoords(pred_moves, EMPTY_VALUE)
 pred_black_coords = getPredValueCoords(pred_moves, BLACK_VALUE)
 pred_white_coords = getPredValueCoords(pred_moves, WHITE_VALUE)
-# print("\npred_empty_coords =", pred_empty_coords)
-# print("\npred_black_coords =", pred_black_coords)
-# print("\npred_white_coords =", pred_white_coords)
+# print(pred_empty_coords, "<- pred_empty_coords")
+# print(pred_black_coords, "<- pred_black_coords")
+# print(pred_white_coords, "<- pred_white_coords")
 
 
 
@@ -186,8 +186,8 @@ pred_black_normals = getPredValueNormals(
 pred_white_normals = getPredValueNormals(
     pred_empty_coords, pred_white_coords, EMPTY_COUNT_PER_PRED, WHITE_COUNT_PER_PRED
 )
-# print("\npred_black_normals =", pred_black_normals)
-# print("\npred_white_normals =", pred_white_normals)
+# print(pred_black_normals, "<- pred_black_normals")
+# print(pred_white_normals, "<- pred_white_normals")
 
 
 
@@ -201,8 +201,8 @@ def getPredValueDists(pred_value_normals):
     return tf.reshape(pred_value_dists, pred_value_normals.shape[:-1])
 pred_black_dists = getPredValueDists(pred_black_normals)
 pred_white_dists = getPredValueDists(pred_white_normals)
-# print("\npred_black_dists =", pred_black_dists)
-# print("\npred_white_dists =", pred_white_dists)
+# print(pred_black_dists, "<- pred_black_dists")
+# print(pred_white_dists, "<- pred_white_dists")
 
 
 
@@ -217,8 +217,8 @@ def getPredValueAngles(pred_value_normals):
     return tf.where(pred_value_angles >= 0, pred_value_angles, pred_value_angles + 360)
 pred_black_angles = getPredValueAngles(pred_black_normals)
 pred_white_angles = getPredValueAngles(pred_white_normals)
-# print("\npred_black_angles =", pred_black_angles)
-# print("\npred_white_angles =", pred_white_angles)
+# print(pred_black_angles, "<- pred_black_angles")
+# print(pred_white_angles, "<- pred_white_angles")
 
 
 
@@ -250,7 +250,7 @@ pred_stones_dists_angles = tf.vectorized_map(
     fn=lambda pred_empty: sort2dByCol(pred_empty, 1),
     elems=pred_stones_dists_angles
 )
-# print("\npred_stones_dists_angles =", pred_stones_dists_angles)
+# print(pred_stones_dists_angles, "<- pred_stones_dists_angles")
 
 
 
@@ -275,7 +275,7 @@ pred_angles = pred_stones_dists_angles[:, :, 2]
 predicted next move."""
 raw_infls = (MAX_DIST - pred_dists) * pred_stones
 raw_infls = applyScale(raw_infls, [0, MAX_DIST], [0, 1])
-# print("\nraw_infls =", raw_infls)
+# print(raw_infls, "<- raw_infls")
 
 
 
@@ -290,7 +290,7 @@ raw_infls = applyScale(raw_infls, [0, MAX_DIST], [0, 1])
 infls_dist_decay_weight_adjs = tf.cast(tf.where(
     pred_dists > DIST_DECAY_GREATERTHAN_WEIGHT, DIST_DECAY_LINEAR_WEIGHT, 1
 ), dtype='float32')
-# print("\ninfls_dist_decay_weight_adjs =", infls_dist_decay_weight_adjs)
+# print(infls_dist_decay_weight_adjs, "<- infls_dist_decay_weight_adjs")
 
 
 
@@ -299,7 +299,7 @@ infls_dist_decay_weight_adjs = tf.cast(tf.where(
 infls_dist_zero_weight_adjs = tf.cast(tf.where(
     pred_dists > DIST_ZERO_GREATERTHAN_WEIGHT, 0, 1
 ), dtype='float32')
-# print("\ninfls_dist_zero_weight_adjs =", infls_dist_zero_weight_adjs)
+# print(infls_dist_zero_weight_adjs, "<- infls_dist_zero_weight_adjs")
 
 
 
@@ -316,7 +316,7 @@ angle_tiled_y = tf.tile(reshapeInsertDim(pred_angles, 1), [1, BOTH_COUNT_PER_PRE
 angle_tiled_x = tf.tile(reshapeAddDim(pred_angles), [1, 1, BOTH_COUNT_PER_PRED])
 angle_difs = tf.abs(angle_tiled_x - angle_tiled_y)
 angle_difs = tf.where(angle_difs > 180, 360 - angle_difs, angle_difs)
-# print("\nangle_difs =", angle_difs)
+# print(angle_difs, "<- angle_difs")
 
 
 
@@ -324,7 +324,7 @@ angle_difs = tf.where(angle_difs > 180, 360 - angle_difs, angle_difs)
 """ A tensor (with mirrored values) representing a matrix of influences for each stone's angle vs
 each stone's angle per empty coord for each predicted move. """
 raw_angle_infls = tf.where(angle_difs <= ANGLES_LESSTHAN_WEIGHT, ANGLES_LINEAR_WEIGHT, 1)
-# print("\nraw_angle_infls", raw_angle_infls)
+# print(raw_angle_infls, "<- raw_angle_infls")
 
 
 
@@ -339,7 +339,7 @@ mirror_angles = tf.where(mirror_angles > 0, mirror_angles, mirror_angles + 360)
 angle_mirror_mask = tf.where(mirror_angles < 315, True, False)
 angle_mirror_mask = tf.reshape(angle_mirror_mask, [1] + mirror_shape)
 angle_mirror_mask = tf.tile(angle_mirror_mask, [EMPTY_COUNT_ALL_PRED, 1, 1])
-# print("\nangle_mirror_mask =", angle_mirror_mask)
+# print(angle_mirror_mask, "<- angle_mirror_mask")
 
 
 
@@ -351,7 +351,7 @@ stones_tiled_x = tf.reshape(pred_stones, [-1, BOTH_COUNT_PER_PRED, 1])
 stones_tiled_x = tf.tile(stones_tiled_x, [1, 1, BOTH_COUNT_PER_PRED])
 angle_stones_mask = stones_tiled_y * stones_tiled_x
 angle_stones_mask = tf.where(angle_stones_mask == -1, True, False)
-# print("\nangle_stones_mask =", angle_stones_mask)
+# print(angle_stones_mask, "<- angle_stones_mask")
 
 
 
@@ -360,14 +360,14 @@ angle_stones_mask = tf.where(angle_stones_mask == -1, True, False)
 angle_stones_mask. """
 masked_angle_infls = tf.where(angle_stones_mask, raw_angle_infls, 1)
 masked_angle_infls = tf.where(angle_mirror_mask, masked_angle_infls, 1)
-# print("\nmasked_angle_infls =", masked_angle_infls)
+# print(masked_angle_infls, "<- masked_angle_infls")
 
 
 
 """ infls_angle_decay_weight_adjs """
 """  """
 infls_angle_decay_weight_adjs = tf.reduce_prod(masked_angle_infls, axis=2)
-# print("\ninfls_angle_decay_weight_adjs =", infls_angle_decay_weight_adjs)
+# print(infls_angle_decay_weight_adjs, "<- infls_angle_decay_weight_adjs")
 
 
 
@@ -471,7 +471,7 @@ Then run the calculations for support adjustments:
 # print(pred_empty_coords_resh)
 
 closest_wall_normals = closest_wall_coords - tf.cast(pred_empty_coords, dtype='int64')
-print(closest_wall_normals)
+print(closest_wall_normals, "<- closest_wall_normals")
 
 
 
@@ -489,7 +489,7 @@ print(closest_wall_normals)
 
 # wall_dists_min_mask = tf.where(tf.equal(wall_dists == wall_dists_min))
 
-closest_stones = pred_stones_dists_angles[:, 0, :]
+# closest_stones = pred_stones_dists_angles[:, 0, :]
 # print(closest_stones)
 
 
@@ -521,7 +521,7 @@ pred_moves_stone_infls = raw_infls
 pred_moves_stone_infls *= infls_dist_decay_weight_adjs
 pred_moves_stone_infls *= infls_dist_zero_weight_adjs
 pred_moves_stone_infls *= infls_angle_decay_weight_adjs
-# print("\npred_moves_stone_infls =", pred_moves_stone_infls)
+# print(pred_moves_stone_infls, "<- pred_moves_stone_infls")
 
 
 
@@ -537,7 +537,7 @@ pred_move_infls = tf.reduce_sum(pred_moves_stone_infls, axis=1)
 pred_empty_coords_3d = tf.where(tf.equal(pred_moves, 0))
 pred_move_infls = tf.SparseTensor(pred_empty_coords_3d, pred_move_infls, pred_moves.shape)
 pred_move_infls = tf.sparse.to_dense(pred_move_infls)
-# print("\npred_move_infls =", pred_move_infls)
+# print(pred_move_infls, "<- pred_move_infls")
 
 
 
@@ -554,4 +554,4 @@ prediction = tf.SparseTensor(tf.cast(empty_coords, dtype='int64'), prediction, B
 prediction = tf.sparse.to_dense(prediction)
 prediction = applyScale(prediction, [tf.reduce_min(prediction), tf.reduce_max(prediction)], [0, 1])
 prediction = tf.where(BOARD == 0, prediction, 0)
-# print("\nprediction =", prediction)
+# print(prediction, "<- prediction")
