@@ -113,6 +113,7 @@ DIST_DECAY_LINEAR_WEIGHT = 0.5
 DIST_ZERO_GREATERTHAN_WEIGHT = 10
 ANGLES_LESSTHAN_WEIGHT = 45
 ANGLES_LINEAR_WEIGHT = 0.2
+OPP_ANGLES_LESSTHAN_WEIGHT = 90
 
 ####################################################################################################
 
@@ -476,17 +477,117 @@ wall_dists = getDistsFromNormals(wall_normals)
 wall_angles = getAnglesFromNormals(wall_normals)
 # print(wall_angles, "<- wall_angles")
 
-wall_stone_dists_angles = getStoneDistsAngles(wall_dists, wall_angles, PRED_VALUE)
+wall_stones = tf.reshape(pred_stones_dists_angles[:, 0, 0], [EMPTY_COUNT, -1, 1])
+# print(wall_stones)
+
+# wall_stone_dists_angles = getStoneDistsAngles(wall_dists, wall_angles, PRED_VALUE)
+
+wall_stone_dists_angles = reshapeInsertDim(tf.concat([
+    wall_stones, wall_dists, wall_angles
+], axis=2), 2)
+# print(wall_stone_dists_angles)
+# exit()
+
 wall_stone_dists_angles = reshapeMergeDims(wall_stone_dists_angles, [0, 1])
 # print(wall_stone_dists_angles, "<- wall_stone_dists_angles")
 
 pred_sda_w_wall = tf.concat([pred_stones_dists_angles, wall_stone_dists_angles], axis=1)
-print(pred_sda_w_wall)
+# print(pred_sda_w_wall, "<- pred_sda_w_wall")
 
 """
 I now have wall stones present in pred_stones_dists_angles (as pred_sda_w_wall).  Should be all set
 to start calculating support adjustments.
 """
+
+""" Get support stone (closest stone on opposite side of closest stone to empty). """
+
+closest_stones = pred_stones_dists_angles[:, 0, :]
+# print(closest_stones, "<- closest_stones")
+
+closest_stones_angles = closest_stones[:, 2]
+# print(closest_stones_angles, "<- closest_stones_angles")
+
+opposite_angles = tf.where(
+    closest_stones_angles >= 180, closest_stones_angles - 180, closest_stones_angles + 180
+)
+# print(opposite_angles, "<- opposite_angles")
+
+opposite_angles_tiled = tf.tile(reshapeAddDim(opposite_angles), [1, BOTH_COUNT_PER_PRED + 1])
+# print(opposite_angles_tiled)
+
+opp_angles_dif = tf.abs(pred_sda_w_wall[:, :, 2] - opposite_angles_tiled)
+opp_angles_dif = tf.where(opp_angles_dif > 180, 360 - opp_angles_dif, opp_angles_dif)
+# print(opp_angles_dif)
+
+opp_angles_mask = tf.where(opp_angles_dif <= OPP_ANGLES_LESSTHAN_WEIGHT, True, False)
+# opp_angles_mask_resh = reshapeAddDim(opp_angles_mask)
+# opp_angles_mask_resh = tf.cast(opp_angles_mask_resh, dtype='float32')
+# print(opp_angles_mask)
+
+closest_opp_stone = tf.argmax(opp_angles_mask, axis=1)
+closest_opp_stone = tf.gather_nd(
+    pred_sda_w_wall,
+    tf.concat([
+        reshapeAddDim(tf.range(EMPTY_COUNT_ALL_PRED)),
+        tf.cast(reshapeAddDim(closest_opp_stone), dtype='int32')
+    ], axis=1)
+)
+
+i = 91098
+print(pred_sda_w_wall[i], "<- pred_sda_w_wall")
+print("")
+print(closest_opp_stone[i], "<- closest_opp_stone")
+
+
+
+"""
+TURNOVER NOTES:  Just got closest_opp_stone.  Now need to create a new weight comparing dist between
+closest_stone and closest_opp_stone.  If dist is within weight then apply adj weight.
+"""
+
+
+
+"""
+angle_tiled_y = tf.tile(reshapeInsertDim(pred_angles, 1), [1, BOTH_COUNT_PER_PRED, 1])
+angle_tiled_x = tf.tile(reshapeAddDim(pred_angles), [1, 1, BOTH_COUNT_PER_PRED])
+angle_difs = tf.abs(angle_tiled_x - angle_tiled_y)
+angle_difs = tf.where(angle_difs > 180, 360 - angle_difs, angle_difs)
+# print(angle_difs, "<- angle_difs")
+"""
+
+"""
+wall_coords = tf.reshape(tf.gather_nd(
+    wall_coords,
+    tf.concat([
+        reshapeAddDim(tf.cast(tf.range(EMPTY_COUNT_ALL_PRED), dtype='int64')),
+        reshapeAddDim(wall_dists_min)
+    ], axis=1)
+), [EMPTY_COUNT, EMPTY_COUNT_PER_PRED, 2])
+"""
+
+# closest_stones_value = closest_stones[:, 0]
+# closest_stones_tiled = tf.tile(reshapeAddDim(closest_stones_value), [1, BOTH_COUNT_PER_PRED + 1])
+# print(closest_stones_tiled)
+# print(pred_sda_w_wall[:, :, 0])
+# stones_mask = tf.where(closest_stones_tiled == pred_sda_w_wall[:, :, 0], True, False)
+# print(stones_mask)
+
+# support_mask = tf.logical_and(opp_angles_mask, stones_mask)
+# support_mask = tf.where(opp_angles_mask and stones_mask, True, False)
+# print(support_mask)
+
+# print(pred_sda_w_wall[:, :, 0])
+# print(opp_angles_mask)
+
+# is_opp_like_stone = tf.where((pred_sda_w_wall[:, :, 0] + opp_angles_mask) == 2, 1.0, 0.0)
+# print(is_opp_like_stone)
+
+# is_opp_stone = tf.where(pred_sda_w_wall[:, :, 0] + )
+# print(opp_angles_mask_resh)
+
+# print(tf.concat([pred_sda_w_wall, reshapeAddDim(is_opp_like_stone)], axis=-1))
+
+
 
 # i = 117643
 # print("")
@@ -498,12 +599,7 @@ to start calculating support adjustments.
 # print("")
 # print(closest_wall_coords[i])
 
-
-
 # wall_dists_min_mask = tf.where(tf.equal(wall_dists == wall_dists_min))
-
-# closest_stones = pred_stones_dists_angles[:, 0, :]
-# print(closest_stones)
 
 
 
