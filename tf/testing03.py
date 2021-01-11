@@ -16,8 +16,8 @@ from functions import (
 
 np.set_printoptions(
     linewidth=220, # <- How many characters per line before new line.
-    threshold=300, # <- How many lines allowed before summarized print.
-    # threshold=sys.maxsize, # <- How many lines allowed before summarized print. (no summarization)
+    # threshold=300, # <- How many lines allowed before summarized print.
+    threshold=sys.maxsize, # <- How many lines allowed before summarized print. (no summarization)
     edgeitems=10, # <- When summarized, how many edge values are printed.
     suppress=True, # <- Suppress scientific notation.
     precision=4, # <- How many decimal places on floats.
@@ -47,12 +47,32 @@ np.set_printoptions(
 # ], dtype='int32')
 # print("\nBOARD =", BOARD)
 
+# BOARD = tf.constant([
+#     [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
+#     [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
+#     [ 0,  0,  0,  0,  0, +1,  0,  0,  0,  0,  0,  0,  0,  0,  0, +1,  0,  0,  0],
+#     [ 0,  0,  0, -1,  0, -1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
+#     [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, -1,  0,  0,  0],
+#     [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
+#     [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
+#     [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
+#     [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
+#     [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
+#     [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
+#     [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
+#     [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
+#     [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
+#     [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
+#     [ 0,  0,  0, -1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, +1,  0,  0],
+#     [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, +1,  0,  0,  0,  0],
+#     [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
+#     [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0]
+# ], dtype='int32')
+# print("\nBOARD =", BOARD)
+
 BOARD = tf.constant([
     [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
     [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
-    [ 0,  0,  0,  0,  0, +1,  0,  0,  0,  0,  0,  0,  0,  0,  0, +1,  0,  0,  0],
-    [ 0,  0,  0, -1,  0, -1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
-    [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, -1,  0,  0,  0],
     [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
     [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
     [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
@@ -63,8 +83,11 @@ BOARD = tf.constant([
     [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
     [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
     [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
-    [ 0,  0,  0, -1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, +1,  0,  0],
-    [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, +1,  0,  0,  0,  0],
+    [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
+    [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
+    [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
+    [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
+    [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
     [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
     [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0]
 ], dtype='int32')
@@ -108,12 +131,15 @@ print("")
 ####################################################################################################
 
 """ WEIGHTS """
-DIST_DECAY_GREATERTHAN_WEIGHT = 4
+DIST_DECAY_GREATERTHAN_WEIGHT = 4.0
 DIST_DECAY_LINEAR_WEIGHT = 0.5
-DIST_ZERO_GREATERTHAN_WEIGHT = 10
-ANGLES_LESSTHAN_WEIGHT = 45
+DIST_ZERO_GREATERTHAN_WEIGHT = 8.0
+ANGLES_LESSTHAN_WEIGHT = 45.0
 ANGLES_LINEAR_WEIGHT = 0.2
-OPP_ANGLES_LESSTHAN_WEIGHT = 90
+OPP_STONE_ANGLE_LESSTHAN_WEIGHT = 45.0
+OPP_STONE_DIST_LESSTHAN_WEIGHT = 2.0
+OPP_STONE_GROWTH_LINEAR_WEIGHT = 2.0
+PRED_MOVE_EMPTY_INFL_CLAMP_WEIGHT = 1.0
 
 ####################################################################################################
 
@@ -492,6 +518,10 @@ wall_stone_dists_angles = reshapeMergeDims(wall_stone_dists_angles, [0, 1])
 # print(wall_stone_dists_angles, "<- wall_stone_dists_angles")
 
 pred_sda_w_wall = tf.concat([pred_stones_dists_angles, wall_stone_dists_angles], axis=1)
+pred_sda_w_wall = tf.vectorized_map(
+    fn=lambda pred_empty: sort2dByCol(pred_empty, 1),
+    elems=pred_sda_w_wall
+)
 # print(pred_sda_w_wall, "<- pred_sda_w_wall")
 
 """
@@ -519,7 +549,7 @@ opp_angles_dif = tf.abs(pred_sda_w_wall[:, :, 2] - opposite_angles_tiled)
 opp_angles_dif = tf.where(opp_angles_dif > 180, 360 - opp_angles_dif, opp_angles_dif)
 # print(opp_angles_dif)
 
-opp_angles_mask = tf.where(opp_angles_dif <= OPP_ANGLES_LESSTHAN_WEIGHT, True, False)
+opp_angles_mask = tf.where(opp_angles_dif <= OPP_STONE_ANGLE_LESSTHAN_WEIGHT, True, False)
 # opp_angles_mask_resh = reshapeAddDim(opp_angles_mask)
 # opp_angles_mask_resh = tf.cast(opp_angles_mask_resh, dtype='float32')
 # print(opp_angles_mask)
@@ -532,20 +562,46 @@ closest_opp_stone = tf.gather_nd(
         tf.cast(reshapeAddDim(closest_opp_stone), dtype='int32')
     ], axis=1)
 )
+# print(closest_opp_stone, "<- closest_opp_stone")
 
-i = 91098
-print(pred_sda_w_wall[i], "<- pred_sda_w_wall")
-print("")
-print(closest_opp_stone[i], "<- closest_opp_stone")
+# i = 21
+# print(pred_sda_w_wall[i], "<- pred_sda_w_wall")
+# print("")
+# print(closest_opp_stone[i], "<- closest_opp_stone")
 
 
 
 """
 TURNOVER NOTES:  Just got closest_opp_stone.  Now need to create a new weight comparing dist between
-closest_stone and closest_opp_stone.  If dist is within weight then apply adj weight.
+closest_stone and closest_opp_stone.  If closest_stone and closest_opp_stone are like, and If dist
+is within weight then apply adj weight.
 """
 
 
+
+is_support_stone = closest_stones[:, 0] == closest_opp_stone[:, 0]
+is_within_dist = (closest_stones[:, 1] + closest_opp_stone[:, 1]) < OPP_STONE_DIST_LESSTHAN_WEIGHT
+
+
+infls_opp_angle_growth_weight_adjs = tf.where(
+    tf.logical_and(is_support_stone, is_within_dist), OPP_STONE_GROWTH_LINEAR_WEIGHT, 1.0
+)
+pred_empty_coords_3d = tf.where(tf.equal(pred_moves, 0))
+infls_opp_angle_growth_weight_adjs = tf.SparseTensor(
+    pred_empty_coords_3d, infls_opp_angle_growth_weight_adjs, pred_moves.shape
+)
+infls_opp_angle_growth_weight_adjs = tf.sparse.to_dense(infls_opp_angle_growth_weight_adjs)
+# print(infls_opp_angle_growth_weight_adjs, "<- infls_opp_angle_growth_weight_adjs")
+
+
+
+"""
+pred_move_infls = tf.reduce_sum(pred_moves_stone_infls, axis=1)
+pred_empty_coords_3d = tf.where(tf.equal(pred_moves, 0))
+pred_move_infls = tf.SparseTensor(pred_empty_coords_3d, pred_move_infls, pred_moves.shape)
+pred_move_infls = tf.sparse.to_dense(pred_move_infls)
+# print(pred_move_infls, "<- pred_move_infls")
+"""
 
 """
 angle_tiled_y = tf.tile(reshapeInsertDim(pred_angles, 1), [1, BOTH_COUNT_PER_PRED, 1])
@@ -650,6 +706,20 @@ pred_move_infls = tf.sparse.to_dense(pred_move_infls)
 
 
 
+"""''''''''''''''''''''''''''''''''''''''''''''''''''''
+'''   APPLY WEIGHT ADJUSTMENTS TO MOVE INFLUENCES   '''
+''''''''''''''''''''''''''''''''''''''''''''''''''''"""
+
+
+
+# PRED_MOVE_EMPTY_INFL_CLAMP_WEIGHT
+pred_move_infls *= infls_opp_angle_growth_weight_adjs
+pred_move_infls = tf.clip_by_value(
+    pred_move_infls, -PRED_MOVE_EMPTY_INFL_CLAMP_WEIGHT, PRED_MOVE_EMPTY_INFL_CLAMP_WEIGHT
+)
+
+
+
 """''''''''''''''''''''''''''''''''''''''''''''''''''''''''
 '''   REDUCE MOVE INFLUENCES TO GET PREDICTION OUTPUT   '''
 ''''''''''''''''''''''''''''''''''''''''''''''''''''''''"""
@@ -663,4 +733,4 @@ prediction = tf.SparseTensor(tf.cast(empty_coords, dtype='int64'), prediction, B
 prediction = tf.sparse.to_dense(prediction)
 prediction = applyScale(prediction, [tf.reduce_min(prediction), tf.reduce_max(prediction)], [0, 1])
 prediction = tf.where(BOARD == 0, prediction, 0)
-# print(prediction, "<- prediction")
+print(prediction, "<- prediction")
