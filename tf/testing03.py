@@ -16,8 +16,8 @@ from functions import (
 
 np.set_printoptions(
     linewidth=220, # <- How many characters per line before new line.
-    # threshold=300, # <- How many lines allowed before summarized print.
-    threshold=sys.maxsize, # <- How many lines allowed before summarized print. (no summarization)
+    threshold=300, # <- How many lines allowed before summarized print.
+    # threshold=sys.maxsize, # <- How many lines allowed before summarized print. (no summarization)
     edgeitems=10, # <- When summarized, how many edge values are printed.
     suppress=True, # <- Suppress scientific notation.
     precision=4, # <- How many decimal places on floats.
@@ -26,13 +26,13 @@ np.set_printoptions(
 
 ####################################################################################################
 
-# BOARD = tf.constant([
-#     [ 0,  0,  0,  0],
-#     [-1,  0, +1,  0],
-#     [ 0, -1,  0,  0],
-#     [ 0,  0, +1,  0],
-# ], dtype='int32')
-# print("\nBOARD =", BOARD)
+BOARD = tf.constant([
+    [ 0,  0,  0,  0],
+    [-1,  0, +1,  0],
+    [ 0, -1,  0,  0],
+    [ 0,  0, +1,  0],
+], dtype='int32')
+print("\nBOARD =", BOARD)
 
 # BOARD = tf.constant([
 #     [ 0,  0,  0,  0,  0,  0,  0,  0,  0],
@@ -50,8 +50,8 @@ np.set_printoptions(
 # BOARD = tf.constant([
 #     [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
 #     [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
-#     [ 0,  0,  0,  0,  0, +1,  0,  0,  0,  0,  0,  0,  0,  0,  0, +1,  0,  0,  0],
-#     [ 0,  0,  0, -1,  0, -1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
+#     [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, +1,  0,  0,  0],
+#     [ 0,  0,  0, -1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
 #     [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, -1,  0,  0,  0],
 #     [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
 #     [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
@@ -70,28 +70,28 @@ np.set_printoptions(
 # ], dtype='int32')
 # print("\nBOARD =", BOARD)
 
-BOARD = tf.constant([
-    [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
-    [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
-    [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
-    [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
-    [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
-    [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
-    [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
-    [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
-    [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
-    [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
-    [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
-    [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
-    [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
-    [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
-    [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
-    [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
-    [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
-    [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
-    [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0]
-], dtype='int32')
-print("\nBOARD =", BOARD)
+# BOARD = tf.constant([
+#     [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
+#     [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
+#     [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
+#     [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
+#     [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
+#     [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
+#     [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
+#     [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
+#     [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
+#     [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
+#     [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
+#     [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
+#     [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
+#     [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
+#     [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
+#     [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
+#     [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
+#     [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
+#     [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0]
+# ], dtype='int32')
+# print("\nBOARD =", BOARD)
 
 ####################################################################################################
 
@@ -132,18 +132,22 @@ print("")
 
 """ WEIGHTS """
 DIST_DECAY_GREATERTHAN_WEIGHT = 4.0
-DIST_DECAY_LINEAR_WEIGHT = 0.5
+DIST_DECAY_LINEAR_WEIGHT = 0.2
 DIST_ZERO_GREATERTHAN_WEIGHT = 8.0
 ANGLES_LESSTHAN_WEIGHT = 45.0
 ANGLES_LINEAR_WEIGHT = 0.2
-OPP_STONE_ANGLE_LESSTHAN_WEIGHT = 45.0
-OPP_STONE_DIST_LESSTHAN_WEIGHT = 2.0
-OPP_STONE_GROWTH_LINEAR_WEIGHT = 2.0
+OPP_STONE_ANGLE_LESSTHAN_WEIGHT = 15.0
+OPP_STONE_DIST_LESSTHAN_WEIGHT = 5.0
+OPP_STONE_GROWTH_LINEAR_WEIGHT = 8.0
 PRED_MOVE_EMPTY_INFL_CLAMP_WEIGHT = 1.0
 
 ####################################################################################################
 
 
+
+PRED_MOVE_I = 60
+# TESTING_PRINT = 'pred_move_infls'
+TESTING_PRINT = 'prediction'
 
 # print(tf.gather_nd(tf.constant([
 #     [[2, 2], [4, 4], [6, 6], [8, 8]],
@@ -339,7 +343,8 @@ angle_tiled_y = tf.tile(reshapeInsertDim(pred_angles, 1), [1, BOTH_COUNT_PER_PRE
 angle_tiled_x = tf.tile(reshapeAddDim(pred_angles), [1, 1, BOTH_COUNT_PER_PRED])
 angle_difs = tf.abs(angle_tiled_x - angle_tiled_y)
 angle_difs = tf.where(angle_difs > 180, 360 - angle_difs, angle_difs)
-# print(angle_difs, "<- angle_difs")
+print(angle_difs, "<- angle_difs")
+exit()
 
 
 
@@ -733,4 +738,13 @@ prediction = tf.SparseTensor(tf.cast(empty_coords, dtype='int64'), prediction, B
 prediction = tf.sparse.to_dense(prediction)
 prediction = applyScale(prediction, [tf.reduce_min(prediction), tf.reduce_max(prediction)], [0, 1])
 prediction = tf.where(BOARD == 0, prediction, 0)
-print(prediction, "<- prediction")
+# print(prediction, "<- prediction")
+
+
+
+####################################################################################################
+
+
+
+if TESTING_PRINT == 'pred_move_infls':  print(pred_move_infls[PRED_MOVE_I])
+elif TESTING_PRINT == 'prediction':  print(prediction)
