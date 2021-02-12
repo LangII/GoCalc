@@ -20,10 +20,10 @@ WHITE_VALUE = -1
 # print("")
 
 BOARD = tf.constant([
-    [ 0,  0,  0,  0],
-    [-1, +1, +1,  0],
-    [ 0, -1,  0,  0],
-    [ 0,  0, +1,  0],
+    [+1, +1,  0,  0],
+    [ 0, +1, +1,  0],
+    [ 0,  0,  0, +1],
+    [ 0, +1,  0, +1],
 ], dtype='int32')
 print(BOARD, "<- BOARD\n")
 
@@ -61,15 +61,29 @@ def main():
 
 def getGroups(stone_count, stone_pos):
 
-    group_assign = tf.range(1, stone_count + 1)
+    temp_coords = tf.cast(stone_pos + 1, dtype='int64')
+    # temp_value = tf.constant(BLACK_VALUE, shape=[stone_count], dtype='int64')
+    temp_value = tf.range(1, stone_count + 1, dtype='int64')
+    temp_shape = tf.constant([BOARD_SIZE + 2] * 2, dtype='int64')
+    temp_board = tf.sparse.to_dense(tf.SparseTensor(temp_coords, temp_value, temp_shape))
+    temp_board = tf.cast(temp_board, dtype=BOARD.dtype)
+    print(temp_board, "<- temp_board\n")
 
-    def vectorLoop(pos, group_assign):
-        return
-
-    tf.vectorized_map(
-        fn=lambda pos: vectorLoop(pos, group_assign),
-        elems=stone_pos
+    def getNeighbors(pos):
+        y, x = pos[0] + 1, pos[1] + 1
+        neighbors = tf.stack([
+            temp_board[y][x],
+            temp_board[y - 1][x],
+            temp_board[y][x + 1],
+            temp_board[y + 1][x],
+            temp_board[y][x - 1],
+        ])
+        return neighbors
+    neighbors = tf.map_fn(
+        fn=lambda elem: getNeighbors(elem),
+        elems=stone_pos,
     )
+    print(neighbors, "<- neighbors\n")
 
     return
 
