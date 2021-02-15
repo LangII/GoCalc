@@ -40,6 +40,22 @@ BOARD_SIZE = BOARD.shape.as_list()[0]
 
 def main():
 
+    # inp = tf.constant([0, 1, 2, 3])
+    inp = tf.range(0, 100000)
+
+    outp = tf.TensorArray(dtype='int32', size=0, dynamic_size=True, clear_after_read=False)
+    outp = outp.write(0, inp[0])
+
+    cond = lambda i, _: i < inp.shape[0]
+    body = lambda i, outp: (i + 1, outp.write(i, inp[i] + outp.read(i - 1)))
+    _, outp = tf.while_loop(cond, body, (1, outp))
+    outp = outp.stack()
+
+    print(inp)
+    print(outp)
+
+    exit()
+
     # flat_board = reshapeFlatten(BOARD)
     # print(flat_board, "<- flat_board\n")
 
@@ -83,10 +99,53 @@ def getGroups(stone_count, stone_pos):
         fn=lambda elem: getNeighbors(elem),
         elems=stone_pos,
     )
+    # neighbors = tf.sort(neighbors, direction='DESCENDING')
+    # neighbors = tf.sort(neighbors)
     print(neighbors, "<- neighbors\n")
+
+    temp_temp_value = reshapeAddDim(reshapeInsertDim(temp_value, 1))
+    n_compare_this = tf.cast(tf.tile(temp_temp_value, [1, stone_count, 5]), dtype=BOARD.dtype)
+    # print(n_compare_this, "<- n_compare_this\n")
+
+    n_compare_to_that = tf.tile(reshapeInsertDim(neighbors, 0), [stone_count, 1, 1])
+    # print(n_compare_to_that, "<- n_compare_to_that\n")
+
+    compare_bool_mask = tf.equal(n_compare_this, n_compare_to_that)
+    # print(compare_bool_mask, "<- compare_bool_mask\n")
+    compare_bool_mask = tf.reduce_any(compare_bool_mask, axis=2)
+    compare_bool_mask = reshapeAddDim(compare_bool_mask)
+    print(compare_bool_mask, "<- compare_bool_mask\n")
+
 
     return
 
 ####################################################################################################
 
 main()
+
+####################################################################################################
+
+# rag_neighbors = tf.RaggedTensor.from_tensor(neighbors, padding=0)
+# rag_neighbors = tf.argsort(rag_neighbors)
+# print(rag_neighbors)
+
+# def getRaggedMap(t):
+#     value = t[0]
+#     return tf.where(t > 0, value, t)
+# ragged_map = tf.vectorized_map(
+#     fn=lambda elem:  getRaggedMap(elem),
+#     elems=neighbors
+# )
+# print(ragged_map, "<- ragged_map\n")
+#
+# neighbors = reshapeFlatten(neighbors)
+# ragged_map = reshapeFlatten(ragged_map)
+#
+# print(neighbors)
+# print(ragged_map)
+#
+# rag_neighbors = tf.RaggedTensor.from_value_rowids(
+#     values=neighbors,
+#     value_rowids=ragged_map
+# )
+# print(rag_neighbors)
