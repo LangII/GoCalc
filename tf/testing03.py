@@ -26,13 +26,13 @@ np.set_printoptions(
 
 ####################################################################################################
 
-BOARD = tf.constant([
-    [ 0,  0,  0,  0],
-    [-1,  0, +1,  0],
-    [ 0, -1,  0,  0],
-    [ 0,  0, +1,  0],
-], dtype='int32')
-print("\nBOARD =", BOARD)
+# BOARD = tf.constant([
+#     [ 0,  0,  0,  0],
+#     [-1,  0, +1,  0],
+#     [ 0, -1,  0,  0],
+#     [ 0,  0, +1,  0],
+# ], dtype='int32')
+# print("\nBOARD =", BOARD)
 
 # BOARD = tf.constant([
 #     [ 0,  0,  0,  0,  0,  0,  0,  0,  0],
@@ -47,28 +47,28 @@ print("\nBOARD =", BOARD)
 # ], dtype='int32')
 # print("\nBOARD =", BOARD)
 
-# BOARD = tf.constant([
-#     [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
-#     [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
-#     [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, +1,  0,  0,  0],
-#     [ 0,  0,  0, -1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
-#     [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, -1,  0,  0,  0],
-#     [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
-#     [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
-#     [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
-#     [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
-#     [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
-#     [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
-#     [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
-#     [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
-#     [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
-#     [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
-#     [ 0,  0,  0, -1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, +1,  0,  0],
-#     [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, +1,  0,  0,  0,  0],
-#     [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
-#     [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0]
-# ], dtype='int32')
-# print("\nBOARD =", BOARD)
+BOARD = tf.constant([
+    [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
+    [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
+    [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, +1,  0,  0,  0],
+    [ 0,  0,  0, -1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
+    [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, -1,  0,  0,  0],
+    [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
+    [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
+    [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
+    [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
+    [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
+    [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
+    [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
+    [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
+    [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
+    [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
+    [ 0,  0,  0, -1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, +1,  0,  0],
+    [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, +1,  0,  0,  0,  0],
+    [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
+    [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0]
+], dtype='int32')
+print("\nBOARD =", BOARD)
 
 # BOARD = tf.constant([
 #     [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
@@ -146,8 +146,10 @@ PRED_MOVE_EMPTY_INFL_CLAMP_WEIGHT = 1.0
 
 
 PRED_MOVE_I = 60
-# TESTING_PRINT = 'pred_move_infls'
-TESTING_PRINT = 'prediction'
+TESTING_PRINT = 'pred_move_infls'
+# TESTING_PRINT = 'prediction'
+
+
 
 # print(tf.gather_nd(tf.constant([
 #     [[2, 2], [4, 4], [6, 6], [8, 8]],
@@ -160,6 +162,16 @@ TESTING_PRINT = 'prediction'
 """'''''''''''''''''''''''''''''''''''''''''''''''''
 '''  GET PRIMARY TENSOR FOR WEIGHT APPLICATION   '''
 '''''''''''''''''''''''''''''''''''''''''''''''''"""
+"""
+The primary base tensor is pred_stones_dists_angles (dims = [a, b, c]).
+
+If BOARD was copied EMPTY_COUNT number of times, and each BOARD copy had a different original empty
+pos filled with PRED_VALUE, each outer dim (a) iteration of pred_stones_dists_angles would represent
+an empty pos of each of the copies of BOARD (with PRED_VALUE filled in an empty).
+
+Then each outer dim (a) iteration contains data on that pos relationship with the stones on that
+copy of board.
+"""
 
 
 
@@ -277,7 +289,8 @@ pred_stones_dists_angles = tf.vectorized_map(
     fn=lambda pred_empty: sort2dByCol(pred_empty, 1),
     elems=pred_stones_dists_angles
 )
-# print(pred_stones_dists_angles, "<- pred_stones_dists_angles")
+print(pred_stones_dists_angles, "<- pred_stones_dists_angles")
+exit()
 
 
 
@@ -343,8 +356,7 @@ angle_tiled_y = tf.tile(reshapeInsertDim(pred_angles, 1), [1, BOTH_COUNT_PER_PRE
 angle_tiled_x = tf.tile(reshapeAddDim(pred_angles), [1, 1, BOTH_COUNT_PER_PRED])
 angle_difs = tf.abs(angle_tiled_x - angle_tiled_y)
 angle_difs = tf.where(angle_difs > 180, 360 - angle_difs, angle_difs)
-print(angle_difs, "<- angle_difs")
-exit()
+# print(angle_difs, "<- angle_difs")
 
 
 
