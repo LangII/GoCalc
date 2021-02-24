@@ -19,36 +19,36 @@ WHITE_VALUE = -1
 # print(f"WHITE_VALUE = {WHITE_VALUE}")
 # print("")
 
-# BOARD = tf.constant([
-#     [+1, +1,  0,  0],
-#     [ 0,  0, +1,  0],
-#     [ 0,  0,  0, +1],
-#     [ 0, +1,  0, +1],
-# ], dtype='int32')
-
 BOARD = tf.constant([
-    [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
-    [ 0,  0,  1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  1,  0,  0],
-    [ 0,  0,  1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  1,  0,  0],
-    [ 0,  0,  1,  1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  1,  0,  0,  0],
-    [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
-    [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
-    [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
-    [ 0,  0,  0,  1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
-    [ 0,  0,  1,  0,  1,  0,  1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
-    [ 0,  0,  1,  0,  0,  1,  1,  0,  0,  0,  0,  0,  0,  1,  1,  0,  0,  0,  0],
-    [ 0,  0,  1,  1,  1,  0,  1,  0,  0,  0,  1,  0,  0,  0,  0,  0,  0,  0,  0],
-    [ 0,  0,  1,  1,  1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
-    [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  1,  0,  0,  0,  0,  0,  0,  0,  0],
-    [ 0,  0,  0,  0,  1,  1,  1,  0,  0,  0,  1,  0,  0,  0,  1,  0,  0,  0,  0],
-    [ 0,  0,  0,  0,  0,  0,  1,  0,  0,  0,  1,  0,  0,  1,  0,  1,  1,  0,  0],
-    [ 0,  0,  0,  1,  0,  1,  1,  0,  0,  0,  0,  0,  0,  1,  1,  1,  1,  0,  0],
-    [ 0,  0,  0,  0,  1,  0,  1,  0,  0,  0,  0,  0,  0,  1,  0,  0,  0,  0,  0],
-    [ 0,  0,  0,  0,  0,  1,  0,  0,  0,  1,  1,  0,  0,  0,  0,  0,  0,  0,  0],
-    [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  1,  1,  0,  0,  0,  0,  0,  0,  0,  0]
+    [+1, +1, +1,  0],
+    [ 0,  0, +1,  0],
+    [ 0,  0,  0, +1],
+    [ 0, +1,  0, +1],
 ], dtype='int32')
 
-BOARD = tf.tile(BOARD, [10] * 2)
+# BOARD = tf.constant([
+#     [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
+#     [ 0,  0,  1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  1,  0,  0],
+#     [ 0,  0,  1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  1,  0,  0],
+#     [ 0,  0,  1,  1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  1,  0,  0,  0],
+#     [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
+#     [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
+#     [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
+#     [ 0,  0,  0,  1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
+#     [ 0,  0,  1,  0,  1,  0,  1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
+#     [ 0,  0,  1,  0,  0,  1,  1,  0,  0,  0,  0,  0,  0,  1,  1,  0,  0,  0,  0],
+#     [ 0,  0,  1,  1,  1,  0,  1,  0,  0,  0,  1,  0,  0,  0,  0,  0,  0,  0,  0],
+#     [ 0,  0,  1,  1,  1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
+#     [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  1,  0,  0,  0,  0,  0,  0,  0,  0],
+#     [ 0,  0,  0,  0,  1,  1,  1,  0,  0,  0,  1,  0,  0,  0,  1,  0,  0,  0,  0],
+#     [ 0,  0,  0,  0,  0,  0,  1,  0,  0,  0,  1,  0,  0,  1,  0,  1,  1,  0,  0],
+#     [ 0,  0,  0,  1,  0,  1,  1,  0,  0,  0,  0,  0,  0,  1,  1,  1,  1,  0,  0],
+#     [ 0,  0,  0,  0,  1,  0,  1,  0,  0,  0,  0,  0,  0,  1,  0,  0,  0,  0,  0],
+#     [ 0,  0,  0,  0,  0,  1,  0,  0,  0,  1,  1,  0,  0,  0,  0,  0,  0,  0,  0],
+#     [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  1,  1,  0,  0,  0,  0,  0,  0,  0,  0]
+# ], dtype='int32')
+
+# BOARD = tf.tile(BOARD, [10] * 2)
 
 print(BOARD, "<- BOARD\n")
 
@@ -83,13 +83,19 @@ def main():
     # print(white_stones_pos_1d, "<- white_stones_pos_1d\n")
 
     black_group_assign = getGroupAssign(black_stones_count, black_stones_pos_2d)
-    print(black_group_assign, "<- black_group_assign\n")
+    # print(black_group_assign, "<- black_group_assign\n")
 
 ####################################################################################################
 
 def getGroupAssign(stone_count, stone_pos):
 
-    """ get temp_board """
+    """ temp_board (shape=(BOARD.shape + 2)):
+    - temp_board is a representation of BOARD.
+    - temp_board has an additional boarder of 0s around the perimeter.  The purpose of this is to
+    avoid errors when finding neighbors of stones on the BOARD edge.
+    - temp_board also replaces each value of BOARD from stone_pos with a unique int. The purpose of
+    this is for easy stone reference/representation.
+    """
     temp_coords = tf.cast(stone_pos + 1, dtype='int64')
     temp_value = tf.range(1, stone_count + 1, dtype='int64')
     temp_shape = tf.constant([BOARD_SIZE + 2] * 2, dtype='int64')
@@ -97,7 +103,12 @@ def getGroupAssign(stone_count, stone_pos):
     temp_board = tf.cast(temp_board, dtype=BOARD.dtype)
     # print(temp_board, "<- temp_board\n")
 
-    """ get neighbors """
+    """ neighbors (shape=(?, 2)):
+    - neighbors is a tensor where each value set within the 1st dim represents a neighbor set.
+    - Each scalar value in neighbors is a mapping to temp_board.  So, if a neighbor set (1st dim
+    values) is [1, 2], then that means that the 1 and 2 in temp_board are neighbors.
+    - neighbors, as a list of all neighbor sets, is needed for building group_assign.
+    """
     def getNeighbors(pos):
         y = pos[0] + 1
         x = pos[1] + 1
@@ -114,7 +125,11 @@ def getGroupAssign(stone_count, stone_pos):
     neighbors = tf.boolean_mask(neighbors, neighbors_mask)
     # print(neighbors, "<- neighbors\n")
 
-    """ get group_assign """
+    """ group_assign (shape=(stone_count)):
+    - group_assign is a 1-dim list tensor, that is parallel to dim-1 of stone_pos, where each value
+    of group_assign represents the group label assignment for that stone (paraellel to stone_pos).
+    """
+    ### init group_assign
     group_assign = tf.TensorArray(
         dtype=BOARD.dtype, size=0, dynamic_size=True, clear_after_read=False
     )
@@ -123,6 +138,7 @@ def getGroupAssign(stone_count, stone_pos):
         lambda i, group_assign:  (i + 1, group_assign.write(i, i + 1)),
         (0, group_assign)
     )
+    ### set group_assign
     def setGroupAssign(i, group_assign):
         a = neighbors[i, 0] - 1
         b = neighbors[i, 1] - 1
@@ -134,6 +150,9 @@ def getGroupAssign(stone_count, stone_pos):
         (0, group_assign)
     )
     group_assign = group_assign.stack()
+    ### format group_assign
+    _, group_assign = tf.unique(group_assign, out_idx=BOARD.dtype)
+    group_assign = group_assign + 1
     # print(group_assign, "<- group_assign\n")
 
     return group_assign
