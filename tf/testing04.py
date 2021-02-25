@@ -15,15 +15,15 @@ print("")
 
 BLACK_VALUE = +1
 WHITE_VALUE = -1
-# print(f"BLACK_VALUE = {BLACK_VALUE}")
-# print(f"WHITE_VALUE = {WHITE_VALUE}")
-# print("")
+print(f"BLACK_VALUE = {BLACK_VALUE}")
+print(f"WHITE_VALUE = {WHITE_VALUE}")
+print("")
 
 BOARD = tf.constant([
-    [+1, +1, +1,  0],
-    [ 0,  0, +1,  0],
-    [ 0,  0,  0, +1],
-    [ 0, +1,  0, +1],
+    [ 0, +1,  0,  0],
+    [ 0, +1, +1, -1],
+    [+1, -1, -1,  0],
+    [-1,  0,  0,  0],
 ], dtype='int32')
 
 # BOARD = tf.constant([
@@ -83,7 +83,10 @@ def main():
     # print(white_stones_pos_1d, "<- white_stones_pos_1d\n")
 
     black_group_assign = getGroupAssign(black_stones_count, black_stones_pos_2d)
-    # print(black_group_assign, "<- black_group_assign\n")
+    print(black_group_assign, "<- black_group_assign\n")
+
+    black_group_lib_pos = getGroupLibPos(black_stones_count, black_stones_pos_2d, black_group_assign)
+    print(black_group_lib_pos, "<- black_group_lib_pos\n")
 
 ####################################################################################################
 
@@ -158,6 +161,118 @@ def getGroupAssign(stone_count, stone_pos):
     return group_assign
 
 ####################################################################################################
+
+def getGroupLibPos(stone_count, stones_pos, group_assign):
+
+    boarder_padded_board = tf.pad(BOARD, [[1, 1], [1, 1]], constant_values=2)
+    # print(boarder_padded_board, "<- boarder_padded_board\n")
+
+    zeros_pos = tf.cast(getPosOfValue(boarder_padded_board, 0), dtype='int64')
+    zeros_count = getCountOfValue(boarder_padded_board, 0)
+    new_zeros_values = tf.range(1, zeros_count + 1, dtype='int64')
+    zeros_incr_board = tf.sparse.to_dense(tf.SparseTensor(
+        zeros_pos, new_zeros_values, boarder_padded_board.shape
+    ))
+    zeros_incr_board = tf.cast(zeros_incr_board, dtype=BOARD.dtype)
+    # print(zeros_incr_board, "<- zeros_incr_board\n")
+
+    def getZeroNeighbors(pos):
+        y = pos[0] + 1
+        x = pos[1] + 1
+        zero_neighbors = tf.stack([
+            zeros_incr_board[y - 1][x], zeros_incr_board[y][x + 1],
+            zeros_incr_board[y + 1][x], zeros_incr_board[y][x - 1],
+        ])
+        return zero_neighbors
+    zero_neighbors = tf.map_fn(fn=lambda elem: getZeroNeighbors(elem), elems=stones_pos)
+    # print(zero_neighbors, "<- zero_neighbors\n")
+
+    zip_group_assign = reshapeAddDim(reshapeFlatten(tf.tile(reshapeAddDim(group_assign), [1, 4])))
+    zip_zero_neighbors = reshapeAddDim(reshapeFlatten(zero_neighbors))
+    group_zero_neighbors = tf.concat([zip_group_assign, zip_zero_neighbors], axis=1)
+    zero_mask = tf.equal(tf.reduce_any(tf.equal(group_zero_neighbors, 0), axis=1), False)
+    group_zero_neighbors = tf.boolean_mask(group_zero_neighbors, zero_mask)
+    group_zero_neighbors = tf_unique_2d(group_zero_neighbors)
+    # print(group_zero_neighbors, "<- group_zero_neighbors\n")
+
+    group_lib_pos = tf.map_fn(
+        fn=lambda elem: getPosOfValue(zeros_incr_board, elem),
+        elems=group_zero_neighbors[:, 1]
+    )
+    group_lib_pos = reshapeMergeDims(group_lib_pos, [1, 2])
+    group_lib_pos = tf.concat([reshapeAddDim(group_assign), group_lib_pos], axis=1)
+    # print(group_lib_pos, "<- group_lib_pos\n")
+
+    return group_lib_pos
+
+    # group_lib_pos = tf.TensorArray(
+    #     dtype=BOARD.dtype, size=0, dynamic_size=True, clear_after_read=False
+    # )
+    # def setGroupLibPos(i, group_lib_pos):
+    #
+    #     return i + 1, group_lib_pos
+    # _, group_lib_pos = tf.while_loop(
+    #     lambda i, _:  i < stones_count,
+    #     lambda i, group_lib_pos:  setGroupLibPos(i, group_lib_pos),
+    #     (0, group_lib_pos)
+    # )
+    # print(group_lib_pos, "<- group_lib_pos\n")
+
+    # def getAllNeighbors(pos):
+    #     some_neighbors = tf.stack([
+    #
+    #     ])
+    #     return some_neighbors
+    # all_neighbors = tf.vectorized_map(
+    #     fn=lambda elem: getAllNeighbors(elem),
+    #     elems=stones_pos
+    # )
+
+    exit()
+
+####################################################################################################
+
+def tf_unique_2d(x):
+    """ Copied from stackoverflow...
+    https://stackoverflow.com/questions/51487990/find-unique-values-in-a-2d-tensor-using-tensorflow
+    """
+    x_shape = tf.shape(x)  # (3,2)
+    x1 = tf.tile(x, [1, x_shape[0]])  # [[1,2],[1,2],[1,2],[3,4],[3,4],[3,4]..]
+    x2 = tf.tile(x, [x_shape[0], 1])  # [[1,2],[1,2],[1,2],[3,4],[3,4],[3,4]..]
+
+    x1_2 = tf.reshape(x1, [x_shape[0] * x_shape[0], x_shape[1]])
+    x2_2 = tf.reshape(x2, [x_shape[0] * x_shape[0], x_shape[1]])
+    cond = tf.reduce_all(tf.equal(x1_2, x2_2), axis=1)
+    cond = tf.reshape(cond, [x_shape[0], x_shape[0]])  # reshaping cond to match x1_2 & x2_2
+    cond_shape = tf.shape(cond)
+    cond_cast = tf.cast(cond, tf.int32)  # convertin condition boolean to int
+    cond_zeros = tf.zeros(cond_shape, tf.int32)  # replicating condition tensor into all 0's
+
+    # CREATING RANGE TENSOR
+    r = tf.range(x_shape[0])
+    r = tf.add(tf.tile(r, [x_shape[0]]), 1)
+    r = tf.reshape(r, [x_shape[0], x_shape[0]])
+
+    # converting TRUE=1 FALSE=MAX(index)+1 (which is invalid by default) so when we take min it wont
+    # get selected & in end we will only take values <max(indx).
+    f1 = tf.multiply(tf.ones(cond_shape, tf.int32), x_shape[0] + 1)
+    f2 = tf.ones(cond_shape, tf.int32)
+    # if false make it max_index+1 else keep it 1
+    cond_cast2 = tf.where(tf.equal(cond_cast, cond_zeros), f1, f2)
+
+    # multiply range with new int boolean mask
+    r_cond_mul = tf.multiply(r, cond_cast2)
+    r_cond_mul2 = tf.reduce_min(r_cond_mul, axis=1)
+    r_cond_mul3, unique_idx = tf.unique(r_cond_mul2)
+    r_cond_mul4 = tf.subtract(r_cond_mul3, 1)
+
+    # get actual values from unique indexes
+    op = tf.gather(x, r_cond_mul4)
+
+    return (op)
+
+####################################################################################################
+
 
 main()
 
