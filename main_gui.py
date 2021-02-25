@@ -34,6 +34,7 @@ from kivy.properties import NumericProperty, ObjectProperty
 
 from gui.contentpanels.gameboardpanel import GameBoardPanel
 from gui.contentpanels.taxicabinflpanel import TaxiCabInflPanel
+from gui.contentpanels.influencepanel import InfluencePanel
 
 from gamelogic.board import Board
 from gamelogic.player import Player
@@ -45,8 +46,8 @@ APP_DATA = {
     'board': None,
     'player': {'black': None, 'white': None},
 
-    'default_window_size': [800, 500],
-    'board_size': 9, # 9, 13, or 19
+    'default_window_size': [1000, 700],
+    'board_size': 19, # 9, 13, or 19
     'grid_star_size': 5,
     'grid_star_coords': {
         9: [[2, 2], [2, 6], [4, 4], [6, 2], [6, 6]],
@@ -149,8 +150,11 @@ class ContentScroll (ScrollView):
         self.game_board_panel = GameBoardPanel()
         self.layout.add_widget(self.game_board_panel)
 
-        self.taxi_cab_infl_panel = TaxiCabInflPanel()
-        self.layout.add_widget(self.taxi_cab_infl_panel)
+        # self.taxi_cab_infl_panel = TaxiCabInflPanel()
+        # self.layout.add_widget(self.taxi_cab_infl_panel)
+
+        self.influence_panel = InfluencePanel()
+        self.layout.add_widget(self.influence_panel)
 
         """ TEMPORARY / FOR DISPLAY PURPOSES """
         for i in range(20):

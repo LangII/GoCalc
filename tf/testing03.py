@@ -50,9 +50,8 @@ np.set_printoptions(
 BOARD = tf.constant([
     [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
     [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
-    [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, +1,  0,  0,  0],
-    [ 0,  0,  0, -1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
-    [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, -1,  0,  0,  0],
+    [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
+    [ 0,  0,  0, -1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, +1,  0,  0,  0],
     [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
     [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
     [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
@@ -63,8 +62,9 @@ BOARD = tf.constant([
     [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
     [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
     [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
-    [ 0,  0,  0, -1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, +1,  0,  0],
-    [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, +1,  0,  0,  0,  0],
+    [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
+    [ 0,  0,  0, -1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, +1,  0,  0,  0],
+    [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
     [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
     [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0]
 ], dtype='int32')
@@ -132,7 +132,7 @@ print("")
 
 """ WEIGHTS """
 DIST_DECAY_GREATERTHAN_WEIGHT = 4.0
-DIST_DECAY_LINEAR_WEIGHT = 0.2
+DIST_DECAY_LINEAR_WEIGHT = 0.5
 DIST_ZERO_GREATERTHAN_WEIGHT = 8.0
 ANGLES_LESSTHAN_WEIGHT = 45.0
 ANGLES_LINEAR_WEIGHT = 0.2
@@ -144,9 +144,10 @@ PRED_MOVE_EMPTY_INFL_CLAMP_WEIGHT = 1.0
 ####################################################################################################
 
 
-
-PRED_MOVE_I = 60
+Y, X = 7, 6
+PRED_MOVE_I = (Y * BOARD_SHAPE[0]) + X - 2
 TESTING_PRINT = 'pred_move_infls'
+
 # TESTING_PRINT = 'prediction'
 
 
@@ -289,8 +290,8 @@ pred_stones_dists_angles = tf.vectorized_map(
     fn=lambda pred_empty: sort2dByCol(pred_empty, 1),
     elems=pred_stones_dists_angles
 )
-print(pred_stones_dists_angles, "<- pred_stones_dists_angles")
-exit()
+# print(pred_stones_dists_angles, "<- pred_stones_dists_angles")
+# exit()
 
 
 

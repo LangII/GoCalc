@@ -13,7 +13,7 @@ from kivy.graphics import Color, Rectangle, Line, Ellipse
 
 from gui.contentbasewidgets import ContentPanel, PanelSettings, PanelSettingsInput
 
-import calculate.taxicabinflcalc as tci_calc
+# import calculate.taxicabinflcalc as tci_calc
 
 import calculate.influencecalc as infl
 
