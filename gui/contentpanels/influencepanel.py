@@ -11,7 +11,9 @@ from kivy.uix.splitter import Splitter
 from kivy.properties import NumericProperty, ListProperty, ObjectProperty
 from kivy.graphics import Color, Rectangle, Line, Ellipse
 
-from gui.contentbasewidgets import ContentPanel, PanelSettings, PanelSettingsInput
+from gui.contentbasewidgets import (
+    ContentPanel, PanelSettings, PanelSettingsInput, PanelSettingsSingleButton
+)
 
 # import calculate.taxicabinflcalc as tci_calc
 
@@ -39,8 +41,11 @@ class InfluencePanel (ContentPanel):
         self.settings = PanelSettings()
         self.add_widget(self.settings)
 
-        self.trigger_infl_calc = TriggerInflCalc()
-        self.settings.layout.add_widget(self.trigger_infl_calc)
+        self.refresh = Refresh()
+        self.settings.layout.add_widget(self.refresh)
+
+        self.weights_title = WeightsTitle()
+        self.settings.layout.add_widget(self.weights_title)
 
         for i in range(20):
             self.settings.layout.add_widget(Label(text=f'{i + 1}', size_hint=[1.0, None], height=20))
@@ -167,17 +172,23 @@ class DataBoardButton (ButtonBehavior, Widget):
 
 
 
-class TriggerInflCalc (PanelSettingsInput):
+class WeightsTitle (Label):
 
     def __init__(self):
-        super(TriggerInflCalc, self).__init__("trigger infl calc")
+        super(WeightsTitle, self).__init__()
         self.app = App.get_running_app()
-        self.button = Button(text='trigger infl calc', height=20)
-        self.add_widget(self.button)
+        self.text = "WEIGHTS"
 
-        self.button.bind(on_release=self.triggerInflCalcButton)
 
-    def triggerInflCalcButton(self, *args):
+
+class Refresh (PanelSettingsSingleButton):
+
+    def __init__(self):
+        super(Refresh, self).__init__("refresh")
+        self.app = App.get_running_app()
+        self.bind(on_release=self.triggerRefresh)
+
+    def triggerRefresh(self, *args):
         display_buttons = self.app.main.content_scroll.influence_panel.display.buttons
         # infl_grid = tci_calc.getStoneRawInfluenceGrid([4, 4])
 

@@ -144,6 +144,14 @@
                 pos:  self.pos
                 size:  self.size
 
+
+
+<PanelSettingsSingleButton>:
+    size_hint:  [1.0, None]
+    height:  20
+    spacing:  GLOBAL_SPACING
+    text:  self.title_label_text
+
 #######################################################################   \/ CONTENT PANELS \/   ###
 
 <GameBoardDisplay>:
@@ -165,7 +173,7 @@
 
 
 
-<CapturesDisplay>:
+<CapturesDisplay,WeightsTitle>:
     height:  20
     size_hint:  [1.0, None]
     halign:  'center'

@@ -65,3 +65,12 @@ class PanelSettingsInput (BoxLayout):
     def __init__(self, title):
         super(PanelSettingsInput, self).__init__()
         self.title_label_text = title
+
+
+
+class PanelSettingsSingleButton (Button):
+    title_label_text = StringProperty()
+
+    def __init__(self, title):
+        super(PanelSettingsSingleButton, self).__init__()
+        self.title_label_text = title
