@@ -1,4 +1,21 @@
 
+"""
+distance decay
+                        greater than weight
+                        linear weight
+distance zero
+                        greater than weight
+angle decay
+                        less than weight
+                        linear weight
+opposite angle growth
+                        angle less than weight
+                        distance less than weight
+                        growth linear weight
+clamp
+                        within weight
+"""
+
 from kivy.app import App
 from kivy.uix.button import ButtonBehavior, Button
 from kivy.uix.widget import Widget
@@ -40,6 +57,9 @@ class InfluencePanel (ContentPanel):
 
         self.refresh = Refresh()
         self.settings.layout.add_widget(self.refresh)
+
+        self.display_mode = DisplayModeInput()
+        self.settings.layout.add_widget(self.display_mode)
 
         self.infl_adjs = InflAdjsInput()
         self.settings.layout.add_widget(self.infl_adjs)
@@ -172,15 +192,6 @@ class DataBoardButton (ButtonBehavior, Widget):
 
 
 
-class WeightsTitle (Label):
-
-    def __init__(self):
-        super(WeightsTitle, self).__init__()
-        self.app = App.get_running_app()
-        self.text = "WEIGHTS"
-
-
-
 class Refresh (PanelSettingsSingleButton):
 
     def __init__(self):
@@ -225,30 +236,47 @@ class Refresh (PanelSettingsSingleButton):
 
 
 
+class DisplayModeInput (PanelSettingsInput):
+
+    def __init__(self):
+        super(DisplayModeInput, self).__init__("display mode")
+        self.app = App.get_running_app()
+        self.value = self.app.data['influence']['display_mode']
+        self.options = BoxLayout(orientation='horizontal', size_hint=[1.0, None], height=20)
+        self.cur_infl_button = ToggleButton(
+            text="current influence", group='influence_display_mode', font_size=13
+        )
+        self.pred_button = ToggleButton(
+            text="prediction", group='influence_display_mode', font_size=13
+        )
+        self.cur_infl_button.allow_no_selection = False
+        self.pred_button.allow_no_selection = False
+        self.options.add_widget(self.cur_infl_button)
+        self.options.add_widget(self.pred_button)
+        self.add_widget(self.options)
+
+        if self.value == 'cur_infl':  self.cur_infl_button.state = 'down'
+        elif self.value == 'pred':  self.pred_button.state = 'down'
+
+        self.cur_infl_button.bind(on_release=self.curInflButtonPressed)
+        self.pred_button.bind(on_release=self.predButtonPressed)
+
+    def curInflButtonPressed(self, *largs):
+        self.app.data['influence']['display_mode'] = 'cur_infl'
+        self.value = 'cur_infl'
+
+    def predButtonPressed(self, *largs):
+        self.app.data['influence']['display_mode'] = 'pred'
+        self.value = 'pred'
+
+
+
 class InflAdjsInput (PanelSettingsInput):
-# class InflAdjsInput (PanelSettingsGridInput):
 
     def __init__(self):
         super(InflAdjsInput, self).__init__("influence adjustments")
         self.app = App.get_running_app()
         self.value = self.app.data['influence']['adjustments']
-
-        """
-        distance decay
-                                greater than weight
-                                linear weight
-        distance zero
-                                greater than weight
-        angle decay
-                                less than weight
-                                linear weight
-        opposite angle growth
-                                angle less than weight
-                                distance less than weight
-                                growth linear weight
-        clamp
-                                within weight
-        """
 
         self.options1 = BoxLayout(orientation='horizontal', size_hint=[1.0, None], height=20)
         self.options2 = BoxLayout(orientation='horizontal', size_hint=[1.0, None], height=20)
@@ -345,3 +373,12 @@ class InflAdjsInput (PanelSettingsInput):
         else:
             self.app.data['influence']['adjustments']['clamp'] = True
             self.value['clamp'] = True
+
+
+
+class WeightsTitle (Label):
+
+    def __init__(self):
+        super(WeightsTitle, self).__init__()
+        self.app = App.get_running_app()
+        self.text = "WEIGHTS"
