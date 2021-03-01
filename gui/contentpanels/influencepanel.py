@@ -278,14 +278,70 @@ class InflAdjsInput (PanelSettingsInput):
         if self.value['opposite_angle_growth']:  self.opp_angle_growth_button.state = 'down'
         if self.value['clamp']:  self.clamp_button.state = 'down'
 
+        self.all_none_button.bind(on_release=self.allNoneButtonPressed)
         self.dist_decay_button.bind(on_release=self.distDecayButtonPressed)
+        self.dist_zero_button.bind(on_release=self.distZeroButtonPressed)
+        self.angle_decay_button.bind(on_release=self.angleDecayButtonPressed)
+        self.opp_angle_growth_button.bind(on_release=self.oppAngleGrowthButtonPressed)
+        self.clamp_button.bind(on_release=self.clampButtonPressed)
+
+    def allNoneButtonPressed(self, *largs):
+        all_values_count = len(self.value.values())
+        half_all_values = all_values_count / 2
+        cur_pressed_count = sum([ 1 for v in self.value.values() if v ])
+        switch_map = [
+            [self.dist_decay_button, 'distance_decay'],
+            [self.dist_zero_button, 'distance_zero'],
+            [self.angle_decay_button, 'angle_decay'],
+            [self.opp_angle_growth_button, 'opposite_angle_growth'],
+            [self.clamp_button, 'clamp']
+        ]
+        def switchStateAndValue(button_state_str, value_bool):
+            for button, key in switch_map:
+                button.state = button_state_str
+                self.app.data['influence']['adjustments'][key] = value_bool
+                self.value[key] = value_bool
+        if cur_pressed_count == all_values_count:  switchStateAndValue('normal', False)
+        elif cur_pressed_count == 0:  switchStateAndValue('down', True)
+        elif cur_pressed_count >= half_all_values:  switchStateAndValue('down', True)
+        else:  switchStateAndValue('normal', False)
 
     def distDecayButtonPressed(self, *largs):
-        # At trigger of distDecayButtonPressed the state of dist_decay_button has already changed.
-        cur_state = self.dist_decay_button.state
-        if cur_state == 'normal':
+        if self.dist_decay_button.state == 'normal':
             self.app.data['influence']['adjustments']['distance_decay'] = False
             self.value['distance_decay'] = False
         else:
             self.app.data['influence']['adjustments']['distance_decay'] = True
             self.value['distance_decay'] = True
+
+    def distZeroButtonPressed(self, *largs):
+        if self.dist_zero_button.state == 'normal':
+            self.app.data['influence']['adjustments']['distance_zero'] = False
+            self.value['distance_zero'] = False
+        else:
+            self.app.data['influence']['adjustments']['distance_zero'] = True
+            self.value['distance_zero'] = True
+
+    def angleDecayButtonPressed(self, *largs):
+        if self.angle_decay_button.state == 'normal':
+            self.app.data['influence']['adjustments']['angle_decay'] = False
+            self.value['angle_decay'] = False
+        else:
+            self.app.data['influence']['adjustments']['angle_decay'] = True
+            self.value['angle_decay'] = True
+
+    def oppAngleGrowthButtonPressed(self, *largs):
+        if self.opp_angle_growth_button.state == 'normal':
+            self.app.data['influence']['adjustments']['opposite_angle_growth'] = False
+            self.value['opposite_angle_growth'] = False
+        else:
+            self.app.data['influence']['adjustments']['opposite_angle_growth'] = True
+            self.value['opposite_angle_growth'] = True
+
+    def clampButtonPressed(self, *largs):
+        if self.clamp_button.state == 'normal':
+            self.app.data['influence']['adjustments']['clamp'] = False
+            self.value['clamp'] = False
+        else:
+            self.app.data['influence']['adjustments']['clamp'] = True
+            self.value['clamp'] = True
