@@ -278,28 +278,28 @@ class DisplayModeInput (PanelSettingsInput):
         self.cur_infl_button = ToggleButton(
             text="current influence", group='influence_display_mode', font_size=13
         )
-        self.pred_button = ToggleButton(
-            text="prediction", group='influence_display_mode', font_size=13
+        self.infl_pred_button = ToggleButton(
+            text="influence prediction", group='influence_display_mode', font_size=13
         )
         self.cur_infl_button.allow_no_selection = False
-        self.pred_button.allow_no_selection = False
+        self.infl_pred_button.allow_no_selection = False
         self.options.add_widget(self.cur_infl_button)
-        self.options.add_widget(self.pred_button)
+        self.options.add_widget(self.infl_pred_button)
         self.add_widget(self.options)
 
         if self.value == 'cur_infl':  self.cur_infl_button.state = 'down'
-        elif self.value == 'pred':  self.pred_button.state = 'down'
+        elif self.value == 'infl_pred':  self.infl_pred_button.state = 'down'
 
         self.cur_infl_button.bind(on_release=self.curInflButtonPressed)
-        self.pred_button.bind(on_release=self.predButtonPressed)
+        self.infl_pred_button.bind(on_release=self.inflPredButtonPressed)
 
     def curInflButtonPressed(self, *largs):
         self.app.data['influence']['display_mode'] = 'cur_infl'
         self.value = 'cur_infl'
 
-    def predButtonPressed(self, *largs):
-        self.app.data['influence']['display_mode'] = 'pred'
-        self.value = 'pred'
+    def inflPredButtonPressed(self, *largs):
+        self.app.data['influence']['display_mode'] = 'infl_pred'
+        self.value = 'infl_pred'
 
 
 
