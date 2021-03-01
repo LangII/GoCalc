@@ -1,11 +1,10 @@
 
 from kivy.app import App
-# from kivy.uix.gridlayout import GridLayout
 from kivy.uix.button import ButtonBehavior, Button
 from kivy.uix.widget import Widget
 from kivy.uix.label import Label
-# from kivy.uix.boxlayout import BoxLayout
-# from kivy.uix.togglebutton import ToggleButton
+from kivy.uix.boxlayout import BoxLayout
+from kivy.uix.togglebutton import ToggleButton
 from kivy.uix.splitter import Splitter
 
 from kivy.properties import NumericProperty, ListProperty, ObjectProperty
@@ -14,8 +13,6 @@ from kivy.graphics import Color, Rectangle, Line, Ellipse
 from gui.contentbasewidgets import (
     ContentPanel, PanelSettings, PanelSettingsInput, PanelSettingsSingleButton
 )
-
-# import calculate.taxicabinflcalc as tci_calc
 
 import calculate.influencecalc as infl
 
@@ -43,6 +40,9 @@ class InfluencePanel (ContentPanel):
 
         self.refresh = Refresh()
         self.settings.layout.add_widget(self.refresh)
+
+        self.infl_adjs = InflAdjsInput()
+        self.settings.layout.add_widget(self.infl_adjs)
 
         self.weights_title = WeightsTitle()
         self.settings.layout.add_widget(self.weights_title)
@@ -222,3 +222,70 @@ class Refresh (PanelSettingsSingleButton):
                 #     display_buttons[str([y, x])].board_rect_color.rgba = [1, 1 - (each), 1 - (each), 1]
                 # if each == 0:
                 #     display_buttons[str([y, x])].board_rect_color.rgba = [1, 1, 1, 1]
+
+
+
+class InflAdjsInput (PanelSettingsInput):
+# class InflAdjsInput (PanelSettingsGridInput):
+
+    def __init__(self):
+        super(InflAdjsInput, self).__init__("influence adjustments")
+        self.app = App.get_running_app()
+        self.value = self.app.data['influence']['adjustments']
+
+        """
+        distance decay
+                                greater than weight
+                                linear weight
+        distance zero
+                                greater than weight
+        angle decay
+                                less than weight
+                                linear weight
+        opposite angle growth
+                                angle less than weight
+                                distance less than weight
+                                growth linear weight
+        clamp
+                                within weight
+        """
+
+        self.options1 = BoxLayout(orientation='horizontal', size_hint=[1.0, None], height=20)
+        self.options2 = BoxLayout(orientation='horizontal', size_hint=[1.0, None], height=20)
+        self.options3 = BoxLayout(orientation='horizontal', size_hint=[1.0, None], height=20)
+
+        self.all_none_button = Button(text="( all / none )", font_size=13)
+        self.dist_decay_button = ToggleButton(text="distance decay", font_size=13)
+        self.dist_zero_button = ToggleButton(text="distance zero", font_size=13)
+        self.angle_decay_button = ToggleButton(text="angle decay", font_size=13)
+        self.opp_angle_growth_button = ToggleButton(text="opposite angle growth", font_size=13)
+        self.clamp_button = ToggleButton(text="clamp", font_size=13)
+
+        self.options1.add_widget(self.all_none_button)
+        self.options1.add_widget(self.dist_decay_button)
+        self.options2.add_widget(self.dist_zero_button)
+        self.options2.add_widget(self.angle_decay_button)
+        self.options3.add_widget(self.opp_angle_growth_button)
+        self.options3.add_widget(self.clamp_button)
+
+        self.add_widget(self.options1)
+        self.add_widget(self.options2)
+        self.add_widget(self.options3)
+
+        if self.value['distance_decay']:  self.dist_decay_button.state = 'down'
+        if self.value['distance_zero']:  self.dist_zero_button.state = 'down'
+        if self.value['angle_decay']:  self.angle_decay_button.state = 'down'
+        if self.value['opposite_angle_growth']:  self.opp_angle_growth_button.state = 'down'
+        if self.value['clamp']:  self.clamp_button.state = 'down'
+
+        self.dist_decay_button.bind(on_release=self.distDecayButtonPressed)
+
+    def distDecayButtonPressed(self, *largs):
+        # At trigger of distDecayButtonPressed the state of dist_decay_button has already changed.
+        cur_state = self.dist_decay_button.state
+        if cur_state == 'normal':
+            self.app.data['influence']['adjustments']['distance_decay'] = False
+            self.value['distance_decay'] = False
+        else:
+            self.app.data['influence']['adjustments']['distance_decay'] = True
+            self.value['distance_decay'] = True

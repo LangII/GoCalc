@@ -216,7 +216,7 @@ class CapturesDisplay (Label):
 class GameBoardModeInput (PanelSettingsInput):
 
     def __init__(self):
-        super(GameBoardModeInput, self).__init__("mode")
+        super(GameBoardModeInput, self).__init__("game mode")
         self.app = App.get_running_app()
         self.value = self.app.data['game_board']['mode']
         self.options = BoxLayout(orientation='horizontal', size_hint=[1.0, None], height=20)
