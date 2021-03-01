@@ -1,5 +1,8 @@
 
 """
+
+INFLUENCE ADJUSTMENTS AND WEIGHTS NOTES:
+
 distance decay
                         greater than weight
                         linear weight
@@ -14,6 +17,17 @@ opposite angle growth
                         growth linear weight
 clamp
                         within weight
+
+NEXT TO-DOS:
+
+- Needs a "detail value display".  So, user can click on board position to get the specific value
+of that position's influence or prediction score.
+
+- Needs a "predicting stone input".  So user can adjust which stone the model is predicting the
+move of.
+
+- Needs weights inputs.  Will have to figure out what is the best path to take for value inputs.
+
 """
 
 from kivy.app import App
@@ -55,11 +69,17 @@ class InfluencePanel (ContentPanel):
         self.settings = PanelSettings()
         self.add_widget(self.settings)
 
+        self.details_display = DetailsDisplay()
+        self.settings.layout.add_widget(self.details_display)
+
         self.refresh = Refresh()
         self.settings.layout.add_widget(self.refresh)
 
         self.display_mode = DisplayModeInput()
         self.settings.layout.add_widget(self.display_mode)
+
+        self.pred_stone = PredictingStoneInput()
+        self.settings.layout.add_widget(self.pred_stone)
 
         self.infl_adjs = InflAdjsInput()
         self.settings.layout.add_widget(self.infl_adjs)
@@ -192,6 +212,18 @@ class DataBoardButton (ButtonBehavior, Widget):
 
 
 
+class DetailsDisplay (Label):
+    def __init__(self):
+        super(DetailsDisplay, self).__init__()
+        self.app = App.get_running_app()
+        self.template = "[{}, {}]: {}"
+        self.text = self.template.format('?', '?', '0.0')
+
+    def updateText(self):
+        return
+
+
+
 class Refresh (PanelSettingsSingleButton):
 
     def __init__(self):
@@ -268,6 +300,41 @@ class DisplayModeInput (PanelSettingsInput):
     def predButtonPressed(self, *largs):
         self.app.data['influence']['display_mode'] = 'pred'
         self.value = 'pred'
+
+
+
+class PredictingStoneInput (PanelSettingsInput):
+
+    def __init__(self):
+        super(PredictingStoneInput, self).__init__("predicting stone")
+        self.app = App.get_running_app()
+        self.value = self.app.data['influence']['predicting_stone']
+        self.options = BoxLayout(orientation='horizontal', size_hint=[1.0, None], height=20)
+        self.black_button = ToggleButton(
+            text="black", group='influence_predicting_stone', font_size=13
+        )
+        self.white_button = ToggleButton(
+            text="white", group='influence_predicting_stone', font_size=13
+        )
+        self.black_button.allow_no_selection = False
+        self.white_button.allow_no_selection = False
+        self.options.add_widget(self.black_button)
+        self.options.add_widget(self.white_button)
+        self.add_widget(self.options)
+
+        if self.value == 'black':  self.black_button.state = 'down'
+        elif self.value == 'white':  self.white_button.state = 'down'
+
+        self.black_button.bind(on_release=self.blackButtonPressed)
+        self.white_button.bind(on_release=self.whiteButtonPressed)
+
+    def blackButtonPressed(self, *largs):
+        self.app.data['influence']['predicting_stone'] = 'black'
+        self.value = 'black'
+
+    def whiteButtonPressed(self, *largs):
+        self.app.data['influence']['predicting_stone'] = 'white'
+        self.value = 'white'
 
 
 
