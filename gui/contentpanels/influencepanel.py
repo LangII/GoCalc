@@ -42,7 +42,8 @@ from kivy.properties import NumericProperty, ListProperty, ObjectProperty
 from kivy.graphics import Color, Rectangle, Line, Ellipse
 
 from gui.contentbasewidgets import (
-    ContentPanel, PanelSettings, PanelSettingsInput, PanelSettingsSingleButton
+    ContentPanel, PanelSettings, PanelSettingsInput, PanelSettingsSingleButton,
+    PanelSettingsSliderInput
 )
 
 import calculate.influencecalc as infl
@@ -86,6 +87,12 @@ class InfluencePanel (ContentPanel):
 
         self.weights_title = WeightsTitle()
         self.settings.layout.add_widget(self.weights_title)
+
+        self.dist_decay_gt_weight_input = DistDecayGtWeightInput()
+        self.settings.layout.add_widget(self.dist_decay_gt_weight_input)
+
+        self.dist_decay_lin_weight_input = DistDecayLinWeightInput()
+        self.settings.layout.add_widget(self.dist_decay_lin_weight_input)
 
         for i in range(20):
             self.settings.layout.add_widget(Label(text=f'{i + 1}', size_hint=[1.0, None], height=20))
@@ -216,7 +223,7 @@ class DetailsDisplay (Label):
     def __init__(self):
         super(DetailsDisplay, self).__init__()
         self.app = App.get_running_app()
-        self.template = "[{}, {}]: {}"
+        self.template = "[{}, {}]:  {}"
         self.text = self.template.format('?', '?', '0.0')
 
     def updateText(self):
@@ -448,4 +455,22 @@ class WeightsTitle (Label):
     def __init__(self):
         super(WeightsTitle, self).__init__()
         self.app = App.get_running_app()
-        self.text = "WEIGHTS"
+        self.text = "<>  WEIGHTS  <>"
+
+
+
+class DistDecayGtWeightInput (PanelSettingsSliderInput):
+
+    def __init__(self):
+        super(DistDecayGtWeightInput, self).__init__(
+            "distance decay greater than weight", 0, 100, 50
+        )
+
+
+
+class DistDecayLinWeightInput (PanelSettingsSliderInput):
+
+    def __init__(self):
+        super(DistDecayLinWeightInput, self).__init__(
+            "distance decay linear weight", 0, 100, 50
+        )

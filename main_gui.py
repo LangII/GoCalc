@@ -60,6 +60,29 @@ APP_DATA = {
         'edit_mode': 'alternate', # 'alternate' or 'consecutive'
         'next_stone': 'black', # 'black' or 'white'
     },
+    'influence': {
+        'location': 'scroll', # 'stationary', 'scroll', or 'unselected'
+        'display_mode': 'cur_infl', # 'cur_infl' or 'infl_pred'
+        'predicting_stone': 'black', # 'black' or 'white'
+        'adjustments': {
+            'distance_decay': True,
+            'distance_zero': True,
+            'angle_decay': True,
+            'opposite_angle_growth': True,
+            'clamp': True,
+        },
+        'weights': {
+            'dist_decay_gt': 0.0,
+            'dist_decay_linear': 0.0,
+            'dist_zero_gt': 0.0,
+            'angle_decay_lt': 0.0,
+            'angle_decay_linear': 0.0,
+            'opp_angle_growth_angle_lt': 0.0,
+            'opp_angle_growth_dist_lt': 0.0,
+            'opp_angle_growth_linear': 0.0,
+            'clamp_within': 0.0
+        }
+    }
     # 'panel_select': {
     #     'location': 'scroll' # Always remains as last index of ContentScroll.
     # }
@@ -111,8 +134,10 @@ class MainWindow (BoxLayout):
         print("\n<><><>")
         # print("game_board_panel.width =", output1)
         # print("infl_calc_panel.width =", output2)
-        for child in app.main.content_scroll.layout.children:
-            print(isinstance(child, InflCalcPanel))
+        # for child in app.main.content_scroll.layout.children:
+        #     print(isinstance(child, InflCalcPanel))
+        print(app.data['influence']['display_mode'])
+        # print(self.content_scroll.influence_panel.infl_adjs.dist_decay_button.state)
         print("<><><>")
         """ TESTING / DEBUGGING """
 

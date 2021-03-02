@@ -153,6 +153,48 @@
     text:  self.title_label_text
     font_size:  13
 
+
+
+<PanelSettingsSliderInput>:
+    inputs:  inputs
+    slider_input:  slider_input
+    text_input:  text_input
+    orientation:  'vertical'
+    size_hint:  [1.0, None]
+    height:  44 # (hard coded)
+    spacing:  GLOBAL_SPACING
+    Label:
+        height:  20
+        size_hint:  [1.0, None]
+        halign:  'left'
+        font_size:  13
+        text_size:  self.size
+        text:  self.parent.title_label_text + ":"
+        padding_x:  GLOBAL_SPACING
+        canvas.before:
+            Color:
+                rgba:  PRISMARINE
+            Rectangle:
+                pos:  self.pos
+                size:  self.size
+    BoxLayout:
+        id:  inputs
+        height:  20 # (hard coded)
+        size_hint:  [1.0, None] # (hard coded)
+        Slider:
+            id:  slider_input
+            size_hint:  [0.7, 1.0] # (hard coded)
+            cursor_size:  [20, 20] # (hard coded)
+            sensitivity:  'handle'
+        TextInput:
+            id:  text_input
+            size_hint:  [0.3, 1.0] # (hard coded)
+            padding:  [4, 2, 4, 2]
+            font_size:  13
+            multiline:  False
+            halign:  'right'
+
+
 #######################################################################   \/ CONTENT PANELS \/   ###
 
 <GameBoardDisplay>:

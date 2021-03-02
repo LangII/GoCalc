@@ -8,8 +8,12 @@ from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.button import Button
 from kivy.uix.togglebutton import ToggleButton
+from kivy.uix.slider import Slider
+from kivy.uix.textinput import TextInput
 
 from kivy.properties import StringProperty, ListProperty, ObjectProperty
+
+import time
 
 ####################################################################################################
 
@@ -74,3 +78,37 @@ class PanelSettingsSingleButton (Button):
     def __init__(self, title):
         super(PanelSettingsSingleButton, self).__init__()
         self.title_label_text = title
+
+
+
+class PanelSettingsSliderInput (BoxLayout):
+    title_label_text = StringProperty()
+    inputs = ObjectProperty()
+    slider_input = ObjectProperty()
+    text_input = ObjectProperty()
+
+    def __init__(self, title, min_value, max_value, start_value):
+        super(PanelSettingsSliderInput, self).__init__()
+        self.title_label_text = title
+        self.slider_input.min = min_value
+        self.slider_input.max = max_value
+        self.slider_input.value = start_value
+        self.text_input.text = str(start_value)
+
+        self.slider_input.bind(on_touch_up=self.sliderValueChange)
+        self.text_input.bind(on_text_validate=self.textValueChange)
+
+    def sliderValueChange(self, *largs):
+        input_value = str(self.slider_input.value)
+        left_dec_count = len(input_value[:input_value.find('.')])
+        right_dec_count = 10 - left_dec_count
+        self.text_input.text f"{float(input_value):.{right_dec_count}f}"
+
+    def textValueChange(self, *largs):
+        is_number = self.text_input.text.replace('.', '', 1).isdigit()
+        if not is_number:
+            self.text_input.text = "only numbers" ; return
+        text_value = float(self.text_input.text)
+        if (self.slider_input.min > text_value) or (text_value > self.slider_input.max):
+            self.text_input.text = f"{self.slider_input.min} <-> {self.slider_input.max}" ; return
+        self.slider_input.value = text_value
