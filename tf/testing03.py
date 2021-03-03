@@ -143,7 +143,6 @@ PRED_MOVE_EMPTY_INFL_CLAMP_WEIGHT = 1.0
 
 ####################################################################################################
 
-
 Y, X = 7, 6
 PRED_MOVE_I = (Y * BOARD_SHAPE[0]) + X - 2
 TESTING_PRINT = 'pred_move_infls'
