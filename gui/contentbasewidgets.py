@@ -102,7 +102,9 @@ class PanelSettingsSliderInput (BoxLayout):
         input_value = str(self.slider_input.value)
         left_dec_count = len(input_value[:input_value.find('.')])
         right_dec_count = 10 - left_dec_count
-        self.text_input.text f"{float(input_value):.{right_dec_count}f}"
+        # All this extra formatting is needed for accurate truncating.
+        text_output = str(float(f"{float(input_value):.{right_dec_count}f}"))
+        self.text_input.text = text_output
 
     def textValueChange(self, *largs):
         is_number = self.text_input.text.replace('.', '', 1).isdigit()
