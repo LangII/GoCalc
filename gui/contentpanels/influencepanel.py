@@ -82,6 +82,9 @@ class InfluencePanel (ContentPanel):
         self.pred_stone = PredictingStoneInput()
         self.settings.layout.add_widget(self.pred_stone)
 
+        self.display_stones = DisplayStonesInput()
+        self.settings.layout.add_widget(self.display_stones)
+
         self.infl_adjs = InflAdjsInput()
         self.settings.layout.add_widget(self.infl_adjs)
 
@@ -342,6 +345,41 @@ class PredictingStoneInput (PanelSettingsInput):
     def whiteButtonPressed(self, *largs):
         self.app.data['influence']['predicting_stone'] = 'white'
         self.value = 'white'
+
+
+
+class DisplayStonesInput (PanelSettingsInput):
+
+    def __init__(self):
+        super(DisplayStonesInput, self).__init__("display stones")
+        self.app = App.get_running_app()
+        self.value = self.app.data['influence']['display_stones']
+        self.options = BoxLayout(orientation='horizontal', size_hint=[1.0, None], height=20)
+        self.yes_button = ToggleButton(
+            text="yes", group='influence_display_stones', font_size=13
+        )
+        self.no_button = ToggleButton(
+            text="no", group='influence_display_stones', font_size=13
+        )
+        self.yes_button.allow_no_selection = False
+        self.no_button.allow_no_selection = False
+        self.options.add_widget(self.yes_button)
+        self.options.add_widget(self.no_button)
+        self.add_widget(self.options)
+
+        if self.value == 'yes':  self.yes_button.state = 'down'
+        elif self.value == 'no':  self.no_button.state = 'down'
+
+        self.yes_button.bind(on_release=self.yesButtonPressed)
+        self.no_button.bind(on_release=self.noButtonPressed)
+
+    def yesButtonPressed(self, *largs):
+        self.app.data['influence']['display_stones'] = 'yes'
+        self.value = 'yes'
+
+    def noButtonPressed(self, *largs):
+        self.app.data['influence']['display_stones'] = 'no'
+        self.value = 'no'
 
 
 
