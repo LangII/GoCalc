@@ -3,6 +3,7 @@
 GoCalc/gui/contentbasewidgets.py
 """
 
+from kivy.app import App
 from kivy.uix.scrollview import ScrollView
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.gridlayout import GridLayout
@@ -13,7 +14,7 @@ from kivy.uix.textinput import TextInput
 
 from kivy.properties import StringProperty, ListProperty, ObjectProperty
 
-import time
+
 
 ####################################################################################################
 
@@ -86,17 +87,21 @@ class PanelSettingsSliderInput (BoxLayout):
     inputs = ObjectProperty()
     slider_input = ObjectProperty()
     text_input = ObjectProperty()
+    reset = ObjectProperty()
 
-    def __init__(self, title, min_value, max_value, start_value):
+    def __init__(self, title, slider_values):
         super(PanelSettingsSliderInput, self).__init__()
+        self.app = App.get_running_app()
         self.title_label_text = title
-        self.slider_input.min = min_value
-        self.slider_input.max = max_value
-        self.slider_input.value = start_value
-        self.text_input.text = str(start_value)
+        self.slider_input.min = slider_values['min']
+        self.slider_input.max = slider_values['max']
+        self.slider_input.value = slider_values['value']
+        self.text_input.text = str(slider_values['value'])
+        self.default_value = slider_values['value']
 
         self.slider_input.bind(on_touch_up=self.sliderValueChange)
         self.text_input.bind(on_text_validate=self.textValueChange)
+        self.reset.bind(on_release=self.resetPressed)
 
     def sliderValueChange(self, *largs):
         input_value = str(self.slider_input.value)
@@ -107,10 +112,16 @@ class PanelSettingsSliderInput (BoxLayout):
         self.text_input.text = text_output
 
     def textValueChange(self, *largs):
-        is_number = self.text_input.text.replace('.', '', 1).isdigit()
-        if not is_number:
-            self.text_input.text = "only numbers" ; return
+        # Verify user input is only a number.
+        if not self.text_input.text.replace('.', '', 1).isdigit():
+            self.sliderValueChange() ; return
+        # Verify user input is between min and max.
         text_value = float(self.text_input.text)
         if (self.slider_input.min > text_value) or (text_value > self.slider_input.max):
-            self.text_input.text = f"{self.slider_input.min} <-> {self.slider_input.max}" ; return
+            self.sliderValueChange() ; return
         self.slider_input.value = text_value
+        self.valueChange()
+
+    def resetPressed(self, *largs):
+        self.text_input.text = str(self.default_value)
+        self.slider_input.value = self.default_value

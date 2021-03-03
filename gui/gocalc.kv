@@ -159,6 +159,7 @@
     inputs:  inputs
     slider_input:  slider_input
     text_input:  text_input
+    reset:  reset
     orientation:  'vertical'
     size_hint:  [1.0, None]
     height:  44 # (hard coded)
@@ -181,18 +182,24 @@
         id:  inputs
         height:  20 # (hard coded)
         size_hint:  [1.0, None] # (hard coded)
+        spacing:  2
         Slider:
             id:  slider_input
-            size_hint:  [0.7, 1.0] # (hard coded)
+            size_hint:  [0.6, 1.0] # (hard coded)
             cursor_size:  [20, 20] # (hard coded)
             sensitivity:  'handle'
         TextInput:
             id:  text_input
-            size_hint:  [0.3, 1.0] # (hard coded)
+            size_hint:  [0.32, 1.0] # (hard coded)
             padding:  [4, 2, 4, 2]
             font_size:  13
             multiline:  False
             halign:  'right'
+        Button:
+            id:  reset
+            size_hint:  [0.08, 1.0]
+            text:  '*'
+            font_size:  13
 
 
 #######################################################################   \/ CONTENT PANELS \/   ###

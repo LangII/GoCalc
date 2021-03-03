@@ -501,8 +501,16 @@ class DistDecayGtWeightInput (PanelSettingsSliderInput):
 
     def __init__(self):
         super(DistDecayGtWeightInput, self).__init__(
-            "distance decay greater than weight", 0, 100, 50
+            "distance decay greater than weight",
+            App.get_running_app().data['influence']['weights']['dist_decay_gt']
         )
+
+        self.slider_input.bind(on_touch_up=self.valueChange)
+        self.text_input.bind(on_text_validate=self.valueChange)
+        self.reset.bind(on_release=self.valueChange)
+
+    def valueChange(self, *largs):
+        self.app.data['influence']['weights']['dist_decay_gt']['value'] = self.slider_input.value
 
 
 
@@ -510,5 +518,6 @@ class DistDecayLinWeightInput (PanelSettingsSliderInput):
 
     def __init__(self):
         super(DistDecayLinWeightInput, self).__init__(
-            "distance decay linear weight", 0, 100, 50
+            "distance decay linear weight",
+            App.get_running_app().data['influence']['weights']['dist_decay_lin']
         )
