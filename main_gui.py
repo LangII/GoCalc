@@ -64,6 +64,7 @@ APP_DATA = {
         'location': 'scroll', # 'stationary', 'scroll', or 'unselected'
         'display_mode': 'cur_infl', # 'cur_infl' or 'infl_pred'
         'predicting_stone': 'black', # 'black' or 'white'
+        'display_stones': 'yes', # 'yes' or 'no'
         'adjustments': {
             'distance_decay': True,
             'distance_zero': True,
@@ -72,15 +73,33 @@ APP_DATA = {
             'clamp': True,
         },
         'weights': {
-            'dist_decay_gt': 0.0,
-            'dist_decay_linear': 0.0,
-            'dist_zero_gt': 0.0,
-            'angle_decay_lt': 0.0,
-            'angle_decay_linear': 0.0,
-            'opp_angle_growth_angle_lt': 0.0,
-            'opp_angle_growth_dist_lt': 0.0,
-            'opp_angle_growth_linear': 0.0,
-            'clamp_within': 0.0
+            'dist_decay_gt': {
+                'min': 0.0, 'max': 50.0, 'value': 4.0,
+            },
+            'dist_decay_lin': {
+                'min': 0.0, 'max': 20.0, 'value': 0.5,
+            },
+            'dist_zero_gt': {
+                'min': 0.0, 'max': 50.0, 'value': 8.0,
+            },
+            'angle_decay_lt': {
+                'min': 0.0, 'max': 180.0, 'value': 45.0,
+            },
+            'angle_decay_lin': {
+                'min': 0.0, 'max': 20.0, 'value': 0.5,
+            },
+            'opp_angle_growth_angle_lt': {
+                'min': 0.0, 'max': 180.0, 'value': 15.0,
+            },
+            'opp_angle_growth_dist_lt': {
+                'min': 0.0, 'max': 50.0, 'value': 5.0,
+            },
+            'opp_angle_growth_lin': {
+                'min': 0.0, 'max': 20.0, 'value': 8.0,
+            },
+            'clamp_within': {
+                'min': 0.0, 'max': 20.0, 'value': 1.0,
+            },
         }
     }
     # 'panel_select': {
@@ -136,7 +155,19 @@ class MainWindow (BoxLayout):
         # print("infl_calc_panel.width =", output2)
         # for child in app.main.content_scroll.layout.children:
         #     print(isinstance(child, InflCalcPanel))
-        print(app.data['influence']['display_mode'])
+        keys = [
+            'dist_decay_gt',
+            'dist_decay_lin',
+            'dist_zero_gt',
+            'angle_decay_lt',
+            'angle_decay_lin',
+            'opp_angle_growth_angle_lt',
+            'opp_angle_growth_dist_lt',
+            'opp_angle_growth_lin',
+            'clamp_within',
+        ]
+        for key in keys:  print(f"{key} = {app.data['influence']['weights'][key]['value']}")
+        # print(app.data['influence']['weights']['dist_decay_gt']['value'])
         # print(self.content_scroll.influence_panel.infl_adjs.dist_decay_button.state)
         print("<><><>")
         """ TESTING / DEBUGGING """

@@ -51,8 +51,9 @@ class GameBoardPanel (ContentPanel):
         self.next_stone_input = GameBoardNextStoneInput()
         self.settings.layout.add_widget(self.next_stone_input)
 
-        for i in range(20):
-            self.settings.layout.add_widget(Label(text=f'{i + 1}', size_hint=[1.0, None], height=20))
+        ### Leaving in for future gui responsiveness debugging.
+        # for i in range(20):
+        #     self.settings.layout.add_widget(Label(text=f'{i + 1}', size_hint=[1.0, None], height=20))
 
     def displayHeightChange(self, obj, value):
         self.width = value

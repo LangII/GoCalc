@@ -97,8 +97,30 @@ class InfluencePanel (ContentPanel):
         self.dist_decay_lin_weight_input = DistDecayLinWeightInput()
         self.settings.layout.add_widget(self.dist_decay_lin_weight_input)
 
-        for i in range(20):
-            self.settings.layout.add_widget(Label(text=f'{i + 1}', size_hint=[1.0, None], height=20))
+        self.dist_zero_gt_weight_input = DistZeroGtWeightInput()
+        self.settings.layout.add_widget(self.dist_zero_gt_weight_input)
+
+        self.angle_decay_lt_weight_input = AngleDecayLtWeightInput()
+        self.settings.layout.add_widget(self.angle_decay_lt_weight_input)
+
+        self.angle_decay_lin_weight_input = AngleDecayLinWeightInput()
+        self.settings.layout.add_widget(self.angle_decay_lin_weight_input)
+
+        self.opp_angle_growth_angle_lt_weight_input = OppAngleGrowthAngleLtWeightInput()
+        self.settings.layout.add_widget(self.opp_angle_growth_angle_lt_weight_input)
+
+        self.opp_angle_growth_dist_lt_weight_input = OppAngleGrowthDistLtWeightInput()
+        self.settings.layout.add_widget(self.opp_angle_growth_dist_lt_weight_input)
+
+        self.opp_angle_growth_lin_weight_input = OppAngleGrowthLinWeightInput()
+        self.settings.layout.add_widget(self.opp_angle_growth_lin_weight_input)
+
+        self.clamp_within_weight_input = ClampWithinWeightInput()
+        self.settings.layout.add_widget(self.clamp_within_weight_input)
+
+        ### Leaving in for future gui responsiveness debugging.
+        # for i in range(20):
+        #     self.settings.layout.add_widget(Label(text=f'{i + 1}', size_hint=[1.0, None], height=20))
 
     def displayHeightChange(self, obj, value):
         self.width = value
@@ -316,7 +338,7 @@ class DisplayModeInput (PanelSettingsInput):
 class PredictingStoneInput (PanelSettingsInput):
 
     def __init__(self):
-        super(PredictingStoneInput, self).__init__("predicting stone")
+        super(PredictingStoneInput, self).__init__("influence prediction stone")
         self.app = App.get_running_app()
         self.value = self.app.data['influence']['predicting_stone']
         self.options = BoxLayout(orientation='horizontal', size_hint=[1.0, None], height=20)
@@ -521,3 +543,143 @@ class DistDecayLinWeightInput (PanelSettingsSliderInput):
             "distance decay linear weight",
             App.get_running_app().data['influence']['weights']['dist_decay_lin']
         )
+
+        self.slider_input.bind(on_touch_up=self.valueChange)
+        self.text_input.bind(on_text_validate=self.valueChange)
+        self.reset.bind(on_release=self.valueChange)
+
+    def valueChange(self, *largs):
+        self.app.data['influence']['weights']['dist_decay_lin']['value'] = self.slider_input.value
+
+
+
+class DistZeroGtWeightInput (PanelSettingsSliderInput):
+
+    def __init__(self):
+        super(DistZeroGtWeightInput, self).__init__(
+            "distance zero greater than weight",
+            App.get_running_app().data['influence']['weights']['dist_zero_gt']
+        )
+
+        self.slider_input.bind(on_touch_up=self.valueChange)
+        self.text_input.bind(on_text_validate=self.valueChange)
+        self.reset.bind(on_release=self.valueChange)
+
+    def valueChange(self, *largs):
+        self.app.data['influence']['weights']['dist_zero_gt']['value'] = self.slider_input.value
+
+
+
+class AngleDecayLtWeightInput (PanelSettingsSliderInput):
+
+    def __init__(self):
+        super(AngleDecayLtWeightInput, self).__init__(
+            "angle decay less than weight",
+            App.get_running_app().data['influence']['weights']['angle_decay_lt']
+        )
+
+        self.slider_input.bind(on_touch_up=self.valueChange)
+        self.text_input.bind(on_text_validate=self.valueChange)
+        self.reset.bind(on_release=self.valueChange)
+
+    def valueChange(self, *largs):
+        self.app.data['influence']['weights']['angle_decay_lt']['value'] = self.slider_input.value
+
+
+
+class AngleDecayLinWeightInput (PanelSettingsSliderInput):
+
+    def __init__(self):
+        super(AngleDecayLinWeightInput, self).__init__(
+            "angle decay linear weight",
+            App.get_running_app().data['influence']['weights']['angle_decay_lin']
+        )
+
+        self.slider_input.bind(on_touch_up=self.valueChange)
+        self.text_input.bind(on_text_validate=self.valueChange)
+        self.reset.bind(on_release=self.valueChange)
+
+    def valueChange(self, *largs):
+        self.app.data['influence']['weights']['angle_decay_lin']['value'] = self.slider_input.value
+
+
+
+class OppAngleGrowthAngleLtWeightInput (PanelSettingsSliderInput):
+
+    def __init__(self):
+        super(OppAngleGrowthAngleLtWeightInput, self).__init__(
+            "opposite angle growth angle less than weight",
+            App.get_running_app().data['influence']['weights']['opp_angle_growth_angle_lt']
+        )
+
+        self.slider_input.bind(on_touch_up=self.valueChange)
+        self.text_input.bind(on_text_validate=self.valueChange)
+        self.reset.bind(on_release=self.valueChange)
+
+    def valueChange(self, *largs):
+        self.app.data['influence']['weights']['opp_angle_growth_angle_lt']['value'] = self.slider_input.value
+
+
+
+class OppAngleGrowthDistLtWeightInput (PanelSettingsSliderInput):
+
+    def __init__(self):
+        super(OppAngleGrowthDistLtWeightInput, self).__init__(
+            "opposite angle growth distance less than weight",
+            App.get_running_app().data['influence']['weights']['opp_angle_growth_dist_lt']
+        )
+
+        self.slider_input.bind(on_touch_up=self.valueChange)
+        self.text_input.bind(on_text_validate=self.valueChange)
+        self.reset.bind(on_release=self.valueChange)
+
+    def valueChange(self, *largs):
+        self.app.data['influence']['weights']['opp_angle_growth_dist_lt']['value'] = self.slider_input.value
+
+
+
+class OppAngleGrowthLinWeightInput (PanelSettingsSliderInput):
+
+    def __init__(self):
+        super(OppAngleGrowthLinWeightInput, self).__init__(
+            "opposite angle growth linear weight",
+            App.get_running_app().data['influence']['weights']['opp_angle_growth_lin']
+        )
+
+        self.slider_input.bind(on_touch_up=self.valueChange)
+        self.text_input.bind(on_text_validate=self.valueChange)
+        self.reset.bind(on_release=self.valueChange)
+
+    def valueChange(self, *largs):
+        self.app.data['influence']['weights']['opp_angle_growth_lin']['value'] = self.slider_input.value
+
+
+
+class ClampWithinWeightInput (PanelSettingsSliderInput):
+
+    def __init__(self):
+        super(ClampWithinWeightInput, self).__init__(
+            "clamp within weight",
+            App.get_running_app().data['influence']['weights']['clamp_within']
+        )
+
+        self.slider_input.bind(on_touch_up=self.valueChange)
+        self.text_input.bind(on_text_validate=self.valueChange)
+        self.reset.bind(on_release=self.valueChange)
+
+    def valueChange(self, *largs):
+        self.app.data['influence']['weights']['clamp_within']['value'] = self.slider_input.value
+
+
+
+"""
+    dist_decay_gt               distance decay greater than weight
+    dist_decay_lin              distance decay linear weight
+    dist_zero_gt                distance zero greater than weight
+    angle_decay_lt              angle decay less than weight
+    angle_decay_lin             angle decay linear weight
+    opp_angle_growth_angle_lt   opposite angle growth angle less than weight
+    opp_angle_growth_dist_lt    opposite angle growth distance less than weight
+    opp_angle_growth_lin        opposite angle growth linear weight
+    clamp_within                clamp within weight
+"""
