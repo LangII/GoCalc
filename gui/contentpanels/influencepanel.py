@@ -1,34 +1,5 @@
 
-"""
 
-INFLUENCE ADJUSTMENTS AND WEIGHTS NOTES:
-
-distance decay
-                        greater than weight
-                        linear weight
-distance zero
-                        greater than weight
-angle decay
-                        less than weight
-                        linear weight
-opposite angle growth
-                        angle less than weight
-                        distance less than weight
-                        growth linear weight
-clamp
-                        within weight
-
-NEXT TO-DOS:
-
-- Needs a "detail value display".  So, user can click on board position to get the specific value
-of that position's influence or prediction score.
-
-- Needs a "predicting stone input".  So user can adjust which stone the model is predicting the
-move of.
-
-- Needs weights inputs.  Will have to figure out what is the best path to take for value inputs.
-
-"""
 
 from kivy.app import App
 from kivy.uix.button import ButtonBehavior, Button
@@ -669,17 +640,3 @@ class ClampWithinWeightInput (PanelSettingsSliderInput):
 
     def valueChange(self, *largs):
         self.app.data['influence']['weights']['clamp_within']['value'] = self.slider_input.value
-
-
-
-"""
-    dist_decay_gt               distance decay greater than weight
-    dist_decay_lin              distance decay linear weight
-    dist_zero_gt                distance zero greater than weight
-    angle_decay_lt              angle decay less than weight
-    angle_decay_lin             angle decay linear weight
-    opp_angle_growth_angle_lt   opposite angle growth angle less than weight
-    opp_angle_growth_dist_lt    opposite angle growth distance less than weight
-    opp_angle_growth_lin        opposite angle growth linear weight
-    clamp_within                clamp within weight
-"""
