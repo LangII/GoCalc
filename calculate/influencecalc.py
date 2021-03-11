@@ -44,7 +44,7 @@ def getInfluenceData():
 
     print("")
 
-    """ Collect inputs from app_data. """
+    """ COLLECT INPUTS FROM app_data """
 
     app_data = App.get_running_app().data
 
@@ -70,7 +70,7 @@ def getInfluenceData():
 
     # print(board, "<- board\n")
 
-    """ Collect reusables. """
+    """ COLLECT REUSABLES """
 
     board_shape = board.shape.as_list()
     empty_count = getCountOfValue(board, EMPTY_VALUE)
@@ -96,7 +96,7 @@ def getInfluenceData():
     # print(f"empty_count_all_pred = {empty_count_all_pred}")
     # print(f"max_dist = {max_dist}")
 
-    """ Start building tensors. """
+    """ START BUILDING TENSORS """
 
     empty_coords = getEmptyCoords(board)
     # print(empty_coords, "<- empty_coords\n")
@@ -104,6 +104,7 @@ def getInfluenceData():
     pred_moves = getPredMoves(board, board_shape, empty_count, empty_coords, pred_value)
     # # print(pred_moves, "<- pred_moves\n")
 
+    # Logic must change to handle 'cur_infl' display_mode.
     if display_mode == 'cur_infl':
         pred_moves = reshapeInsertDim(board, 0)
         empty_count_per_pred = empty_count
@@ -148,30 +149,55 @@ def getInfluenceData():
     pred_angles = pred_stones_dists_angles[:, :, 2]
     # print(pred_stones_dists_angles, "<- pred_stones_dists_angles")
 
+    """ GET RAW INFLUENCES """
+
     raw_infls = getRawInfls(pred_stones, pred_dists, max_dist)
     # print(raw_infls, "<- raw_infls")
 
-    infls_dist_decay_weight_adjs = getInflsDistDecayWeightAdjs(
+    """ GET DISTANCE DECAY INFLUENCE ADJUSTMENT """
+
+    dist_decay_infls_adjs = getDistDecayInflsAdjs(
         pred_dists, dist_decay_gt_weight, dist_decay_lin_weight
     )
-    # print(infls_dist_decay_weight_adjs, "<- infls_dist_decay_weight_adjs")
+    # print(dist_decay_infls_adjs, "<- dist_decay_infls_adjs")
 
-    infls_dist_zero_weight_adjs = getInflsDistZeroWeightAdjs(pred_dists, dist_zero_gt_weight)
+    """ GET DISTANCE ZERO INFLUENCE ADJUSTMENT """
 
+    dist_zero_infls_adjs = getDistZeroInflsAdjs(pred_dists, dist_zero_gt_weight)
+    # print(dist_zero_infls_adjs, "<- dist_zero_infls_adjs")
 
+    """ GET ANGLE DECAY INFLUENCE ADJUSTMENT """
 
-    """ APPLY WEIGHT ADJUSTMENTS (TO STONE INFLUENCES) """
+    angle_difs = getAngleDifs(pred_angles, both_count_per_pred)
+    # print(angle_difs, "<- angle_difs")
+
+    raw_angle_infls = getRawAngleInfls(angle_difs, angle_decay_lt_weight, angle_decay_lin_weight)
+    # print(raw_angle_infls, "<- raw_angle_infls")
+
+    angle_mirror_mask = getAngleMirrorMask(both_count_per_pred, empty_count_all_pred)
+    # print(angle_mirror_mask, "<- angle_mirror_mask")
+
+    angle_stones_mask = getAngleStonesMask(pred_stones, both_count_per_pred, pred_value)
+    # print(angle_stones_mask, "<- angle_stones_mask")
+
+    masked_angle_infls = getMaskedAngleInfls(raw_angle_infls, angle_mirror_mask, angle_stones_mask)
+    # print(masked_angle_infls, "<- masked_angle_infls")
+
+    angle_decay_infls_adjs = getAngleDecayInflsAdjs(masked_angle_infls)
+    print(angle_decay_infls_adjs, "<- angle_decay_infls_adjs")
+
+    """ APPLY WEIGHT ADJUSTMENTS TO STONE INFLUENCES """
 
     pred_moves_stone_infls = raw_infls
-    if dist_decay_adj:  pred_moves_stone_infls *= infls_dist_decay_weight_adjs
-    if dist_zero_adj:  pred_moves_stone_infls *= infls_dist_zero_weight_adjs
-    # if angle_decay_adj:  pred_moves_stone_infls *= infls_angle_decay_weight_adjs
+    if dist_decay_adj:  pred_moves_stone_infls *= dist_decay_infls_adjs
+    if dist_zero_adj:  pred_moves_stone_infls *= dist_zero_infls_adjs
+    if angle_decay_adj:  pred_moves_stone_infls *= angle_decay_infls_adjs
 
     """ REDUCE STONE INFLUENCES TO GET MOVE INFLUENCES """
 
     pred_move_infls = reduceStoneInflsGetMoveInfls(pred_moves_stone_infls, pred_moves)
 
-    """ APPLY WEIGHT ADJUSTMENTS (TO MOVE INFLUENCES) """
+    """ APPLY WEIGHT ADJUSTMENTS TO MOVE INFLUENCES """
 
     #
     #
@@ -179,13 +205,13 @@ def getInfluenceData():
 
     # print(pred_move_infls, "<- pred_move_infls")
 
-    """ Return influence data if display mode is set to current influence. """
+    """ REDUCE AND/OR RETURN INFLUENCE DATA """
 
+    # Logic must change to handle 'cur_infl' display_mode.
     if display_mode == 'cur_infl':
         return reshapeMergeDims(pred_move_infls, [0, 1]).numpy()
 
-    """ REDUCE MOVE INFLUENCES TO GET PREDICTION OUTPUT (INFLUENCE DATA) """
-
+    # Reduce move influences to get prediction (influence_data) output.
     prediction = reduceMoveInflsGetPred(pred_move_infls, empty_coords, board_shape, board)
     # print(prediction, "<- prediction")
 
@@ -323,7 +349,7 @@ def getRawInfls(pred_stones, pred_dists, max_dist):
 
 ####################################################################################################
 
-def getInflsDistDecayWeightAdjs(pred_dists, dist_decay_gt_weight, dist_decay_lin_weight):
+def getDistDecayInflsAdjs(pred_dists, dist_decay_gt_weight, dist_decay_lin_weight):
     """ Tensor representing the decay of values of raw_infls based on dist. """
     return tf.cast(tf.where(
         pred_dists > dist_decay_gt_weight, dist_decay_lin_weight, 1
@@ -331,9 +357,65 @@ def getInflsDistDecayWeightAdjs(pred_dists, dist_decay_gt_weight, dist_decay_lin
 
 
 
-def getInflsDistZeroWeightAdjs(pred_dists, dist_zero_gt_weight):
+def getDistZeroInflsAdjs(pred_dists, dist_zero_gt_weight):
     """ Tensor representing the zero out of values of raw_infls based on dist. """
     return tf.cast(tf.where(pred_dists > dist_zero_gt_weight, 0, 1), dtype='float32')
+
+
+
+def getAngleDifs(pred_angles, both_count_per_pred):
+    """ A tensor (with mirrored values) representing a matrix of angular differences between each
+    stone within each empty coord within each predicted next move. """
+    angle_tiled_y = tf.tile(reshapeInsertDim(pred_angles, 1), [1, both_count_per_pred, 1])
+    angle_tiled_x = tf.tile(reshapeAddDim(pred_angles), [1, 1, both_count_per_pred])
+    angle_difs = tf.abs(angle_tiled_x - angle_tiled_y)
+    return tf.where(angle_difs > 180, 360 - angle_difs, angle_difs)
+
+
+
+def getRawAngleInfls(angle_difs, angle_decay_lt_weight, angle_decay_lin_weight):
+    """ A tensor (with mirrored values) representing a matrix of influences for each stone's angle
+    vs each stone's angle per empty coord for each predicted move. """
+    return tf.where(angle_difs <= angle_decay_lt_weight, angle_decay_lin_weight, 1)
+
+
+
+def getAngleMirrorMask(both_count_per_pred, empty_count_all_pred):
+    """ A bool tensor used to cancel out the unwanted mirrored values in raw_angle_infls. """
+    mirror_shape = [both_count_per_pred] * 2
+    mirror_coords = tf.cast(tf.where(tf.equal(tf.zeros(mirror_shape), 0)), dtype='int32')
+    mirror_y = -tf.cast(mirror_coords[:, 0], dtype='float32')
+    mirror_x = tf.cast(mirror_coords[:, 1], dtype='float32')
+    mirror_angles = tf.atan2(mirror_y, mirror_x) * (180 / math.pi)
+    mirror_angles = tf.where(mirror_angles > 0, mirror_angles, mirror_angles + 360)
+    angle_mirror_mask = tf.where(mirror_angles < 315, True, False)
+    angle_mirror_mask = tf.reshape(angle_mirror_mask, [1] + mirror_shape)
+    return tf.tile(angle_mirror_mask, [empty_count_all_pred, 1, 1])
+
+
+
+def getAngleStonesMask(pred_stones, both_count_per_pred, pred_value):
+    """ A bool tensor used to cancel out the unwanted like-stone values in raw_angle_infls. """
+    stones_tiled_y = tf.reshape(pred_stones, [-1, 1, both_count_per_pred])
+    stones_tiled_y = tf.tile(stones_tiled_y, [1, both_count_per_pred, 1])
+    stones_tiled_x = tf.reshape(pred_stones, [-1, both_count_per_pred, 1])
+    stones_tiled_x = tf.tile(stones_tiled_x, [1, 1, both_count_per_pred])
+    angle_stones_mask = stones_tiled_y * stones_tiled_x
+    return tf.where(angle_stones_mask == -1, True, False)
+
+
+
+def getMaskedAngleInfls(raw_angle_infls, angle_mirror_mask, angle_stones_mask):
+    """ A tensor with the values of raw_angle_infls masked by angle_mirror_mask and
+    angle_stones_mask. """
+    masked_angle_infls = tf.where(angle_stones_mask, raw_angle_infls, 1)
+    return tf.where(angle_mirror_mask, masked_angle_infls, 1)
+
+
+
+def getAngleDecayInflsAdjs(masked_angle_infls):
+    """ Tensor representing the decay of values of raw_infls based on angle barriers. """
+    return tf.reduce_prod(masked_angle_infls, axis=2)
 
 ####################################################################################################
 

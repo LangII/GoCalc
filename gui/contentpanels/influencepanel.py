@@ -248,7 +248,7 @@ class Refresh (PanelSettingsSingleButton):
 
         infl_data = infl_calc.getInfluenceData()
 
-        print(infl_data)
+        # print(infl_data)
 
         # return
 
