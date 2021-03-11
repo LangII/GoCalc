@@ -1,7 +1,7 @@
 
 from kivy.app import App
 
-from gui.contentpanels.taxicabinflpanel import TaxiCabInflPanel
+# from gui.contentpanels.taxicabinflpanel import TaxiCabInflPanel
 
 ###########################################################################   LOGIC - to - GUI   ###
 
@@ -18,18 +18,18 @@ def updateGuiBoardButton(color, coord):
     elif color == 'no_stone':
         game_board_button.stone_color.rgba = game_board_button.no_stone_color
         game_board_button.stone_line_color.rgba = game_board_button.no_stone_color
-    if any([ isinstance(c, TaxiCabInflPanel) for c in app.main.content_scroll.layout.children ]):
-        infl_calc_panel = app.main.content_scroll.taxi_cab_infl_panel
-        infl_calc_button = infl_calc_panel.display.buttons[str(coord)]
-        if color == 'white':
-            infl_calc_button.stone_color.rgba = infl_calc_button.white_stone_color
-            infl_calc_button.stone_line_color.rgba = infl_calc_button.black_stone_color
-        elif color == 'black':
-            infl_calc_button.stone_color.rgba = infl_calc_button.black_stone_color
-            infl_calc_button.stone_line_color.rgba = infl_calc_button.black_stone_color
-        elif color == 'no_stone':
-            infl_calc_button.stone_color.rgba = infl_calc_button.no_stone_color
-            infl_calc_button.stone_line_color.rgba = infl_calc_button.no_stone_color
+    # if any([ isinstance(c, TaxiCabInflPanel) for c in app.main.content_scroll.layout.children ]):
+    #     infl_calc_panel = app.main.content_scroll.taxi_cab_infl_panel
+    #     infl_calc_button = infl_calc_panel.display.buttons[str(coord)]
+    #     if color == 'white':
+    #         infl_calc_button.stone_color.rgba = infl_calc_button.white_stone_color
+    #         infl_calc_button.stone_line_color.rgba = infl_calc_button.black_stone_color
+    #     elif color == 'black':
+    #         infl_calc_button.stone_color.rgba = infl_calc_button.black_stone_color
+    #         infl_calc_button.stone_line_color.rgba = infl_calc_button.black_stone_color
+    #     elif color == 'no_stone':
+    #         infl_calc_button.stone_color.rgba = infl_calc_button.no_stone_color
+    #         infl_calc_button.stone_line_color.rgba = infl_calc_button.no_stone_color
 
 ###########################################################################   GUI - to - LOGIC   ###
 
