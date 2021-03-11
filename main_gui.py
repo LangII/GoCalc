@@ -33,7 +33,7 @@ from kivy.uix.button import Button
 from kivy.properties import NumericProperty, ObjectProperty
 
 from gui.contentpanels.gameboardpanel import GameBoardPanel
-from gui.contentpanels.taxicabinflpanel import TaxiCabInflPanel
+# from gui.contentpanels.taxicabinflpanel import TaxiCabInflPanel
 from gui.contentpanels.influencepanel import InfluencePanel
 
 from gamelogic.board import Board
@@ -55,13 +55,13 @@ APP_DATA = {
         19: [[3, 3], [3, 9], [3, 15], [9, 3], [9, 9], [9, 15], [15, 3], [15, 9], [15, 15]]
     },
     'game_board': {
-        'location': 'scroll', # 'stationary', 'scroll', or 'unselected'
+        'panel_location': 'scroll', # 'stationary', 'scroll', or 'unselected'
         'mode': 'edit', # 'edit' or 'play'
         'edit_mode': 'alternate', # 'alternate' or 'consecutive'
         'next_stone': 'black', # 'black' or 'white'
     },
     'influence': {
-        'location': 'scroll', # 'stationary', 'scroll', or 'unselected'
+        'panel_location': 'scroll', # 'stationary', 'scroll', or 'unselected'
         'display_mode': 'cur_infl', # 'cur_infl' or 'infl_pred'
         'predicting_stone': 'black', # 'black' or 'white'
         'display_stones': 'yes', # 'yes' or 'no'
@@ -77,7 +77,7 @@ APP_DATA = {
                 'min': 0.0, 'max': 50.0, 'value': 4.0,
             },
             'dist_decay_lin': {
-                'min': 0.0, 'max': 20.0, 'value': 0.5,
+                'min': 0.0, 'max': 1.0, 'value': 0.5,
             },
             'dist_zero_gt': {
                 'min': 0.0, 'max': 50.0, 'value': 8.0,
@@ -86,7 +86,7 @@ APP_DATA = {
                 'min': 0.0, 'max': 180.0, 'value': 45.0,
             },
             'angle_decay_lin': {
-                'min': 0.0, 'max': 20.0, 'value': 0.5,
+                'min': 0.0, 'max': 1.0, 'value': 0.5,
             },
             'opp_angle_growth_angle_lt': {
                 'min': 0.0, 'max': 180.0, 'value': 15.0,
@@ -95,7 +95,7 @@ APP_DATA = {
                 'min': 0.0, 'max': 50.0, 'value': 5.0,
             },
             'opp_angle_growth_lin': {
-                'min': 0.0, 'max': 20.0, 'value': 8.0,
+                'min': 1.0, 'max': 10.0, 'value': 1.0,
             },
             'clamp_within': {
                 'min': 0.0, 'max': 20.0, 'value': 1.0,
@@ -148,29 +148,28 @@ class MainWindow (BoxLayout):
         if text == ' ':  self.spaceBarInput()
     def spaceBarInput(self):
         app = App.get_running_app()
-        # output1 = app.main.content_scroll.game_board_panel.width
-        # output2 = app.main.content_scroll.infl_calc_panel.width
+
+        gameboard_height = app.main.content_scroll.game_board_panel.display.layout.height
+        influece_height = app.main.content_scroll.influence_panel.display.layout.height
+
+        gameboard_panel_width = app.main.content_scroll.game_board_panel.width
+
+        influence_panel_width = app.main.content_scroll.influence_panel.width
+        influence_display_pos = app.main.content_scroll.influence_panel.display.pos
+
         print("\n<><><>")
-        # print("game_board_panel.width =", output1)
-        # print("infl_calc_panel.width =", output2)
-        # for child in app.main.content_scroll.layout.children:
-        #     print(isinstance(child, InflCalcPanel))
-        keys = [
-            'dist_decay_gt',
-            'dist_decay_lin',
-            'dist_zero_gt',
-            'angle_decay_lt',
-            'angle_decay_lin',
-            'opp_angle_growth_angle_lt',
-            'opp_angle_growth_dist_lt',
-            'opp_angle_growth_lin',
-            'clamp_within',
-        ]
-        for key in keys:  print(f"{key} = {app.data['influence']['weights'][key]['value']}")
-        # print(app.data['influence']['weights']['dist_decay_gt']['value'])
-        # print(self.content_scroll.influence_panel.infl_adjs.dist_decay_button.state)
+
+        # print(f"gameboard_panel_width = {gameboard_panel_width}")
+        # print(f"influence_panel_width = {influence_panel_width}")
+
         print("<><><>")
         """ TESTING / DEBUGGING """
+
+        app.main.content_scroll.influence_panel.width = gameboard_panel_width
+        # app.main.content_scroll.influence_panel.display.pos[1] = influence_display_pos[1] - 50
+        
+        # app.main.content_scroll.influence_panel.display.layout.height = gameboard_height
+        # app.main.content_scroll.influence_panel.display.layout.width = gameboard_height
 
 
 
@@ -184,7 +183,7 @@ class MainMenuBar (BoxLayout):
         """ TEMPORARY / FOR DISPLAY PURPOSES """
         self.main_button = Button(text='main', size_hint=[None, 1.0], width=self.button_width)
         self.add_widget(self.main_button)
-        self.main_button.bind(on_release=self.doStuff)
+        # self.main_button.bind(on_release=self.doStuff)
         # for button_title in ['main', 'options', 'help']:
         for button_title in ['options', 'help']:
             self.add_widget(Button(

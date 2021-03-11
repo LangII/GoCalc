@@ -10,6 +10,7 @@
 #:set WHITE_STONE_COLOR [1, 1, 1, 1]
 
 #:set GLOBAL_SPACING 3
+#:set GLOBAL_INPUT_HEIGHT 20
 
 #################################################################################   \/ MAIN \/   ###
 
@@ -30,7 +31,7 @@
     button_width:  80
     size_hint:  [1.0, None]
     padding:  [GLOBAL_SPACING, GLOBAL_SPACING, GLOBAL_SPACING, 0]
-    height:  20
+    height:  GLOBAL_INPUT_HEIGHT
     orientation:  'horizontal'
     spacing:  GLOBAL_SPACING
 
@@ -75,7 +76,7 @@
             size:  self.size
 
     BoxLayout:
-        height:  20
+        height:  GLOBAL_INPUT_HEIGHT
         size_hint:  [1.0, None]
         padding:  [2, 0, 0, 0]
 
@@ -96,10 +97,25 @@
 
 <ContentPanelMenuBar>:
     button_size_hint:  [0.25, 1.0]
-    height:  20
+    height:  GLOBAL_INPUT_HEIGHT
     size_hint:  [1.0, None]
     spacing:  GLOBAL_SPACING
     orientation:  'horizontal'
+
+
+
+<PanelStationarySettings>:
+    height:  GLOBAL_INPUT_HEIGHT
+    size_hint:  [1.0, None]
+    spacing:  GLOBAL_SPACING
+    # orientation:  'vertical'
+
+    canvas.before:
+        Color:
+            rgba:  DARK_PRISMARINE
+        Rectangle:
+            pos:  self.pos
+            size:  self.size
 
 
 
@@ -130,7 +146,7 @@
     height:  sum([ c.height + self.spacing for c in self.children ]) - self.spacing
     spacing:  GLOBAL_SPACING
     Label:
-        height:  20
+        height:  GLOBAL_INPUT_HEIGHT
         size_hint:  [1.0, None]
         halign:  'left'
         font_size:  13
@@ -148,7 +164,7 @@
 
 <PanelSettingsSingleButton>:
     size_hint:  [1.0, None]
-    height:  20
+    height:  GLOBAL_INPUT_HEIGHT
     spacing:  GLOBAL_SPACING
     text:  self.title_label_text
     font_size:  13
@@ -165,7 +181,7 @@
     height:  44 # (hard coded)
     spacing:  GLOBAL_SPACING
     Label:
-        height:  20
+        height:  GLOBAL_INPUT_HEIGHT
         size_hint:  [1.0, None]
         halign:  'left'
         font_size:  13
@@ -180,7 +196,7 @@
                 size:  self.size
     BoxLayout:
         id:  inputs
-        height:  20 # (hard coded)
+        height:  GLOBAL_INPUT_HEIGHT
         size_hint:  [1.0, None] # (hard coded)
         spacing:  2
         Slider:
@@ -223,8 +239,8 @@
 
 
 
-<CapturesDisplay,DetailsDisplay,WeightsTitle>:
-    height:  20
+<PanelSettingsSingleLabel, CapturesDisplay, DetailsDisplay>:
+    height:  GLOBAL_INPUT_HEIGHT
     size_hint:  [1.0, None]
     halign:  'center'
     valign:  'center'

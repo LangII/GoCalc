@@ -11,6 +11,7 @@ from kivy.uix.button import Button
 from kivy.uix.togglebutton import ToggleButton
 from kivy.uix.slider import Slider
 from kivy.uix.textinput import TextInput
+from kivy.uix.label import Label
 
 from kivy.properties import StringProperty, ListProperty, ObjectProperty
 
@@ -56,6 +57,13 @@ class ContentPanelMenuBar (BoxLayout):
 
 
 
+class PanelStationarySettings (BoxLayout):
+
+    def __init__(self):
+        super(PanelStationarySettings, self).__init__()
+
+
+
 class PanelSettings (ScrollView):
     layout = ObjectProperty()
 
@@ -79,6 +87,15 @@ class PanelSettingsSingleButton (Button):
     def __init__(self, title):
         super(PanelSettingsSingleButton, self).__init__()
         self.title_label_text = title
+
+
+
+class PanelSettingsSingleLabel (Label):
+
+    def __init__(self, title):
+        super(PanelSettingsSingleLabel, self).__init__()
+        self.text = f"<>  {title.upper()}  <>"
+
 
 
 

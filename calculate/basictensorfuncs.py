@@ -3,9 +3,6 @@ import tensorflow as tf
 
 ####################################################################################################
 
-def getCount(t, v):
-    return int(tf.reduce_sum(tf.cast(tf.equal(t, v), dtype='int32')).numpy())
-
 def getCountOfValue(t, v):
     return int(tf.reduce_sum(tf.cast(tf.equal(t, v), dtype='int32')).numpy())
 
@@ -34,3 +31,24 @@ def reshapeMergeDims(t, dims):
 def replaceValueAtIndex(t, v, i):
     bool_mask = tf.sparse.to_dense(tf.SparseTensor([i], [True], t.shape))
     return tf.cast(tf.where(bool_mask, v, t), dtype=t.dtype)
+
+def sort2dByCol(t, col=0, dir=-1):
+    """
+    t =     2D input tensor.
+    col =   Which column of t to sort by.
+    dir =   Accepts +1 or -1 to determine descending sort or ascending sort respectively.
+    Return tensor parallel to t where rows are sorted in dir order based on col.
+    """
+    return tf.gather(t, tf.nn.top_k((t[:, col] * dir), k=t.shape[0]).indices)
+
+def applyScale(t, scale_from=[], scale_to=[]):
+    """
+    t =             Input tensor.
+    scale_from =    Tensor of shape [2] where scale_from[0] is minimum value to be scaled from and
+                    scale_from[1] is maximum value to be scaled from.
+    scale_to =      Tensor of shape [2] where scale_to[0] is minimum value to be scaled to and
+                    scale_to[1] is maximum value to be scaled to.
+    Return tensor parallel to t where each value is scaled from scale_from to scale_to.
+    """
+    t = (t - scale_from[0]) / (scale_from[1] - scale_from[0])
+    return t * (scale_to[1] - scale_to[0]) + scale_to[0]

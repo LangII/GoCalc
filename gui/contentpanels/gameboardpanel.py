@@ -11,7 +11,10 @@ from kivy.uix.splitter import Splitter
 from kivy.properties import NumericProperty, ListProperty, ObjectProperty
 from kivy.graphics import Color, Rectangle, Line, Ellipse
 
-from gui.contentbasewidgets import ContentPanel, PanelSettings, PanelSettingsInput
+from gui.contentbasewidgets import (
+    ContentPanel, PanelSettings, PanelSettingsInput, PanelStationarySettings,
+    PanelSettingsSingleLabel
+)
 
 import messenger
 
@@ -36,11 +39,26 @@ class GameBoardPanel (ContentPanel):
 
         self.display.bind(height=self.displayHeightChange)
 
+        """ Need to implement a no scroll section. """
+        # self.captures_display = CapturesDisplay()
+        # self.add_widget(self.captures_display)
+
+
+
+        self.stationary_settings = PanelStationarySettings()
+        self.captures_display = CapturesDisplay()
+        self.stationary_settings.add_widget(self.captures_display)
+        self.add_widget(self.stationary_settings)
+
+        self.add_widget(PanelSettingsSingleLabel('settings'))
+
+
+
         self.settings = PanelSettings()
         self.add_widget(self.settings)
 
-        self.captures_display = CapturesDisplay()
-        self.settings.layout.add_widget(self.captures_display)
+        # self.captures_display = CapturesDisplay()
+        # self.settings.layout.add_widget(self.captures_display)
 
         self.mode_input = GameBoardModeInput()
         self.settings.layout.add_widget(self.mode_input)
@@ -68,7 +86,7 @@ class GameBoardDisplay (Splitter):
     def __init__(self):
         super(GameBoardDisplay, self).__init__()
         self.app = App.get_running_app()
-        self.sizable_from='bottom'
+        self.sizable_from = 'bottom'
         self.board_size = self.app.data['board_size']
         self.grid_star_size = self.app.data['grid_star_size']
         self.buttons = self.getAndAddButtons()
@@ -100,6 +118,8 @@ class GameBoardButton (ButtonBehavior, Widget):
         self.grid_star_size = self.app.data['grid_star_size']
         self.grid_star_coords = self.app.data['grid_star_coords']
         self.coord = coord
+
+        self.size = [30, 30]
 
         self.grid_hor_line_type = self.getHorLineType()
         self.grid_vert_line_type = self.getVertLineType()
@@ -150,20 +170,20 @@ class GameBoardButton (ButtonBehavior, Widget):
         self.stone_line.circle = self.getStoneLineCircleArgs()
 
     def getHorLinePoints(self):
-        type = self.grid_hor_line_type
+        line_type = self.grid_hor_line_type
         pos_x, pos_y = self.board_rect.pos
         size_x, size_y = self.board_rect.size
-        x1 = pos_x if type in ['center', 'right'] else pos_x + (size_x / 2)
-        x2 = pos_x + size_x if type in ['center', 'left'] else pos_x + (size_x / 2)
+        x1 = pos_x if line_type in ['center', 'right'] else pos_x + (size_x / 2)
+        x2 = pos_x + size_x if line_type in ['center', 'left'] else pos_x + (size_x / 2)
         y1, y2 = [pos_y + (size_y / 2)] * 2
         return [x1, y1, x2, y2]
 
     def getVertLinePoints(self):
-        type = self.grid_vert_line_type
+        line_type = self.grid_vert_line_type
         pos_x, pos_y = self.board_rect.pos
         size_x, size_y = self.board_rect.size
-        y1 = pos_y + size_y if type in ['center', 'bottom'] else pos_y + (size_y / 2)
-        y2 = pos_y if type in ['center', 'top'] else pos_y + (size_y / 2)
+        y1 = pos_y + size_y if line_type in ['center', 'bottom'] else pos_y + (size_y / 2)
+        y2 = pos_y if line_type in ['center', 'top'] else pos_y + (size_y / 2)
         x1, x2 = [pos_x + (size_x / 2)] * 2
         return [x1, y1, x2, y2]
 
@@ -221,12 +241,8 @@ class GameBoardModeInput (PanelSettingsInput):
         self.app = App.get_running_app()
         self.value = self.app.data['game_board']['mode']
         self.options = BoxLayout(orientation='horizontal', size_hint=[1.0, None], height=20)
-        self.play_button = ToggleButton(
-            text="play", group='game_board_mode', font_size=13
-        )
-        self.edit_button = ToggleButton(
-            text="edit", group='game_board_mode', font_size=13
-        )
+        self.play_button = ToggleButton(text="play", group='game_board_mode', font_size=13)
+        self.edit_button = ToggleButton(text="edit", group='game_board_mode', font_size=13)
         self.play_button.allow_no_selection = False
         self.edit_button.allow_no_selection = False
         self.options.add_widget(self.play_button)
@@ -291,12 +307,8 @@ class GameBoardNextStoneInput (PanelSettingsInput):
         self.value = self.app.data['game_board']['next_stone']
         self.options = BoxLayout(orientation='horizontal', size_hint=[1.0, None], height=20)
 
-        self.black_button = ToggleButton(
-            text="black", group='game_board_next_stone', font_size=13
-        )
-        self.white_button = ToggleButton(
-            text="white", group='game_board_next_stone', font_size=13
-        )
+        self.black_button = ToggleButton(text="black", group='game_board_next_stone', font_size=13)
+        self.white_button = ToggleButton(text="white", group='game_board_next_stone', font_size=13)
         self.black_button.allow_no_selection = False
         self.white_button.allow_no_selection = False
         self.options.add_widget(self.black_button)

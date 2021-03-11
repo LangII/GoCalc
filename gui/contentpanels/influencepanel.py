@@ -14,10 +14,10 @@ from kivy.graphics import Color, Rectangle, Line, Ellipse
 
 from gui.contentbasewidgets import (
     ContentPanel, PanelSettings, PanelSettingsInput, PanelSettingsSingleButton,
-    PanelSettingsSliderInput
+    PanelSettingsSliderInput, PanelStationarySettings, PanelSettingsSingleLabel
 )
 
-import calculate.influencecalc as infl
+import calculate.influencecalc as infl_calc
 
 import messenger
 
@@ -38,14 +38,17 @@ class InfluencePanel (ContentPanel):
 
         self.display.bind(height=self.displayHeightChange)
 
+        self.stationary_settings = PanelStationarySettings()
+        self.details_display = DetailsDisplay()
+        self.stationary_settings.add_widget(self.details_display)
+        self.refresh = Refresh()
+        self.stationary_settings.add_widget(self.refresh)
+        self.add_widget(self.stationary_settings)
+
+        self.add_widget(PanelSettingsSingleLabel('settings'))
+
         self.settings = PanelSettings()
         self.add_widget(self.settings)
-
-        self.details_display = DetailsDisplay()
-        self.settings.layout.add_widget(self.details_display)
-
-        self.refresh = Refresh()
-        self.settings.layout.add_widget(self.refresh)
 
         self.display_mode = DisplayModeInput()
         self.settings.layout.add_widget(self.display_mode)
@@ -59,7 +62,7 @@ class InfluencePanel (ContentPanel):
         self.infl_adjs = InflAdjsInput()
         self.settings.layout.add_widget(self.infl_adjs)
 
-        self.weights_title = WeightsTitle()
+        self.weights_title = PanelSettingsSingleLabel('weights')
         self.settings.layout.add_widget(self.weights_title)
 
         self.dist_decay_gt_weight_input = DistDecayGtWeightInput()
@@ -106,7 +109,7 @@ class DataBoardDisplay (Splitter):
     def __init__(self):
         super(DataBoardDisplay, self).__init__()
         self.app = App.get_running_app()
-        self.sizable_from='bottom'
+        self.sizable_from = 'bottom'
         self.board_size = self.app.data['board_size']
         self.grid_star_size = self.app.data['grid_star_size']
         self.buttons = self.getAndAddButtons()
@@ -219,7 +222,7 @@ class DetailsDisplay (Label):
     def __init__(self):
         super(DetailsDisplay, self).__init__()
         self.app = App.get_running_app()
-        self.template = "[{}, {}]:  {}"
+        self.template = "details:  [{}, {}] {}"
         self.text = self.template.format('?', '?', '0.0')
 
     def updateText(self):
@@ -232,42 +235,56 @@ class Refresh (PanelSettingsSingleButton):
     def __init__(self):
         super(Refresh, self).__init__("refresh")
         self.app = App.get_running_app()
+        self.size_hint = [0.25, None]
         self.bind(on_release=self.triggerRefresh)
 
-    def triggerRefresh(self, *args):
-        display_buttons = self.app.main.content_scroll.influence_panel.display.buttons
-        # infl_grid = tci_calc.getStoneRawInfluenceGrid([4, 4])
 
-        # infl_grid = tci_calc.getWholeBoardRawInfluenceGrid()
 
-        infl_grid = infl.getBoardInfluence(self.app.data['board'])
+    def triggerRefresh(self, *largs):
 
-        # print("")
-        # for row in infl_grid:  print([ f"{r:05.02f}" for r in row ])
+        display_mode = self.app.data['influence']['display_mode']
 
-        # print("\n\n\n")
-        # print(tci_calc.getWholeBoardRawInfluenceGrid(to_print=True))
-        for y, row in enumerate(infl_grid):
-            # print(row)
+        infl_display_buttons = self.app.main.content_scroll.influence_panel.display.buttons
+
+        infl_data = infl_calc.getInfluenceData()
+
+        print(infl_data)
+
+        # return
+
+        for y, row in enumerate(infl_data):
             for x, each in enumerate(row):
-                # print("each =", each)
-                # print(display_buttons[str([x, y])])
+                # print(each)
 
-                if each > 0:
-                    display_buttons[str([y, x])].board_rect_color.rgba = [1- (each / 100), 1 - (each / 100), 1, 1]
-                if each < 0:
-                    each = abs(each)
-                    display_buttons[str([y, x])].board_rect_color.rgba = [1, 1- (each / 100), 1 - (each / 100), 1]
-                if each == 0:
-                    display_buttons[str([y, x])].board_rect_color.rgba = [1, 1, 1, 1]
+                if display_mode == 'infl_pred':
+                    if each != 0:
+                        infl_display_buttons[str([y, x])].board_rect_color.rgba = [1 - each, 1, 1 - each, 1]
+                    else:
+                        infl_display_buttons[str([y, x])].board_rect_color.rgba = [1, 1, 1, 1]
 
-                # if each > 0:
-                #     display_buttons[str([y, x])].board_rect_color.rgba = [1 - (each), 1 - (each), 1, 1]
-                # if each < 0:
-                #     each = abs(each)
-                #     display_buttons[str([y, x])].board_rect_color.rgba = [1, 1 - (each), 1 - (each), 1]
-                # if each == 0:
-                #     display_buttons[str([y, x])].board_rect_color.rgba = [1, 1, 1, 1]
+                elif display_mode == 'cur_infl':
+                    if each > 0:
+                        infl_display_buttons[str([y, x])].board_rect_color.rgba = [1 - each, 1 - each, 1, 1]
+                    if each < 0:
+                        each = abs(each)
+                        infl_display_buttons[str([y, x])].board_rect_color.rgba = [1, 1 - each, 1 - each, 1]
+                    if each == 0:
+                        infl_display_buttons[str([y, x])].board_rect_color.rgba = [1, 1, 1, 1]
+
+
+
+    # def triggerRefresh(self, *largs):
+    #     display_buttons = self.app.main.content_scroll.influence_panel.display.buttons
+    #     infl_grid = infl_calc.getBoardInfluence(self.app.data['board'])
+    #     for y, row in enumerate(infl_grid):
+    #         for x, each in enumerate(row):
+    #             if each > 0:
+    #                 display_buttons[str([y, x])].board_rect_color.rgba = [1- (each / 100), 1 - (each / 100), 1, 1]
+    #             if each < 0:
+    #                 each = abs(each)
+    #                 display_buttons[str([y, x])].board_rect_color.rgba = [1, 1- (each / 100), 1 - (each / 100), 1]
+    #             if each == 0:
+    #                 display_buttons[str([y, x])].board_rect_color.rgba = [1, 1, 1, 1]
 
 
 
