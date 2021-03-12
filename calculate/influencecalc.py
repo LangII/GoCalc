@@ -47,17 +47,15 @@ def getInfluenceData():
     """ COLLECT INPUTS FROM app_data """
 
     app_data = App.get_running_app().data
-
     board = getBoardTensorFromBoardObj(app_data['board'])
+    # print(board, "<- board\n")
     display_mode = app_data['influence']['display_mode'] # 'cur_infl' or 'infl_pred'
     pred_value = getPredValue(app_data)
-
     dist_decay_adj = app_data['influence']['adjustments']['distance_decay']
     dist_zero_adj = app_data['influence']['adjustments']['distance_zero']
     angle_decay_adj = app_data['influence']['adjustments']['angle_decay']
     opp_angle_growth_adj = app_data['influence']['adjustments']['opposite_angle_growth']
     clamp_adj = app_data['influence']['adjustments']['clamp']
-
     dist_decay_gt_weight = app_data['influence']['weights']['dist_decay_gt']['value']
     dist_decay_lin_weight = app_data['influence']['weights']['dist_decay_lin']['value']
     dist_zero_gt_weight = app_data['influence']['weights']['dist_zero_gt']['value']
@@ -67,8 +65,6 @@ def getInfluenceData():
     opp_angle_growth_dist_lt_weight = app_data['influence']['weights']['opp_angle_growth_dist_lt']['value']
     opp_angle_growth_lin_weight = app_data['influence']['weights']['opp_angle_growth_lin']['value']
     clamp_within_weight = app_data['influence']['weights']['clamp_within']['value']
-
-    # print(board, "<- board\n")
 
     """ COLLECT REUSABLES """
 
@@ -100,11 +96,9 @@ def getInfluenceData():
 
     empty_coords = getEmptyCoords(board)
     # print(empty_coords, "<- empty_coords\n")
-
     pred_moves = getPredMoves(board, board_shape, empty_count, empty_coords, pred_value)
     # # print(pred_moves, "<- pred_moves\n")
-
-    # Logic must change to handle 'cur_infl' display_mode.
+    ### Logic must change to handle 'cur_infl' display_mode.
     if display_mode == 'cur_infl':
         pred_moves = reshapeInsertDim(board, 0)
         empty_count_per_pred = empty_count
@@ -113,14 +107,12 @@ def getInfluenceData():
         both_count_per_pred = both_count
         empty_count_all_pred = empty_count
         empty_count = 1
-
     pred_empty_coords = getPredValueCoords(pred_moves, EMPTY_VALUE, empty_count)
     pred_black_coords = getPredValueCoords(pred_moves, BLACK_VALUE, empty_count)
     pred_white_coords = getPredValueCoords(pred_moves, WHITE_VALUE, empty_count)
     # print(pred_empty_coords, "<- pred_empty_coords")
     # print(pred_black_coords, "<- pred_black_coords")
     # print(pred_white_coords, "<- pred_white_coords")
-
     pred_black_normals = getPredValueNormals(
         pred_empty_coords, pred_black_coords, empty_count_per_pred, black_count_per_pred
     )
@@ -129,17 +121,14 @@ def getInfluenceData():
     )
     # print(pred_black_normals, "<- pred_black_normals")
     # print(pred_white_normals, "<- pred_white_normals")
-
     pred_black_dists = getDistsFromNormals(pred_black_normals)
     pred_white_dists = getDistsFromNormals(pred_white_normals)
     # print(pred_black_dists, "<- pred_black_dists")
     # print(pred_white_dists, "<- pred_white_dists")
-
     pred_black_angles = getAnglesFromNormals(pred_black_normals)
     pred_white_angles = getAnglesFromNormals(pred_white_normals)
     # print(pred_black_angles, "<- pred_black_angles")
     # print(pred_white_angles, "<- pred_white_angles")
-
     pred_stones_dists_angles = getPredStonesDistsAngles(
         pred_black_dists, pred_black_angles, BLACK_VALUE,
         pred_white_dists, pred_white_angles, WHITE_VALUE
@@ -170,21 +159,22 @@ def getInfluenceData():
 
     angle_difs = getAngleDifs(pred_angles, both_count_per_pred)
     # print(angle_difs, "<- angle_difs")
-
     raw_angle_infls = getRawAngleInfls(angle_difs, angle_decay_lt_weight, angle_decay_lin_weight)
     # print(raw_angle_infls, "<- raw_angle_infls")
-
     angle_mirror_mask = getAngleMirrorMask(both_count_per_pred, empty_count_all_pred)
     # print(angle_mirror_mask, "<- angle_mirror_mask")
-
     angle_stones_mask = getAngleStonesMask(pred_stones, both_count_per_pred, pred_value)
     # print(angle_stones_mask, "<- angle_stones_mask")
-
     masked_angle_infls = getMaskedAngleInfls(raw_angle_infls, angle_mirror_mask, angle_stones_mask)
     # print(masked_angle_infls, "<- masked_angle_infls")
-
     angle_decay_infls_adjs = getAngleDecayInflsAdjs(masked_angle_infls)
-    print(angle_decay_infls_adjs, "<- angle_decay_infls_adjs")
+    # print(angle_decay_infls_adjs, "<- angle_decay_infls_adjs")
+
+    """ GET OPPOSITE ANGLE GROWTH INFLUENCE ADJUSTMENT """
+
+    # wall_normals = getWallNormals(pred_empty_coords)
+    # print(wall_normals, "<- wall_normals")
+
 
     """ APPLY WEIGHT ADJUSTMENTS TO STONE INFLUENCES """
 
@@ -199,19 +189,15 @@ def getInfluenceData():
 
     """ APPLY WEIGHT ADJUSTMENTS TO MOVE INFLUENCES """
 
-    #
-    #
-    #
-
-    # print(pred_move_infls, "<- pred_move_infls")
+    # if opp_angle_growth_adj:  pred_move_infls *= opp_angle_growth_infls_adjs
+    # if clamp_adj:  pred_move_infls = applyClampAdjs(pred_move_infls, clamp_infls_adjs)
 
     """ REDUCE AND/OR RETURN INFLUENCE DATA """
 
-    # Logic must change to handle 'cur_infl' display_mode.
+    ### Logic must change to handle 'cur_infl' display_mode.
     if display_mode == 'cur_infl':
         return reshapeMergeDims(pred_move_infls, [0, 1]).numpy()
-
-    # Reduce move influences to get prediction (influence_data) output.
+    ### Reduce move influences to get prediction (influence_data) output.
     prediction = reduceMoveInflsGetPred(pred_move_infls, empty_coords, board_shape, board)
     # print(prediction, "<- prediction")
 
@@ -255,6 +241,7 @@ def getEmptyCoords(board):
 def getPredMoves(board, board_shape, empty_count, empty_coords, pred_value):
     """ A list of all possible next moves (represented as a board with next move) that will have
     influence predicted. """
+    @tf.function
     def getSparsePredMoves(coord):
         return tf.sparse.to_dense(tf.SparseTensor([coord], [pred_value], board_shape))
     sparse_pred_moves = tf.map_fn(fn=lambda coord: getSparsePredMoves(coord), elems=empty_coords)
