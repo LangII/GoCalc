@@ -16,11 +16,14 @@ TO-DOS:
 - Update Content Settings Input ToggleButtons to stay 'down' if already 'down' when pressed.
 """
 
-# Dynamically add parent folder to path.
-import os, sys
-cur_dir = os.getcwd()
-insert_sys_path = cur_dir[:cur_dir.rfind('\\')]
-sys.path.insert(1, insert_sys_path)
+####################################################################################################
+
+""" currently unnecessary """
+# # Dynamically add parent folder to path.
+# import os, sys
+# cur_dir = os.getcwd()
+# sys_path_insert = cur_dir[:cur_dir.rfind('\\')]
+# sys.path.insert(1, sys_path_insert)
 
 from kivy.app import App
 from kivy.lang import Builder
@@ -33,7 +36,6 @@ from kivy.uix.button import Button
 from kivy.properties import NumericProperty, ObjectProperty
 
 from gui.contentpanels.gameboardpanel import GameBoardPanel
-# from gui.contentpanels.taxicabinflpanel import TaxiCabInflPanel
 from gui.contentpanels.influencepanel import InfluencePanel
 
 from gamelogic.board import Board
@@ -120,7 +122,9 @@ def main():
 ####################################################################################################
 
 def doBeforeStart():
+
     Builder.load_file('gui/gocalc.kv')
+    
     Window.size = APP_DATA['default_window_size']
 
 ####################################################################################################
