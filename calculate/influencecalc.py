@@ -170,10 +170,28 @@ def getInfluenceData():
     angle_decay_infls_adjs = getAngleDecayInflsAdjs(masked_angle_infls)
     # print(angle_decay_infls_adjs, "<- angle_decay_infls_adjs")
 
+
+
+
+
     """ GET OPPOSITE ANGLE GROWTH INFLUENCE ADJUSTMENT """
 
-    # wall_normals = getWallNormals(pred_empty_coords)
-    # print(wall_normals, "<- wall_normals")
+    """
+    TURNOVER NOTES:
+    - wall_coords does not accept display_mode changes ('cur_infl' vs 'infl_pred').
+    """
+
+    wall_coords = getWallCoords(
+        pred_empty_coords, empty_count_all_pred, empty_count, board_shape, empty_count_per_pred
+    )
+    print(wall_coords, "<- wall_coords")
+    # pred_stones_dists_angles_wall = getPredStonesDistsAnglesWall(
+    #     wall_coords, pred_empty_coords, pred_stones_dists_angles, empty_count
+    # )
+    # print(pred_stones_dists_angles_wall, "<- pred_stones_dists_angles_wall")
+
+
+
 
 
     """ APPLY WEIGHT ADJUSTMENTS TO STONE INFLUENCES """
@@ -202,7 +220,6 @@ def getInfluenceData():
     # print(prediction, "<- prediction")
 
     return prediction.numpy()
-
 
 ####################################################################################################
 
@@ -403,6 +420,67 @@ def getMaskedAngleInfls(raw_angle_infls, angle_mirror_mask, angle_stones_mask):
 def getAngleDecayInflsAdjs(masked_angle_infls):
     """ Tensor representing the decay of values of raw_infls based on angle barriers. """
     return tf.reduce_prod(masked_angle_infls, axis=2)
+
+####################################################################################################
+
+def getWallCoords(
+    pred_empty_coords, empty_count_all_pred, empty_count, board_shape, empty_count_per_pred
+):
+    """ wall_coords is used in adding "support" stones in the place of the nearest wall to simulate
+    how influence is increased when the pos is "sandwiched" between a stone and wall. """
+    pred_empty_coords_resh = tf.cast(reshapeMergeDims(pred_empty_coords, [0, 1]), dtype='int64')
+    min_filler = tf.fill([empty_count_all_pred, 1], tf.constant(-1, dtype='int64'))
+    max_filler = tf.fill([empty_count_all_pred, 1], tf.constant(board_shape[0], dtype='int64'))
+    top_wall_coords = tf.concat([min_filler, reshapeAddDim(pred_empty_coords_resh[:, 1])], axis=1)
+    top_wall_coords = reshapeInsertDim(top_wall_coords, 1)
+    bottom_wall_coords = tf.concat([max_filler, reshapeAddDim(pred_empty_coords_resh[:, 1])], axis=1)
+    bottom_wall_coords = reshapeInsertDim(bottom_wall_coords, 1)
+    left_wall_coords = tf.concat([reshapeAddDim(pred_empty_coords_resh[:, 0]), min_filler], axis=1)
+    left_wall_coords = reshapeInsertDim(left_wall_coords, 1)
+    right_wall_coords = tf.concat([reshapeAddDim(pred_empty_coords_resh[:, 0]), max_filler], axis=1)
+    right_wall_coords = reshapeInsertDim(right_wall_coords, 1)
+    wall_coords = tf.concat([
+        top_wall_coords, bottom_wall_coords, left_wall_coords, right_wall_coords
+    ], axis=1)
+    wall_dists = tf.concat([
+        reshapeInsertDim(pred_empty_coords_resh[:, 0], 1),
+        reshapeInsertDim(board_shape[0] - pred_empty_coords_resh[:, 0] - 1, 1),
+        reshapeInsertDim(pred_empty_coords_resh[:, 1], 1),
+        reshapeInsertDim(board_shape[1] - pred_empty_coords_resh[:, 1] - 1, 1),
+    ], axis=1)
+    wall_dists_min = tf.argmin(wall_dists, axis=1)
+    wall_coord_concat = tf.concat([
+        reshapeAddDim(tf.cast(tf.range(empty_count_all_pred), dtype='int64')),
+        reshapeAddDim(wall_dists_min)
+    ], axis=1)
+    wall_coords = tf.gather_nd(wall_coords, wall_coord_concat)
+    wall_coords = tf.reshape(wall_coords, [empty_count, empty_count_per_pred, 2])
+    wall_coords = tf.cast(wall_coords, dtype=MAIN_DTYPE)
+    return wall_coords
+
+
+
+def getPredStonesDistsAnglesWall(
+        wall_coords, pred_empty_coords, pred_stones_dists_angles, empty_count
+    ):
+    """  """
+    wall_normals = wall_coords - tf.cast(pred_empty_coords, dtype=MAIN_DTYPE)
+    wall_normals = reshapeInsertDim(wall_normals, 2)
+    wall_dists = getDistsFromNormals(wall_normals)
+    wall_angles = getAnglesFromNormals(wall_normals)
+    wall_stones = tf.reshape(pred_stones_dists_angles[:, 0, 0], [empty_count, -1, 1])
+    wall_stone_dists_angles = reshapeInsertDim(tf.concat([
+        wall_stones, wall_dists, wall_angles
+    ], axis=2), 2)
+    wall_stone_dists_angles = reshapeMergeDims(wall_stone_dists_angles, [0, 1])
+    pred_stones_dists_angles_wall = tf.concat(
+        [pred_stones_dists_angles, wall_stone_dists_angles], axis=1
+    )
+    pred_stones_dists_angles_wall = tf.vectorized_map(
+        fn=lambda pred_empty: sort2dByCol(pred_empty, 1),
+        elems=pred_stones_dists_angles_wall
+    )
+    return pred_stones_dists_angles_wall
 
 ####################################################################################################
 

@@ -657,3 +657,7 @@ class ClampWithinWeightInput (PanelSettingsSliderInput):
 
     def valueChange(self, *largs):
         self.app.data['influence']['weights']['clamp_within']['value'] = self.slider_input.value
+
+####################################################################################################
+
+if __name__ == '__main__':  import main_gui
