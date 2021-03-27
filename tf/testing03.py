@@ -74,7 +74,7 @@ BOARD = tf.constant([
     [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
     [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
     [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
-    [ 0,  0,  0, -1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, +1,  0,  0,  0],
+    [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
     [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
     [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
     [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
@@ -87,7 +87,7 @@ BOARD = tf.constant([
     [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
     [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
     [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, +1,  0,  0,  0],
-    [ 0,  0,  0,  0, -1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
+    [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
     [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
     [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0]
 ], dtype='int32')
@@ -443,7 +443,7 @@ greater than requirements, then the calculation will be made based on the closes
 # print(pred_empty_coords)
 
 pred_empty_coords_resh = tf.cast(reshapeMergeDims(pred_empty_coords, [0, 1]), dtype='int64')
-# print(pred_empty_coords_resh)
+# print(pred_empty_coords_resh) # shape=(129240, 2)
 
 min_filler = tf.fill([EMPTY_COUNT_ALL_PRED, 1], tf.constant(-1, dtype='int64'))
 max_filler = tf.fill([EMPTY_COUNT_ALL_PRED, 1], tf.constant(BOARD_SHAPE[0], dtype='int64'))
@@ -463,7 +463,7 @@ right_wall_coords = reshapeInsertDim(right_wall_coords, 1)
 wall_coords = tf.concat([
     top_wall_coords, bottom_wall_coords, left_wall_coords, right_wall_coords
 ], axis=1)
-# print(wall_coords)
+# print(wall_coords) # shape=(129240, 4, 2)
 
 wall_dists = tf.concat([
     reshapeInsertDim(pred_empty_coords_resh[:, 0], 1),
@@ -485,8 +485,7 @@ wall_coords = tf.reshape(tf.gather_nd(
         reshapeAddDim(wall_dists_min)
     ], axis=1)
 ), [EMPTY_COUNT, EMPTY_COUNT_PER_PRED, 2])
-# print(wall_coords)
-
+# print(wall_coords) # shape=(360, 359, 2)
 
 
 """
@@ -758,5 +757,5 @@ prediction = tf.where(BOARD == 0, prediction, 0)
 
 
 
-if TESTING_PRINT == 'pred_move_infls':  print(pred_move_infls[PRED_MOVE_I])
-elif TESTING_PRINT == 'prediction':  print(prediction)
+# if TESTING_PRINT == 'pred_move_infls':  print(pred_move_infls[PRED_MOVE_I])
+# elif TESTING_PRINT == 'prediction':  print(prediction)
