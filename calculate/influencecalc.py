@@ -20,15 +20,15 @@ from calculate.basictensorfuncs import (
 
 ####################################################################################################
 
-np.set_printoptions(
-    linewidth=220, # <- How many characters per line before new line.
-    threshold=300, # <- How many lines allowed before summarized print.
-    # threshold=sys.maxsize, # <- How many lines allowed before summarized print. (no summarization)
-    edgeitems=10, # <- When summarized, how many edge values are printed.
-    suppress=True, # <- Suppress scientific notation.
-    precision=4, # <- How many decimal places on floats.
-    # sign='+', # <- Display + for positive numbers.
-)
+# np.set_printoptions(
+#     linewidth=220, # <- How many characters per line before new line.
+#     threshold=300, # <- How many lines allowed before summarized print.
+#     # threshold=sys.maxsize, # <- How many lines allowed before summarized print. (no summarization)
+#     edgeitems=10, # <- When summarized, how many edge values are printed.
+#     suppress=True, # <- Suppress scientific notation.
+#     precision=4, # <- How many decimal places on floats.
+#     # sign='+', # <- Display + for positive numbers.
+# )
 
 ####################################################################################################
 
@@ -97,7 +97,6 @@ def getInfluenceData():
     empty_coords = getEmptyCoords(board)
     # print(empty_coords, "<- empty_coords\n")
     pred_moves = getPredMoves(board, board_shape, empty_count, empty_coords, pred_value)
-    # # print(pred_moves, "<- pred_moves\n")
     ### Logic must change to handle 'cur_infl' display_mode.
     if display_mode == 'cur_infl':
         pred_moves = reshapeInsertDim(board, 0)
@@ -107,6 +106,7 @@ def getInfluenceData():
         both_count_per_pred = both_count
         empty_count_all_pred = empty_count
         empty_count = 1
+    # print(pred_moves, "<- pred_moves\n")
     pred_empty_coords = getPredValueCoords(pred_moves, EMPTY_VALUE, empty_count)
     pred_black_coords = getPredValueCoords(pred_moves, BLACK_VALUE, empty_count)
     pred_white_coords = getPredValueCoords(pred_moves, WHITE_VALUE, empty_count)
@@ -184,11 +184,38 @@ def getInfluenceData():
     wall_coords = getWallCoords(
         pred_empty_coords, empty_count_all_pred, empty_count, board_shape, empty_count_per_pred
     )
-    print(wall_coords, "<- wall_coords")
-    # pred_stones_dists_angles_wall = getPredStonesDistsAnglesWall(
-    #     wall_coords, pred_empty_coords, pred_stones_dists_angles, empty_count
-    # )
-    # print(pred_stones_dists_angles_wall, "<- pred_stones_dists_angles_wall")
+    # print(wall_coords, "<- wall_coords")
+    pred_stones_dists_angles_with_wall = getPredStonesDistsAnglesWithWall(
+        wall_coords, pred_empty_coords, pred_stones_dists_angles, empty_count
+    )
+    # print(pred_stones_dists_angles_with_wall, "<- pred_stones_dists_angles_with_wall")
+    closest_stones = pred_stones_dists_angles[:, 0, :]
+    # print(closest_stones, "<- closest_stones")
+    closest_opp_stone = getClosestOppStone(
+        closest_stones, both_count_per_pred, pred_stones_dists_angles_with_wall,
+        opp_angle_growth_angle_lt_weight, empty_count_all_pred
+    )
+    # print(closest_opp_stone, "<- closest_opp_stone")
+    opp_angle_growth_infls_adjs = getOppAngleGrowthInflsAdjs(
+        closest_stones, closest_opp_stone, opp_angle_growth_dist_lt_weight,
+        opp_angle_growth_lin_weight, pred_moves
+    )
+    # print(opp_angle_growth_infls_adjs, "<- opp_angle_growth_infls_adjs")
+
+
+
+    # TURNOVER NOTE:  Left here!  opp_angle_adj only returns all 1s...  wtf
+    # Testing to see where I went wrong transfering from testing03 to influencecalc.  I'm starting
+    # with comparing print(wall_coords).  wall_coords appear good.  Moving onto
+    # pred_stones_dists_angles_with_wall.  On the testing03 side have to print the variables with [298]
+    # to get the correct cur_infl translation.
+
+    # TURNOVER NOTE:  I need to apply some degree of normalization for the display.  It looks like
+    # the infl_adjs are being applied correctly.  But the problem is that the growth influences
+    # gives the output values greater than 1 values.
+    # Put black stone in center and look at angle growth adj to see the odd behavior.  The adjs
+    # make an odd X pattern.  This might be because of the angle weight calculation...  Just a
+    # thought.
 
 
 
@@ -207,19 +234,32 @@ def getInfluenceData():
 
     """ APPLY WEIGHT ADJUSTMENTS TO MOVE INFLUENCES """
 
-    # if opp_angle_growth_adj:  pred_move_infls *= opp_angle_growth_infls_adjs
+    if opp_angle_growth_adj:  pred_move_infls *= opp_angle_growth_infls_adjs
     # if clamp_adj:  pred_move_infls = applyClampAdjs(pred_move_infls, clamp_infls_adjs)
 
     """ REDUCE AND/OR RETURN INFLUENCE DATA """
 
     ### Logic must change to handle 'cur_infl' display_mode.
     if display_mode == 'cur_infl':
-        return reshapeMergeDims(pred_move_infls, [0, 1]).numpy()
-    ### Reduce move influences to get prediction (influence_data) output.
-    prediction = reduceMoveInflsGetPred(pred_move_infls, empty_coords, board_shape, board)
-    # print(prediction, "<- prediction")
+        # print(reshapeMergeDims(pred_move_infls, [0, 1]).numpy())
+        influence_data = reshapeMergeDims(pred_move_infls, [0, 1]).numpy()
 
-    return prediction.numpy()
+
+
+        """ TODO:  Need to scale influence_data to [-1, 1] while maintaining neg values stay neg and
+        pos values stay pos. """
+
+
+
+    ### Reduce move influences to get prediction (influence_data) output.
+    else:
+        influence_data = reduceMoveInflsGetPred(
+            pred_move_infls, empty_coords, board_shape, board, pred_value
+        ).numpy()
+        # print(prediction.numpy(), "<- prediction")
+
+    print(influence_data)
+    return influence_data
 
 ####################################################################################################
 
@@ -460,9 +500,9 @@ def getWallCoords(
 
 
 
-def getPredStonesDistsAnglesWall(
-        wall_coords, pred_empty_coords, pred_stones_dists_angles, empty_count
-    ):
+def getPredStonesDistsAnglesWithWall(
+    wall_coords, pred_empty_coords, pred_stones_dists_angles, empty_count
+):
     """  """
     wall_normals = wall_coords - tf.cast(pred_empty_coords, dtype=MAIN_DTYPE)
     wall_normals = reshapeInsertDim(wall_normals, 2)
@@ -473,14 +513,58 @@ def getPredStonesDistsAnglesWall(
         wall_stones, wall_dists, wall_angles
     ], axis=2), 2)
     wall_stone_dists_angles = reshapeMergeDims(wall_stone_dists_angles, [0, 1])
-    pred_stones_dists_angles_wall = tf.concat(
+    pred_stones_dists_angles_with_wall = tf.concat(
         [pred_stones_dists_angles, wall_stone_dists_angles], axis=1
     )
-    pred_stones_dists_angles_wall = tf.vectorized_map(
+    pred_stones_dists_angles_with_wall = tf.vectorized_map(
         fn=lambda pred_empty: sort2dByCol(pred_empty, 1),
-        elems=pred_stones_dists_angles_wall
+        elems=pred_stones_dists_angles_with_wall
     )
-    return pred_stones_dists_angles_wall
+    return pred_stones_dists_angles_with_wall
+
+
+
+def getClosestOppStone(
+    closest_stones, both_count_per_pred, pred_stones_dists_angles_with_wall,
+    opp_angle_growth_angle_lt_weight, empty_count_all_pred
+):
+    """  """
+    closest_stones_angles = closest_stones[:, 2]
+    opposite_angles = tf.where(
+        closest_stones_angles >= 180, closest_stones_angles - 180, closest_stones_angles + 180
+    )
+    opposite_angles_tiled = tf.tile(reshapeAddDim(opposite_angles), [1, both_count_per_pred + 1])
+    opp_angles_dif = tf.abs(pred_stones_dists_angles_with_wall[:, :, 2] - opposite_angles_tiled)
+    opp_angles_dif = tf.where(opp_angles_dif > 180, 360 - opp_angles_dif, opp_angles_dif)
+    opp_angles_mask = tf.where(opp_angles_dif <= opp_angle_growth_angle_lt_weight, True, False)
+    closest_opp_stone = tf.argmax(opp_angles_mask, axis=1)
+    closest_opp_stone = tf.gather_nd(
+        pred_stones_dists_angles_with_wall,
+        tf.concat([
+            reshapeAddDim(tf.range(empty_count_all_pred)),
+            tf.cast(reshapeAddDim(closest_opp_stone), dtype=MAIN_DTYPE)
+        ], axis=1)
+    )
+    return closest_opp_stone
+
+
+
+def getOppAngleGrowthInflsAdjs(
+    closest_stones, closest_opp_stone, opp_angle_growth_dist_lt_weight,
+    opp_angle_growth_lin_weight, pred_moves
+):
+    """  """
+    is_support_stone = closest_stones[:, 0] == closest_opp_stone[:, 0]
+    is_within_dist = (closest_stones[:, 1] + closest_opp_stone[:, 1]) < opp_angle_growth_dist_lt_weight
+    opp_angle_growth_infl_adjs = tf.where(
+        tf.logical_and(is_support_stone, is_within_dist), opp_angle_growth_lin_weight, 1.0
+    )
+    pred_empty_coords_3d = tf.where(tf.equal(pred_moves, 0))
+    opp_angle_growth_infl_adjs = tf.SparseTensor(
+        pred_empty_coords_3d, opp_angle_growth_infl_adjs, pred_moves.shape
+    )
+    opp_angle_growth_infl_adjs = tf.sparse.to_dense(opp_angle_growth_infl_adjs)
+    return opp_angle_growth_infl_adjs
 
 ####################################################################################################
 
@@ -494,14 +578,15 @@ def reduceStoneInflsGetMoveInfls(pred_moves_stone_infls, pred_moves):
 
 
 
-def reduceMoveInflsGetPred(pred_move_infls, empty_coords, board_shape, board):
+def reduceMoveInflsGetPred(pred_move_infls, empty_coords, board_shape, board, pred_value):
     """ Reduce move influences to get prediction output (influence data). """
     prediction = tf.reduce_sum(tf.reduce_sum(pred_move_infls, axis=2), axis=1)
     prediction = tf.SparseTensor(tf.cast(empty_coords, dtype='int64'), prediction, board_shape)
     prediction = tf.sparse.to_dense(prediction)
-    prediction = applyScale(
-        prediction, [tf.reduce_min(prediction), tf.reduce_max(prediction)], [0, 1]
-    )
+    no_zeros = tf.gather_nd(prediction, tf.where(prediction != 0))
+    input_low, input_high = tf.reduce_min(no_zeros), tf.reduce_max(no_zeros)
+    if pred_value == WHITE_VALUE:  input_low, input_high = input_high, input_low
+    prediction = applyScale(prediction, [input_low, input_high], [0, 1])
     prediction = tf.where(board == 0, prediction, 0)
     return prediction
 

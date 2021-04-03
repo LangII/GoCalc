@@ -25,6 +25,9 @@ TO-DOS:
 # sys_path_insert = cur_dir[:cur_dir.rfind('\\')]
 # sys.path.insert(1, sys_path_insert)
 
+import sys
+import numpy as np
+
 from kivy.app import App
 from kivy.lang import Builder
 from kivy.core.window import Window
@@ -42,6 +45,16 @@ from gamelogic.board import Board
 from gamelogic.player import Player
 
 ####################################################################################################
+
+np.set_printoptions(
+    linewidth=220, # <- How many characters per line before new line.
+    # threshold=300, # <- How many lines allowed before summarized print.
+    threshold=sys.maxsize, # <- How many lines allowed before summarized print. (no summarization)
+    edgeitems=10, # <- When summarized, how many edge values are printed.
+    suppress=True, # <- Suppress scientific notation.
+    precision=4, # <- How many decimal places on floats.
+    # sign='+', # <- Display + for positive numbers.
+)
 
 APP_DATA = {
 
@@ -97,7 +110,7 @@ APP_DATA = {
                 'min': 0.0, 'max': 50.0, 'value': 5.0,
             },
             'opp_angle_growth_lin': {
-                'min': 1.0, 'max': 10.0, 'value': 1.0,
+                'min': 1.0, 'max': 20.0, 'value': 8.0,
             },
             'clamp_within': {
                 'min': 0.0, 'max': 20.0, 'value': 1.0,

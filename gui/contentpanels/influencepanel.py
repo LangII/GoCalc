@@ -511,7 +511,7 @@ class DistDecayGtWeightInput (PanelSettingsSliderInput):
 
     def __init__(self):
         super(DistDecayGtWeightInput, self).__init__(
-            "distance decay greater than weight",
+            "distance decay greater than",
             App.get_running_app().data['influence']['weights']['dist_decay_gt']
         )
 
@@ -528,7 +528,7 @@ class DistDecayLinWeightInput (PanelSettingsSliderInput):
 
     def __init__(self):
         super(DistDecayLinWeightInput, self).__init__(
-            "distance decay linear weight",
+            "distance decay linear",
             App.get_running_app().data['influence']['weights']['dist_decay_lin']
         )
 
@@ -545,7 +545,7 @@ class DistZeroGtWeightInput (PanelSettingsSliderInput):
 
     def __init__(self):
         super(DistZeroGtWeightInput, self).__init__(
-            "distance zero greater than weight",
+            "distance zero greater than",
             App.get_running_app().data['influence']['weights']['dist_zero_gt']
         )
 
@@ -562,7 +562,7 @@ class AngleDecayLtWeightInput (PanelSettingsSliderInput):
 
     def __init__(self):
         super(AngleDecayLtWeightInput, self).__init__(
-            "angle decay less than weight",
+            "angle decay less than",
             App.get_running_app().data['influence']['weights']['angle_decay_lt']
         )
 
@@ -579,7 +579,7 @@ class AngleDecayLinWeightInput (PanelSettingsSliderInput):
 
     def __init__(self):
         super(AngleDecayLinWeightInput, self).__init__(
-            "angle decay linear weight",
+            "angle decay linear",
             App.get_running_app().data['influence']['weights']['angle_decay_lin']
         )
 
@@ -596,7 +596,7 @@ class OppAngleGrowthAngleLtWeightInput (PanelSettingsSliderInput):
 
     def __init__(self):
         super(OppAngleGrowthAngleLtWeightInput, self).__init__(
-            "opposite angle growth angle less than weight",
+            "opposite angle growth angle less than",
             App.get_running_app().data['influence']['weights']['opp_angle_growth_angle_lt']
         )
 
@@ -613,7 +613,8 @@ class OppAngleGrowthDistLtWeightInput (PanelSettingsSliderInput):
 
     def __init__(self):
         super(OppAngleGrowthDistLtWeightInput, self).__init__(
-            "opposite angle growth distance less than weight",
+            "opposite angle growth distance less than",
+            # "opp ang grow dist less than weight",
             App.get_running_app().data['influence']['weights']['opp_angle_growth_dist_lt']
         )
 
@@ -630,7 +631,7 @@ class OppAngleGrowthLinWeightInput (PanelSettingsSliderInput):
 
     def __init__(self):
         super(OppAngleGrowthLinWeightInput, self).__init__(
-            "opposite angle growth linear weight",
+            "opposite angle growth linear",
             App.get_running_app().data['influence']['weights']['opp_angle_growth_lin']
         )
 
@@ -647,7 +648,7 @@ class ClampWithinWeightInput (PanelSettingsSliderInput):
 
     def __init__(self):
         super(ClampWithinWeightInput, self).__init__(
-            "clamp within weight",
+            "clamp within",
             App.get_running_app().data['influence']['weights']['clamp_within']
         )
 

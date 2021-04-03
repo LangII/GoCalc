@@ -16,8 +16,8 @@ from functions import (
 
 np.set_printoptions(
     linewidth=220, # <- How many characters per line before new line.
-    threshold=300, # <- How many lines allowed before summarized print.
-    # threshold=sys.maxsize, # <- How many lines allowed before summarized print. (no summarization)
+    # threshold=300, # <- How many lines allowed before summarized print.
+    threshold=sys.maxsize, # <- How many lines allowed before summarized print. (no summarization)
     edgeitems=10, # <- When summarized, how many edge values are printed.
     suppress=True, # <- Suppress scientific notation.
     precision=4, # <- How many decimal places on floats.
@@ -99,8 +99,8 @@ EMPTY_VALUE = 0
 BLACK_VALUE = +1
 WHITE_VALUE = -1
 
-PRED_VALUE = BLACK_VALUE
-# PRED_VALUE = WHITE_VALUE
+# PRED_VALUE = BLACK_VALUE
+PRED_VALUE = WHITE_VALUE
 
 BOARD_SHAPE = BOARD.shape.as_list()
 EMPTY_COUNT = getCount(BOARD, EMPTY_VALUE)
@@ -135,7 +135,7 @@ DIST_DECAY_GREATERTHAN_WEIGHT = 4.0
 DIST_DECAY_LINEAR_WEIGHT = 0.5
 DIST_ZERO_GREATERTHAN_WEIGHT = 8.0
 ANGLES_LESSTHAN_WEIGHT = 45.0
-ANGLES_LINEAR_WEIGHT = 0.2
+ANGLES_LINEAR_WEIGHT = 0.5
 OPP_STONE_ANGLE_LESSTHAN_WEIGHT = 15.0
 OPP_STONE_DIST_LESSTHAN_WEIGHT = 5.0
 OPP_STONE_GROWTH_LINEAR_WEIGHT = 8.0
@@ -143,11 +143,14 @@ PRED_MOVE_EMPTY_INFL_CLAMP_WEIGHT = 1.0
 
 ####################################################################################################
 
-Y, X = 7, 6
-PRED_MOVE_I = (Y * BOARD_SHAPE[0]) + X - 2
-TESTING_PRINT = 'pred_move_infls'
+# Y, X = 15, 15
+# PRED_MOVE_I = (Y * BOARD_SHAPE[0]) + X - 2
+# TESTING_PRINT = 'pred_move_infls'
 
-# TESTING_PRINT = 'prediction'
+# print(PRED_MOVE_I)
+# exit()
+
+TESTING_PRINT = 'prediction'
 
 
 
@@ -485,7 +488,7 @@ wall_coords = tf.reshape(tf.gather_nd(
         reshapeAddDim(wall_dists_min)
     ], axis=1)
 ), [EMPTY_COUNT, EMPTY_COUNT_PER_PRED, 2])
-# print(wall_coords) # shape=(360, 359, 2)
+# print(wall_coords[298]) # shape=(360, 359, 2)
 
 
 """
@@ -602,12 +605,12 @@ is_within_dist = (closest_stones[:, 1] + closest_opp_stone[:, 1]) < OPP_STONE_DI
 infls_opp_angle_growth_weight_adjs = tf.where(
     tf.logical_and(is_support_stone, is_within_dist), OPP_STONE_GROWTH_LINEAR_WEIGHT, 1.0
 )
+# print(infls_opp_angle_growth_weight_adjs, "<- infls_opp_angle_growth_weight_adjs")
 pred_empty_coords_3d = tf.where(tf.equal(pred_moves, 0))
 infls_opp_angle_growth_weight_adjs = tf.SparseTensor(
     pred_empty_coords_3d, infls_opp_angle_growth_weight_adjs, pred_moves.shape
 )
 infls_opp_angle_growth_weight_adjs = tf.sparse.to_dense(infls_opp_angle_growth_weight_adjs)
-# print(infls_opp_angle_growth_weight_adjs, "<- infls_opp_angle_growth_weight_adjs")
 
 
 
@@ -730,9 +733,9 @@ pred_move_infls = tf.sparse.to_dense(pred_move_infls)
 
 # PRED_MOVE_EMPTY_INFL_CLAMP_WEIGHT
 pred_move_infls *= infls_opp_angle_growth_weight_adjs
-pred_move_infls = tf.clip_by_value(
-    pred_move_infls, -PRED_MOVE_EMPTY_INFL_CLAMP_WEIGHT, PRED_MOVE_EMPTY_INFL_CLAMP_WEIGHT
-)
+# pred_move_infls = tf.clip_by_value(
+#     pred_move_infls, -PRED_MOVE_EMPTY_INFL_CLAMP_WEIGHT, PRED_MOVE_EMPTY_INFL_CLAMP_WEIGHT
+# )
 
 
 
@@ -747,9 +750,10 @@ pred_move_infls = tf.clip_by_value(
 prediction = tf.reduce_sum(tf.reduce_sum(pred_move_infls, axis=2), axis=1)
 prediction = tf.SparseTensor(tf.cast(empty_coords, dtype='int64'), prediction, BOARD_SHAPE)
 prediction = tf.sparse.to_dense(prediction)
-prediction = applyScale(prediction, [tf.reduce_min(prediction), tf.reduce_max(prediction)], [0, 1])
+output_set = [0, 1] if PRED_VALUE == BLACK_VALUE else [1, 0]
+prediction = applyScale(prediction, [tf.reduce_min(prediction), tf.reduce_max(prediction)], output_set)
 prediction = tf.where(BOARD == 0, prediction, 0)
-# print(prediction, "<- prediction")
+print(prediction, "<- prediction")
 
 
 
