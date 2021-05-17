@@ -11,13 +11,13 @@ Primary external libraries used:  kivy, tensorflow, keras, numpy, pandas, and ma
 **Current highlight pic/vid (other pics/vids below):**\
 \
 ![](readme_vid02.gif)\
-((*vid02*) Demo of Influence Calc panel.  Demonstrates applying, removing, and modifying the AI's Influence model's layers and weights.  (2021-05-17))\
+((*vid02*) Demo of Influence Calc panel.  Demonstrates applying, removing, and modifying the AI's Influence model's layers (adjustments) and weights.  (2021-05-17))\
 \
 \
 \
 **Notes:**\
 \
-For task details see this repo's latest project:  Calc Panels v1.\
+For task details see current project **Calc Panels v1**.\
 \
 \
 \
