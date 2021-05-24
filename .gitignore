@@ -2,3 +2,4 @@ __pycache__/
 testing/
 logs/
 tf/test_reports/
+.idea
