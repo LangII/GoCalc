@@ -243,47 +243,27 @@ class Refresh (PanelSettingsSingleButton):
         self.size_hint = [0.25, None]
         self.bind(on_release=self.triggerRefresh)
 
-    # TODO:  Refactor Refresh!
-
     def triggerRefresh(self, *largs):
-
+        """ Refresh of the influence panel's display, based on data from infl_calc.getInfluenceData(). """
         display_mode = self.app.data['influence']['display_mode']
         infl_display_buttons = self.app.main.content_scroll.influence_panel.display.buttons
         infl_data = infl_calc.getInfluenceData()
-
+        # Loop through infl_data, updating values of infl_display_buttons with parallel values from
+        # infl_data.
         for y, data_row in enumerate(infl_data):
             for x, data_value in enumerate(data_row):
-
+                # Set rgba_values based on data_value for 'infl_pred' display_mode.
                 if display_mode == 'infl_pred':
-                    # Set prediction values.
                     if data_value != 0:  rgba_values = [1 - data_value, 1, 1 - data_value, 1]
-                    # Set empty values.
                     else:  rgba_values = [1, 1, 1, 1]
-
+                # Set rgba_values based on data_value for 'cur_infl' display_mode.
+                # (+ data_value for black stones / - data_value for white stones)
                 elif display_mode == 'cur_infl':
-                    # Set black stone influence values.
                     if data_value > 0:  rgba_values = [1 - data_value, 1 - data_value, 1, 1]
-                    # Set white stone influence values.
                     elif data_value < 0:  rgba_values = [1, 1 - abs(data_value), 1 - abs(data_value), 1]
-                    # Set empty values.
                     elif data_value == 0:  rgba_values = [1, 1, 1, 1]
 
                 infl_display_buttons[str([y, x])].board_rect_color.rgba = rgba_values
-
-
-
-    # def triggerRefresh(self, *largs):
-    #     display_buttons = self.app.main.content_scroll.influence_panel.display.buttons
-    #     infl_grid = infl_calc.getBoardInfluence(self.app.data['board'])
-    #     for y, row in enumerate(infl_grid):
-    #         for x, each in enumerate(row):
-    #             if each > 0:
-    #                 display_buttons[str([y, x])].board_rect_color.rgba = [1- (each / 100), 1 - (each / 100), 1, 1]
-    #             if each < 0:
-    #                 each = abs(each)
-    #                 display_buttons[str([y, x])].board_rect_color.rgba = [1, 1- (each / 100), 1 - (each / 100), 1]
-    #             if each == 0:
-    #                 display_buttons[str([y, x])].board_rect_color.rgba = [1, 1, 1, 1]
 
 
 
