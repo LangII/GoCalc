@@ -19,9 +19,12 @@ from gui.contentbasewidgets import (
 
 import calculate.influencecalc as infl_calc
 
-import messenger
+### Keeping messenger for now.  Used previously with console interface.
+# import messenger
+
 
 ####################################################################################################
+
 
 class InfluencePanel (ContentPanel):
     board_size = NumericProperty()
@@ -99,6 +102,8 @@ class InfluencePanel (ContentPanel):
     def displayHeightChange(self, obj, value):
         self.width = value
 
+
+####################################################################################################
 
 
 class DataBoardDisplay (Splitter):
@@ -238,38 +243,32 @@ class Refresh (PanelSettingsSingleButton):
         self.size_hint = [0.25, None]
         self.bind(on_release=self.triggerRefresh)
 
-
+    # TODO:  Refactor Refresh!
 
     def triggerRefresh(self, *largs):
 
         display_mode = self.app.data['influence']['display_mode']
-
         infl_display_buttons = self.app.main.content_scroll.influence_panel.display.buttons
-
         infl_data = infl_calc.getInfluenceData()
 
-        # print(infl_data)
-
-        # return
-
-        for y, row in enumerate(infl_data):
-            for x, each in enumerate(row):
-                # print(each)
+        for y, data_row in enumerate(infl_data):
+            for x, data_value in enumerate(data_row):
 
                 if display_mode == 'infl_pred':
-                    if each != 0:
-                        infl_display_buttons[str([y, x])].board_rect_color.rgba = [1 - each, 1, 1 - each, 1]
-                    else:
-                        infl_display_buttons[str([y, x])].board_rect_color.rgba = [1, 1, 1, 1]
+                    # Set prediction values.
+                    if data_value != 0:  rgba_values = [1 - data_value, 1, 1 - data_value, 1]
+                    # Set empty values.
+                    else:  rgba_values = [1, 1, 1, 1]
 
                 elif display_mode == 'cur_infl':
-                    if each > 0:
-                        infl_display_buttons[str([y, x])].board_rect_color.rgba = [1 - each, 1 - each, 1, 1]
-                    if each < 0:
-                        each = abs(each)
-                        infl_display_buttons[str([y, x])].board_rect_color.rgba = [1, 1 - each, 1 - each, 1]
-                    if each == 0:
-                        infl_display_buttons[str([y, x])].board_rect_color.rgba = [1, 1, 1, 1]
+                    # Set black stone influence values.
+                    if data_value > 0:  rgba_values = [1 - data_value, 1 - data_value, 1, 1]
+                    # Set white stone influence values.
+                    elif data_value < 0:  rgba_values = [1, 1 - abs(data_value), 1 - abs(data_value), 1]
+                    # Set empty values.
+                    elif data_value == 0:  rgba_values = [1, 1, 1, 1]
+
+                infl_display_buttons[str([y, x])].board_rect_color.rgba = rgba_values
 
 
 
@@ -614,7 +613,6 @@ class OppAngleGrowthDistLtWeightInput (PanelSettingsSliderInput):
     def __init__(self):
         super(OppAngleGrowthDistLtWeightInput, self).__init__(
             "opposite angle growth distance less than",
-            # "opp ang grow dist less than weight",
             App.get_running_app().data['influence']['weights']['opp_angle_growth_dist_lt']
         )
 
@@ -659,6 +657,6 @@ class ClampWithinWeightInput (PanelSettingsSliderInput):
     def valueChange(self, *largs):
         self.app.data['influence']['weights']['clamp_within']['value'] = self.slider_input.value
 
+
 ####################################################################################################
 
-if __name__ == '__main__':  import main_gui

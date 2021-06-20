@@ -14,23 +14,23 @@ from calculate.basictensorfuncs import (
     reshapeMergeDims, replaceValueAtIndex, sort2dByCol, applyScale
 )
 
-# from calculate.calcfuncs import (
-#     getDistTwoPoints, getAngleTwoPoints, applyScale, applySkew, applyClamp
-# )
 
 ####################################################################################################
 
-# np.set_printoptions(
-#     linewidth=220, # <- How many characters per line before new line.
-#     threshold=300, # <- How many lines allowed before summarized print.
-#     # threshold=sys.maxsize, # <- How many lines allowed before summarized print. (no summarization)
-#     edgeitems=10, # <- When summarized, how many edge values are printed.
-#     suppress=True, # <- Suppress scientific notation.
-#     precision=4, # <- How many decimal places on floats.
-#     # sign='+', # <- Display + for positive numbers.
-# )
+
+np.set_printoptions(
+    linewidth=220, # <- How many characters per line before new line.
+    # threshold=300, # <- How many lines allowed before summarized print.
+    threshold=sys.maxsize, # <- How many lines allowed before summarized print. (no summarization)
+    edgeitems=10, # <- When summarized, how many edge values are printed.
+    suppress=True, # <- Suppress scientific notation.
+    precision=2, # <- How many decimal places on floats.
+    # sign='+', # <- Display + for positive numbers.
+)
+
 
 ####################################################################################################
+
 
 EMPTY_VALUE = 0
 BLACK_VALUE = +1
@@ -38,14 +38,14 @@ WHITE_VALUE = -1
 
 MAIN_DTYPE = 'int32'
 
+
 ####################################################################################################
 
-def getInfluenceData():
 
-    print("")
+def getInfluenceData():
+    """ Main return function of influencecalc.py. """
 
     """ COLLECT INPUTS FROM app_data """
-
     app_data = App.get_running_app().data
     board = getBoardTensorFromBoardObj(app_data['board'])
     # print(board, "<- board\n")
@@ -67,7 +67,6 @@ def getInfluenceData():
     clamp_within_weight = app_data['influence']['weights']['clamp_within']['value']
 
     """ COLLECT REUSABLES """
-
     board_shape = board.shape.as_list()
     empty_count = getCountOfValue(board, EMPTY_VALUE)
     black_count = getCountOfValue(board, BLACK_VALUE)
@@ -92,11 +91,14 @@ def getInfluenceData():
     # print(f"empty_count_all_pred = {empty_count_all_pred}")
     # print(f"max_dist = {max_dist}")
 
-    """ START BUILDING TENSORS """
+    """ HANDLE EMPTY BOARD ERROR """
+    if both_count == 0:  return tf.zeros(board_shape, dtype=MAIN_DTYPE).numpy()
 
+    """ START BUILDING TENSORS """
     empty_coords = getEmptyCoords(board)
     # print(empty_coords, "<- empty_coords\n")
     pred_moves = getPredMoves(board, board_shape, empty_count, empty_coords, pred_value)
+    # print(pred_moves, "<- pred_moves\n")
     ### Logic must change to handle 'cur_infl' display_mode.
     if display_mode == 'cur_infl':
         pred_moves = reshapeInsertDim(board, 0)
@@ -139,24 +141,20 @@ def getInfluenceData():
     # print(pred_stones_dists_angles, "<- pred_stones_dists_angles")
 
     """ GET RAW INFLUENCES """
-
     raw_infls = getRawInfls(pred_stones, pred_dists, max_dist)
     # print(raw_infls, "<- raw_infls")
 
     """ GET DISTANCE DECAY INFLUENCE ADJUSTMENT """
-
     dist_decay_infls_adjs = getDistDecayInflsAdjs(
         pred_dists, dist_decay_gt_weight, dist_decay_lin_weight
     )
     # print(dist_decay_infls_adjs, "<- dist_decay_infls_adjs")
 
     """ GET DISTANCE ZERO INFLUENCE ADJUSTMENT """
-
     dist_zero_infls_adjs = getDistZeroInflsAdjs(pred_dists, dist_zero_gt_weight)
     # print(dist_zero_infls_adjs, "<- dist_zero_infls_adjs")
 
     """ GET ANGLE DECAY INFLUENCE ADJUSTMENT """
-
     angle_difs = getAngleDifs(pred_angles, both_count_per_pred)
     # print(angle_difs, "<- angle_difs")
     raw_angle_infls = getRawAngleInfls(angle_difs, angle_decay_lt_weight, angle_decay_lin_weight)
@@ -170,17 +168,7 @@ def getInfluenceData():
     angle_decay_infls_adjs = getAngleDecayInflsAdjs(masked_angle_infls)
     # print(angle_decay_infls_adjs, "<- angle_decay_infls_adjs")
 
-
-
-
-
     """ GET OPPOSITE ANGLE GROWTH INFLUENCE ADJUSTMENT """
-
-    """
-    TURNOVER NOTES:
-    - wall_coords does not accept display_mode changes ('cur_infl' vs 'infl_pred').
-    """
-
     wall_coords = getWallCoords(
         pred_empty_coords, empty_count_all_pred, empty_count, board_shape, empty_count_per_pred
     )
@@ -202,66 +190,34 @@ def getInfluenceData():
     )
     # print(opp_angle_growth_infls_adjs, "<- opp_angle_growth_infls_adjs")
 
-
-
-    # TURNOVER NOTE:  Left here!  opp_angle_adj only returns all 1s...  wtf
-    # Testing to see where I went wrong transfering from testing03 to influencecalc.  I'm starting
-    # with comparing print(wall_coords).  wall_coords appear good.  Moving onto
-    # pred_stones_dists_angles_with_wall.  On the testing03 side have to print the variables with [298]
-    # to get the correct cur_infl translation.
-
-    # TURNOVER NOTE:  I need to apply some degree of normalization for the display.  It looks like
-    # the infl_adjs are being applied correctly.  But the problem is that the growth influences
-    # gives the output values greater than 1 values.
-    # Put black stone in center and look at angle growth adj to see the odd behavior.  The adjs
-    # make an odd X pattern.  This might be because of the angle weight calculation...  Just a
-    # thought.
-
-
-
-
-
     """ APPLY WEIGHT ADJUSTMENTS TO STONE INFLUENCES """
-
     pred_moves_stone_infls = raw_infls
     if dist_decay_adj:  pred_moves_stone_infls *= dist_decay_infls_adjs
     if dist_zero_adj:  pred_moves_stone_infls *= dist_zero_infls_adjs
     if angle_decay_adj:  pred_moves_stone_infls *= angle_decay_infls_adjs
 
     """ REDUCE STONE INFLUENCES TO GET MOVE INFLUENCES """
-
     pred_move_infls = reduceStoneInflsGetMoveInfls(pred_moves_stone_infls, pred_moves)
 
     """ APPLY WEIGHT ADJUSTMENTS TO MOVE INFLUENCES """
-
     if opp_angle_growth_adj:  pred_move_infls *= opp_angle_growth_infls_adjs
-    # if clamp_adj:  pred_move_infls = applyClampAdjs(pred_move_infls, clamp_infls_adjs)
+    if clamp_adj:  pred_move_infls = applyClampAdjs(pred_move_infls, clamp_within_weight)
+    # print(pred_move_infls, "<- pred_move_infls")
 
-    """ REDUCE AND/OR RETURN INFLUENCE DATA """
-
-    ### Logic must change to handle 'cur_infl' display_mode.
+    """ RETURN INFLUENCE DATA BASED ON display_mode """
     if display_mode == 'cur_infl':
-        # print(reshapeMergeDims(pred_move_infls, [0, 1]).numpy())
-        influence_data = reshapeMergeDims(pred_move_infls, [0, 1]).numpy()
-
-
-
-        """ TODO:  Need to scale influence_data to [-1, 1] while maintaining neg values stay neg and
-        pos values stay pos. """
-
-
-
-    ### Reduce move influences to get prediction (influence_data) output.
-    else:
+        influence_data = mergeDimsAndScaleInfls(pred_move_infls).numpy()
+    else:  # 'infl_pred'
         influence_data = reduceMoveInflsGetPred(
             pred_move_infls, empty_coords, board_shape, board, pred_value
         ).numpy()
-        # print(prediction.numpy(), "<- prediction")
+    print(influence_data, "<- influence_data")
 
-    print(influence_data)
     return influence_data
 
+
 ####################################################################################################
+
 
 def getPredValue(app_data):
     """ Extract stone value to be predicted from app_data. """
@@ -270,6 +226,7 @@ def getPredValue(app_data):
 
 
 def getCountPerPred(stone_value, stone_count, pred_value):
+    """ Quick helper to get count_per_pred. """
     return stone_count if pred_value != stone_value else stone_count + 1
 
 
@@ -304,10 +261,6 @@ def getPredMoves(board, board_shape, empty_count, empty_coords, pred_value):
     sparse_pred_moves = tf.map_fn(fn=lambda coord: getSparsePredMoves(coord), elems=empty_coords)
     tiled_board = tf.tile(tf.reshape(board, [1, *board_shape]), [empty_count, 1, 1])
     pred_moves = sparse_pred_moves + tiled_board
-
-    # Handle collection of data for display_mode = 'cur_infl'.
-    # pred_moves = tf.concat([pred_moves, reshapeInsertDim(board, 0)], axis=0)
-
     return pred_moves
 
 
@@ -316,9 +269,6 @@ def getPredValueCoords(pred_moves, value, empty_count):
     """ Similar to empty_coords.  Except what empty_coords does for the current board position,
     pred_value_coords does for every possible board position (pred_moves) in pred_moves for value. """
     pred_value_coords = tf.cast(tf.where(tf.equal(pred_moves, value)), dtype='int32')
-
-    # print(pred_value_coords)
-
     return tf.reshape(pred_value_coords[:, 1:], [empty_count, -1, 2])
 
 
@@ -357,9 +307,17 @@ def getAnglesFromNormals(normals):
 
 
 def getPredStonesDistsAngles(
-    pred_black_dists, pred_black_angles, black_value,
-    pred_white_dists, pred_white_angles, white_value
+    pred_black_dists, pred_black_angles, black_value, pred_white_dists, pred_white_angles,
+    white_value
 ):
+    """ Tensor representing each stone's data (value, dist, angle) in relation to each empty coord,
+    for each pred move board (each empty coord's sub dim is sorted by stone's dist).
+    NOTES:
+        - pred_stones_dists_angles is the primary tensor to be fed into the model's weights
+        application layers.
+        - pred_stones_dists_angles' shape remains to not have the outer layer representing each
+        predicted next move.  This is for the purpose of faster calculations and the output must be
+        reshaped after calculations. """
     def getStoneDistsAngles(pred_value_dists, pred_value_angles, stone_value):
         pred_value_dists_resh = reshapeAddDim(pred_value_dists)
         pred_value_angles_resh = reshapeAddDim(pred_value_angles)
@@ -382,7 +340,9 @@ def getPredStonesDistsAngles(
     )
     return pred_stones_dists_angles
 
+
 ####################################################################################################
+
 
 def getRawInfls(pred_stones, pred_dists, max_dist):
     """ Tensor representing the raw base influences of each stone on each empty coord for each
@@ -391,7 +351,9 @@ def getRawInfls(pred_stones, pred_dists, max_dist):
     raw_infls = applyScale(raw_infls, [0, max_dist], [0, 1])
     return raw_infls
 
+
 ####################################################################################################
+
 
 def getDistDecayInflsAdjs(pred_dists, dist_decay_gt_weight, dist_decay_lin_weight):
     """ Tensor representing the decay of values of raw_infls based on dist. """
@@ -461,7 +423,9 @@ def getAngleDecayInflsAdjs(masked_angle_infls):
     """ Tensor representing the decay of values of raw_infls based on angle barriers. """
     return tf.reduce_prod(masked_angle_infls, axis=2)
 
+
 ####################################################################################################
+
 
 def getWallCoords(
     pred_empty_coords, empty_count_all_pred, empty_count, board_shape, empty_count_per_pred
@@ -503,7 +467,9 @@ def getWallCoords(
 def getPredStonesDistsAnglesWithWall(
     wall_coords, pred_empty_coords, pred_stones_dists_angles, empty_count
 ):
-    """  """
+    """ Returns output similar to getPredStonesDistsAngles().  Except each outer dim element has an
+     additional row of data that represents an additional stone at an exterior point at the nearest
+     wall. """
     wall_normals = wall_coords - tf.cast(pred_empty_coords, dtype=MAIN_DTYPE)
     wall_normals = reshapeInsertDim(wall_normals, 2)
     wall_dists = getDistsFromNormals(wall_normals)
@@ -528,7 +494,7 @@ def getClosestOppStone(
     closest_stones, both_count_per_pred, pred_stones_dists_angles_with_wall,
     opp_angle_growth_angle_lt_weight, empty_count_all_pred
 ):
-    """  """
+    """ Return representation of closest opposite stone to closest stone. """
     closest_stones_angles = closest_stones[:, 2]
     opposite_angles = tf.where(
         closest_stones_angles >= 180, closest_stones_angles - 180, closest_stones_angles + 180
@@ -553,7 +519,7 @@ def getOppAngleGrowthInflsAdjs(
     closest_stones, closest_opp_stone, opp_angle_growth_dist_lt_weight,
     opp_angle_growth_lin_weight, pred_moves
 ):
-    """  """
+    """ Get influence adjustment based on opp_angle """
     is_support_stone = closest_stones[:, 0] == closest_opp_stone[:, 0]
     is_within_dist = (closest_stones[:, 1] + closest_opp_stone[:, 1]) < opp_angle_growth_dist_lt_weight
     opp_angle_growth_infl_adjs = tf.where(
@@ -566,7 +532,9 @@ def getOppAngleGrowthInflsAdjs(
     opp_angle_growth_infl_adjs = tf.sparse.to_dense(opp_angle_growth_infl_adjs)
     return opp_angle_growth_infl_adjs
 
+
 ####################################################################################################
+
 
 def reduceStoneInflsGetMoveInfls(pred_moves_stone_infls, pred_moves):
     """ Reduce stone influences to get move influences. """
@@ -575,6 +543,37 @@ def reduceStoneInflsGetMoveInfls(pred_moves_stone_infls, pred_moves):
     pred_move_infls = tf.SparseTensor(pred_empty_coords_3d, pred_move_infls, pred_moves.shape)
     pred_move_infls = tf.sparse.to_dense(pred_move_infls)
     return pred_move_infls
+
+
+
+def applyClampAdjs(pred_move_infls, clamp_within_weight):
+    """ Apply clamp limits to influences. """
+    return tf.clip_by_value(pred_move_infls, -clamp_within_weight, clamp_within_weight)
+
+
+
+def mergeDimsAndScaleInfls(pred_move_infls):
+    """  """
+    influence = reshapeMergeDims(pred_move_infls, [0, 1])
+
+    infl_min = tf.abs(tf.reduce_min(influence))
+    infl_max = tf.abs(tf.reduce_max(influence))
+    infl_max = tf.reduce_max(tf.concat([infl_min, infl_max], axis=0))
+
+    neg_infl = tf.where(influence <= 0, influence, 0)
+    neg_infl = applyScale(
+        # neg_infl, [tf.reduce_min(neg_infl), tf.reduce_max(neg_infl)], [-1, 0]
+        neg_infl, [-infl_max, tf.reduce_max(neg_infl)], [-1, 0]
+    )
+    neg_infl = tf.where(tf.math.is_nan(neg_infl), 0, neg_infl)
+    pos_infl = tf.where(influence > 0, influence, 0)
+    pos_infl = applyScale(
+        # pos_infl, [tf.reduce_min(pos_infl), tf.reduce_max(pos_infl)], [0, 1]
+        pos_infl, [tf.reduce_min(pos_infl), infl_max], [0, 1]
+    )
+    pos_infl = tf.where(tf.math.is_nan(pos_infl), 0, pos_infl)
+    influence = neg_infl + pos_infl
+    return influence
 
 
 
@@ -590,7 +589,9 @@ def reduceMoveInflsGetPred(pred_move_infls, empty_coords, board_shape, board, pr
     prediction = tf.where(board == 0, prediction, 0)
     return prediction
 
+
 ####################################################################################################
+
 
 # def getBoardInfluence(board):
 #

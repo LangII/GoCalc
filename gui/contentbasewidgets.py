@@ -116,7 +116,7 @@ class PanelSettingsSliderInput (BoxLayout):
         self.text_input.text = str(slider_values['value'])
         self.default_value = slider_values['value']
 
-        self.slider_input.bind(on_touch_up=self.sliderValueChange)
+        self.slider_input.bind(on_touch_move=self.sliderValueChange)
         self.text_input.bind(on_text_validate=self.textValueChange)
         self.reset.bind(on_release=self.resetPressed)
 

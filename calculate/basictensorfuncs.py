@@ -39,15 +39,15 @@ def replaceValueAtIndex(t, v, i):
     bool_mask = tf.sparse.to_dense(tf.SparseTensor([i], [True], t.shape))
     return tf.cast(tf.where(bool_mask, v, t), dtype=t.dtype)
 
-# @tf.function
-def sort2dByCol(t, col=0, dir=-1):
+@tf.function
+def sort2dByCol(t, col=0, sort_dir=-1):
     """
     t =     2D input tensor.
     col =   Which column of t to sort by.
-    dir =   Accepts +1 or -1 to determine descending sort or ascending sort respectively.
+    sort_dir =   Accepts +1 or -1 to determine descending sort or ascending sort respectively.
     Return tensor parallel to t where rows are sorted in dir order based on col.
     """
-    return tf.gather(t, tf.nn.top_k((t[:, col] * dir), k=t.shape[0]).indices)
+    return tf.gather(t, tf.nn.top_k((t[:, col] * sort_dir), k=t.shape[0]).indices)
 
 # @tf.function
 def applyScale(t, scale_from=[], scale_to=[]):

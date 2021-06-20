@@ -3,27 +3,7 @@
 GoCalc/gui/main_gui.py
 """
 
-"""
-possible app names:
-    (dentaku(calculator))
-    (suji(development of the stones) dentaku(calculator))
-    (dentaku(calculator) go(game))
-    (keisansuru(calculate) go(game))
-"""
-
-"""
-TO-DOS:
-- Update Content Settings Input ToggleButtons to stay 'down' if already 'down' when pressed.
-"""
-
 ####################################################################################################
-
-""" currently unnecessary """
-# # Dynamically add parent folder to path.
-# import os, sys
-# cur_dir = os.getcwd()
-# sys_path_insert = cur_dir[:cur_dir.rfind('\\')]
-# sys.path.insert(1, sys_path_insert)
 
 import sys
 import numpy as np
@@ -46,23 +26,13 @@ from gamelogic.player import Player
 
 ####################################################################################################
 
-np.set_printoptions(
-    linewidth=220, # <- How many characters per line before new line.
-    # threshold=300, # <- How many lines allowed before summarized print.
-    threshold=sys.maxsize, # <- How many lines allowed before summarized print. (no summarization)
-    edgeitems=10, # <- When summarized, how many edge values are printed.
-    suppress=True, # <- Suppress scientific notation.
-    precision=4, # <- How many decimal places on floats.
-    # sign='+', # <- Display + for positive numbers.
-)
-
 APP_DATA = {
 
     'board': None,
     'player': {'black': None, 'white': None},
 
     'default_window_size': [1000, 700],
-    'board_size': 19, # 9, 13, or 19
+    'board_size': 19,  # 9, 13, or 19
     'grid_star_size': 5,
     'grid_star_coords': {
         9: [[2, 2], [2, 6], [4, 4], [6, 2], [6, 6]],
@@ -70,16 +40,16 @@ APP_DATA = {
         19: [[3, 3], [3, 9], [3, 15], [9, 3], [9, 9], [9, 15], [15, 3], [15, 9], [15, 15]]
     },
     'game_board': {
-        'panel_location': 'scroll', # 'stationary', 'scroll', or 'unselected'
-        'mode': 'edit', # 'edit' or 'play'
-        'edit_mode': 'alternate', # 'alternate' or 'consecutive'
-        'next_stone': 'black', # 'black' or 'white'
+        'panel_location': 'scroll',  # 'stationary', 'scroll', or 'unselected'
+        'mode': 'edit',  # 'edit' or 'play'
+        'edit_mode': 'alternate',  # 'alternate' or 'consecutive'
+        'next_stone': 'black',  # 'black' or 'white'
     },
     'influence': {
-        'panel_location': 'scroll', # 'stationary', 'scroll', or 'unselected'
-        'display_mode': 'cur_infl', # 'cur_infl' or 'infl_pred'
-        'predicting_stone': 'black', # 'black' or 'white'
-        'display_stones': 'yes', # 'yes' or 'no'
+        'panel_location': 'scroll',  # 'stationary', 'scroll', or 'unselected'
+        'display_mode': 'cur_infl',  # 'cur_infl' or 'infl_pred'
+        'predicting_stone': 'black',  # 'black' or 'white'
+        'display_stones': 'yes',  # 'yes' or 'no'
         'adjustments': {
             'distance_decay': True,
             'distance_zero': True,
@@ -113,10 +83,11 @@ APP_DATA = {
                 'min': 1.0, 'max': 20.0, 'value': 8.0,
             },
             'clamp_within': {
-                'min': 0.0, 'max': 20.0, 'value': 1.0,
+                'min': 0.0, 'max': 20.0, 'value': 3.8,
             },
         }
     }
+    ### TODO
     # 'panel_select': {
     #     'location': 'scroll' # Always remains as last index of ContentScroll.
     # }
@@ -159,10 +130,13 @@ class MainWindow (BoxLayout):
 
 
 
-        """ TESTING / DEBUGGING """
+        """ TESTING / DEBUGGING >>> """
+
         Window.bind(on_key_down=self.keyboardInput)
+
     def keyboardInput(self, obj, num1, num2, text, *args):
         if text == ' ':  self.spaceBarInput()
+
     def spaceBarInput(self):
         app = App.get_running_app()
 
@@ -179,14 +153,15 @@ class MainWindow (BoxLayout):
         # print(f"gameboard_panel_width = {gameboard_panel_width}")
         # print(f"influence_panel_width = {influence_panel_width}")
 
-        print("<><><>")
-        """ TESTING / DEBUGGING """
-
-        app.main.content_scroll.influence_panel.width = gameboard_panel_width
+        app.main.content_scroll.influence_panel.width != gameboard_panel_width
         # app.main.content_scroll.influence_panel.display.pos[1] = influence_display_pos[1] - 50
-        
+
         # app.main.content_scroll.influence_panel.display.layout.height = gameboard_height
         # app.main.content_scroll.influence_panel.display.layout.width = gameboard_height
+
+        print("<><><>")
+
+        """ <<< TESTING / DEBUGGING """
 
 
 
@@ -197,15 +172,13 @@ class MainMenuBar (BoxLayout):
         super(MainMenuBar, self).__init__()
         self.app = App.get_running_app()
 
-        """ TEMPORARY / FOR DISPLAY PURPOSES """
+        """ Main buttons currently not functional. """
         self.main_button = Button(text='main', size_hint=[None, 1.0], width=self.button_width)
         self.add_widget(self.main_button)
-        # self.main_button.bind(on_release=self.doStuff)
-        # for button_title in ['main', 'options', 'help']:
-        for button_title in ['options', 'help']:
-            self.add_widget(Button(
-                text=button_title, size_hint=[None, 1.0], width=self.button_width
-            ))
+        self.options_button = Button(text='options', size_hint=[None, 1.0], width=self.button_width)
+        self.add_widget(self.options_button)
+        self.help_button = Button(text='help', size_hint=[None, 1.0], width=self.button_width)
+        self.add_widget(self.help_button)
 
     def doStuff(self, *args, **kwargs):
         print(self.app.main)
@@ -221,9 +194,6 @@ class ContentScroll (ScrollView):
 
         self.game_board_panel = GameBoardPanel()
         self.layout.add_widget(self.game_board_panel)
-
-        # self.taxi_cab_infl_panel = TaxiCabInflPanel()
-        # self.layout.add_widget(self.taxi_cab_infl_panel)
 
         self.influence_panel = InfluencePanel()
         self.layout.add_widget(self.influence_panel)
@@ -242,10 +212,6 @@ class GoCalcApp (App):
     def __init__(self, **kwargs):
         super(GoCalcApp, self).__init__(**kwargs)
         self.main = MainWindow(self)
-        # self.add_widget(self.main)
-
-    # def on_start(self, *args):
-    #     print("here", self.main.content_scroll.infl_calc_panel.display.height)
 
     def build(self):
         return self.main
