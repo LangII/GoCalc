@@ -1,7 +1,12 @@
 
+
 """
 GoCalc/gui/contentbasewidgets.py
 """
+
+
+####################################################################################################
+
 
 from kivy.app import App
 from kivy.uix.scrollview import ScrollView
@@ -12,9 +17,7 @@ from kivy.uix.togglebutton import ToggleButton
 from kivy.uix.slider import Slider
 from kivy.uix.textinput import TextInput
 from kivy.uix.label import Label
-
 from kivy.properties import StringProperty, ListProperty, ObjectProperty
-
 
 
 ####################################################################################################

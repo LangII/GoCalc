@@ -1,7 +1,18 @@
 
-import tensorflow as tf
+
+"""
+GoCalc/calculate/basictensorfuncs.py
+"""
+
 
 ####################################################################################################
+
+
+import tensorflow as tf
+
+
+####################################################################################################
+
 
 # Do not decorate this function because it does not return a tensor.
 def getCountOfValue(t, v):

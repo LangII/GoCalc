@@ -1,9 +1,12 @@
 
+
 """
-GoCalc/gui/main_gui.py
+GoCalc/main_gui.py
 """
 
+
 ####################################################################################################
+
 
 import sys
 import numpy as np
@@ -11,20 +14,19 @@ import numpy as np
 from kivy.app import App
 from kivy.lang import Builder
 from kivy.core.window import Window
-
 from kivy.uix.scrollview import ScrollView
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.button import Button
-
 from kivy.properties import NumericProperty, ObjectProperty
 
 from gui.contentpanels.gameboardpanel import GameBoardPanel
 from gui.contentpanels.influencepanel import InfluencePanel
-
 from gamelogic.board import Board
 from gamelogic.player import Player
 
+
 ####################################################################################################
+
 
 APP_DATA = {
 

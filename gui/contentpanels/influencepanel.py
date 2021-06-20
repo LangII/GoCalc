@@ -1,5 +1,12 @@
 
 
+"""
+GoCalc/gui/contentpanels/influencepanel.py
+"""
+
+
+####################################################################################################
+
 
 from kivy.app import App
 from kivy.uix.button import ButtonBehavior, Button
@@ -8,7 +15,6 @@ from kivy.uix.label import Label
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.togglebutton import ToggleButton
 from kivy.uix.splitter import Splitter
-
 from kivy.properties import NumericProperty, ListProperty, ObjectProperty
 from kivy.graphics import Color, Rectangle, Line, Ellipse
 
@@ -16,11 +22,9 @@ from gui.contentbasewidgets import (
     ContentPanel, PanelSettings, PanelSettingsInput, PanelSettingsSingleButton,
     PanelSettingsSliderInput, PanelStationarySettings, PanelSettingsSingleLabel
 )
-
 import calculate.influencecalc as infl_calc
-
 ### Keeping messenger for now.  Used previously with console interface.
-# import messenger
+import messenger
 
 
 ####################################################################################################
@@ -248,6 +252,9 @@ class Refresh (PanelSettingsSingleButton):
         display_mode = self.app.data['influence']['display_mode']
         infl_display_buttons = self.app.main.content_scroll.influence_panel.display.buttons
         infl_data = infl_calc.getInfluenceData()
+
+        print(infl_data)
+
         # Loop through infl_data, updating values of infl_display_buttons with parallel values from
         # infl_data.
         for y, data_row in enumerate(infl_data):

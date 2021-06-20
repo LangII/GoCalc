@@ -1,4 +1,13 @@
 
+
+"""
+GoCalc/gui/contentpanels/influencepanel.py
+"""
+
+
+####################################################################################################
+
+
 from kivy.app import App
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.button import ButtonBehavior
@@ -7,7 +16,6 @@ from kivy.uix.label import Label
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.togglebutton import ToggleButton
 from kivy.uix.splitter import Splitter
-
 from kivy.properties import NumericProperty, ListProperty, ObjectProperty
 from kivy.graphics import Color, Rectangle, Line, Ellipse
 
@@ -15,10 +23,12 @@ from gui.contentbasewidgets import (
     ContentPanel, PanelSettings, PanelSettingsInput, PanelStationarySettings,
     PanelSettingsSingleLabel
 )
-
+### Keeping messenger for now.  Used previously with console interface.
 import messenger
 
+
 ####################################################################################################
+
 
 class GameBoardPanel (ContentPanel):
     board_size = NumericProperty()

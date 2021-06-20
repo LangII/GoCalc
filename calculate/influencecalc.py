@@ -1,13 +1,21 @@
 
 
+"""
+GoCalc/calculate/influencecalc.py
+"""
+
+
+####################################################################################################
+
 
 import os, sys
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 
-from kivy.app import App
 import math
 import numpy as np
 import tensorflow as tf
+
+from kivy.app import App
 
 from calculate.basictensorfuncs import (
     getCountOfValue, getPosOfValue, reshapeFlatten, reshapeInsertDim, reshapeAddDim,
@@ -211,7 +219,7 @@ def getInfluenceData():
         influence_data = reduceMoveInflsGetPred(
             pred_move_infls, empty_coords, board_shape, board, pred_value
         ).numpy()
-    print(influence_data, "<- influence_data")
+    # print(influence_data, "<- influence_data")
 
     return influence_data
 
