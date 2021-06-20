@@ -2,6 +2,9 @@
 
 """
 GoCalc/calculate/basictensorfuncs.py
+
+Commented out tf.function decorators are left in for now.  It's difficult to determine which
+functions should be decorated for optimization and which should be not.
 """
 
 

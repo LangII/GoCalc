@@ -25,6 +25,7 @@ from kivy.properties import StringProperty, ListProperty, ObjectProperty
 
 
 class ContentPanel (BoxLayout):
+    """ Base class of whole panel of content. """
     title_label = ObjectProperty()
     panel_title_text = StringProperty()
     close_button = ObjectProperty()
@@ -43,6 +44,7 @@ class ContentPanel (BoxLayout):
 
 
 class ContentPanelMenuBar (BoxLayout):
+    """ Subclass of ContentPanel. """
     button_size_hint = ListProperty()
 
     def __init__(self):
@@ -61,6 +63,9 @@ class ContentPanelMenuBar (BoxLayout):
 
 
 class PanelStationarySettings (BoxLayout):
+    """ Base class container for stationary settings inputs of panel.  Still requires a good amount
+    of building in the class that inherits PanelStationarySettings.  So PanelStationarySettings is
+    mainly used for uniform styling. """
 
     def __init__(self):
         super(PanelStationarySettings, self).__init__()
@@ -68,6 +73,9 @@ class PanelStationarySettings (BoxLayout):
 
 
 class PanelSettings (ScrollView):
+    """ Base class container for whole of settings inputs of panel.  Still requires a good amount
+    of building in the class that inherits PanelSettings.  So PanelSettings is mainly used for
+    uniform styling. """
     layout = ObjectProperty()
 
     def __init__(self):
@@ -76,6 +84,9 @@ class PanelSettings (ScrollView):
 
 
 class PanelSettingsInput (BoxLayout):
+    """ Most frequently used base class for input settings.  Still takes a good amount of building
+    in the class that inherits PanelSettingsInput.  So PanelSettingsInput is mainly used for
+    uniform styling. """
     title_label_text = StringProperty()
 
     def __init__(self, title):
@@ -85,6 +96,7 @@ class PanelSettingsInput (BoxLayout):
 
 
 class PanelSettingsSingleButton (Button):
+    """ So far, only used for Refresh button in influencepanel (1 button does 1 action). """
     title_label_text = StringProperty()
 
     def __init__(self, title):
@@ -94,6 +106,7 @@ class PanelSettingsSingleButton (Button):
 
 
 class PanelSettingsSingleLabel (Label):
+    """ Used for the need of a single label within panel settings (SETTINGS, WEIGHTS). """
 
     def __init__(self, title):
         super(PanelSettingsSingleLabel, self).__init__()
@@ -101,8 +114,8 @@ class PanelSettingsSingleLabel (Label):
 
 
 
-
 class PanelSettingsSliderInput (BoxLayout):
+    """ So far, main use of PanelSettingsSliderInput is for weights within calculation panels. """
     title_label_text = StringProperty()
     inputs = ObjectProperty()
     slider_input = ObjectProperty()
