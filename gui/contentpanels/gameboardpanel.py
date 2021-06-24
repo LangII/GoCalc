@@ -23,7 +23,6 @@ from gui.contentbasewidgets import (
     ContentPanel, PanelSettings, PanelSettingsInput, PanelStationarySettings,
     PanelSettingsSingleLabel
 )
-### Keeping messenger for now.  Used previously with console interface.
 import messenger
 
 

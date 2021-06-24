@@ -23,8 +23,9 @@ from gui.contentbasewidgets import (
     PanelSettingsSliderInput, PanelStationarySettings, PanelSettingsSingleLabel
 )
 import calculate.influencecalc as infl_calc
-### Keeping messenger for now.  Used previously with console interface.
 import messenger
+
+from kivy.core.text import Label as CoreLabel
 
 
 ####################################################################################################
@@ -189,7 +190,7 @@ class DataBoardButton (ButtonBehavior, Widget):
         if self.coord not in self.grid_star_coords[self.board_size]:  return None
         else:  return Ellipse(size=[self.grid_star_size] * 2)
 
-    def updateCanvas(self, instance, value):
+    def updateCanvas(self, *largs):
         self.board_rect.pos = self.pos
         self.board_rect.size = self.size
         self.grid_hor_line.points = self.getHorLinePoints()

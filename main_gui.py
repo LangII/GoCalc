@@ -134,38 +134,60 @@ class MainWindow (BoxLayout):
 
         """ TESTING / DEBUGGING >>> """
 
+        infl_panel = self.content_scroll.influence_panel
 
+        coord = [9, 9]
+
+        self.test_button = infl_panel.display.buttons[str(coord)]
 
         Window.bind(on_key_down=self.keyboardInput)
 
     def keyboardInput(self, obj, num1, num2, text, *args):
         if text == ' ':  self.spaceBarInput()
+        if text == 'x':  self.xKeyInput()
 
     def spaceBarInput(self):
         app = App.get_running_app()
 
-        gameboard_height = app.main.content_scroll.game_board_panel.display.layout.height
-        influece_height = app.main.content_scroll.influence_panel.display.layout.height
+        print("\n<><><>")
 
-        gameboard_panel_width = app.main.content_scroll.game_board_panel.width
+        from kivy.graphics import Color, Rectangle, Line, Ellipse
+        from kivy.core.text import Label as CoreLabel
 
-        influence_panel_width = app.main.content_scroll.influence_panel.width
-        influence_display_pos = app.main.content_scroll.influence_panel.display.pos
+        self.test_button.canvas.before.clear()
+        self.test_button.canvas.after.clear()
+        with self.test_button.canvas.before:
+            self.test_button.board_rect_color = Color(*self.test_button.board_color)
+            self.test_button.board_rect = Rectangle()
+        self.test_button.updateCanvas()
+
+        core_label = CoreLabel(text="A", font_size=100, color=[0, 0, 0, 1])
+        core_label.refresh()
+        text_texture = core_label.texture
+
+        with self.test_button.canvas.after:
+            self.text_line_color = Color(0, 0, 0, 1)
+            self.text_line = Line()
+            self.test_button.text_label = Rectangle(texture=text_texture)
+        self.test_button.text_label.pos = self.test_button.pos
+        self.test_button.text_label.size = self.test_button.size
+        self.text_line.rectangle = [*self.test_button.pos, *self.test_button.size]
+
+        print("space bar pressed ... \_(**)_/")
+        print("<><><>")
+
+    def xKeyInput(self):
 
         print("\n<><><>")
 
-        # print(f"gameboard_panel_width = {gameboard_panel_width}")
-        # print(f"influence_panel_width = {influence_panel_width}")
+        self.test_button.canvas.before.clear()
+        self.test_button.canvas.after.clear()
+        self.test_button.setAndAddCanvasBeforeObjects()
+        self.test_button.setAndAddCanvasAfterObjects()
+        self.test_button.updateCanvas()
 
-        app.main.content_scroll.influence_panel.width != gameboard_panel_width
-        # app.main.content_scroll.influence_panel.display.pos[1] = influence_display_pos[1] - 50
-
-        # app.main.content_scroll.influence_panel.display.layout.height = gameboard_height
-        # app.main.content_scroll.influence_panel.display.layout.width = gameboard_height
-
+        print("x key pressed ... \_(**)_/")
         print("<><><>")
-
-
 
         """ <<< TESTING / DEBUGGING """
 
