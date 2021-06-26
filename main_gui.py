@@ -50,7 +50,8 @@ APP_DATA = {
     'influence': {
         'panel_location': 'scroll',  # 'stationary', 'scroll', or 'unselected'
         'display_mode': 'cur_infl',  # 'cur_infl' or 'infl_pred'
-        'predicting_stone': 'black',  # 'black' or 'white'
+        'prediction_stone': 'black',  # 'black' or 'white'
+        'prediction_display_type': 'top_10',  # 'top_10', 'top_50', 'color_steps', or 'color_gradient'
         'display_stones': 'yes',  # 'yes' or 'no'
         'adjustments': {
             'distance_decay': True,
@@ -152,7 +153,7 @@ class MainWindow (BoxLayout):
 
         print("\n<><><>")
 
-        print(app.data['influence']['display_stones'])
+        print(f"app.data['influence']['prediction_display_type'] = {app.data['influence']['prediction_display_type']}")
 
         print("space bar pressed ... \_(**)_/")
         print("<><><>")

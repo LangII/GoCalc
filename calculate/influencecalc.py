@@ -229,7 +229,7 @@ def getInfluenceData():
 
 def getPredValue(app_data):
     """ Extract stone value to be predicted from app_data. """
-    return BLACK_VALUE if app_data['influence']['predicting_stone'] == 'black' else WHITE_VALUE
+    return BLACK_VALUE if app_data['influence']['prediction_stone'] == 'black' else WHITE_VALUE
 
 
 

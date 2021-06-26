@@ -61,11 +61,14 @@ class InfluencePanel (ContentPanel):
         self.display_mode = DisplayModeInput()
         self.settings.layout.add_widget(self.display_mode)
 
-        self.pred_stone = PredictingStoneInput()
-        self.settings.layout.add_widget(self.pred_stone)
-
         self.display_stones = DisplayStonesInput()
         self.settings.layout.add_widget(self.display_stones)
+
+        self.pred_stone = PredictionStoneInput()
+        self.settings.layout.add_widget(self.pred_stone)
+
+        self.pred_display_type = PredictionDisplayTypeInput()
+        self.settings.layout.add_widget(self.pred_display_type)
 
         self.infl_adjs = InflAdjsInput()
         self.settings.layout.add_widget(self.infl_adjs)
@@ -295,29 +298,84 @@ class Refresh (PanelSettingsSingleButton):
     def triggerRefresh(self, *largs):
         """ Refresh of the influence panel's display, based on data from infl_calc.getInfluenceData(). """
         display_mode = self.app.data['influence']['display_mode']
+        pred_display_type = self.app.data['influence']['prediction_display_type']
         infl_display_buttons = self.app.main.content_scroll.influence_panel.display.buttons
         infl_data = infl_calc.getInfluenceData()
 
         print(infl_data)
 
-        # Loop through infl_data, updating values of infl_display_buttons with parallel values from
-        # infl_data.
+        if display_mode == 'cur_infl':
+            self.displayCurInfl(infl_data, infl_display_buttons)
+        elif display_mode == 'infl_pred':
+            if pred_display_type == 'top_10':
+                self.displayInflPredTop10(infl_data, infl_display_buttons)
+            elif pred_display_type == 'top_50':
+                self.displayInflPredTop50(infl_data, infl_display_buttons)
+            elif pred_display_type == 'color_steps':
+                self.displayInflPredColorSteps(infl_data, infl_display_buttons)
+            elif pred_display_type == 'color_gradient':
+                self.displayInflPredColorGradient(infl_data, infl_display_buttons)
+        if self.app.data['influence']['display_stones'] == 'yes':  self.displayStones()
+
+    def displayCurInfl(self, infl_data, buttons):
         for y, data_row in enumerate(infl_data):
             for x, data_value in enumerate(data_row):
-                # Set rgba_values based on data_value for 'infl_pred' display_mode.
-                if display_mode == 'infl_pred':
-                    if data_value != 0:  rgba_values = [1 - data_value, 1, 1 - data_value, 1]
-                    else:  rgba_values = [1, 1, 1, 1]
-                # Set rgba_values based on data_value for 'cur_infl' display_mode.
-                # (+ data_value for black stones / - data_value for white stones)
-                elif display_mode == 'cur_infl':
-                    if data_value > 0:  rgba_values = [1 - data_value, 1 - data_value, 1, 1]
-                    elif data_value < 0:  rgba_values = [1, 1 - abs(data_value), 1 - abs(data_value), 1]
-                    elif data_value == 0:  rgba_values = [1, 1, 1, 1]
+                if data_value > 0:  rgba_values = [1 - data_value, 1 - data_value, 1, 1]
+                elif data_value < 0:  rgba_values = [1, 1 - abs(data_value), 1 - abs(data_value), 1]
+                elif data_value == 0:  rgba_values = [1, 1, 1, 1]
+                buttons[str([y, x])].setCanvasToColor(rgba_values)
 
-                infl_display_buttons[str([y, x])].setCanvasToColor(rgba_values)
+    def displayInflPredTop10(self, infl_data, buttons):
+        for y, data_row in enumerate(infl_data):
+            for x, data_value in enumerate(data_row):
+                buttons[str([y, x])].setCanvasToDefault()
 
-        if self.app.data['influence']['display_stones'] == 'yes':  self.displayStones()
+    def displayInflPredTop50(self, infl_data, buttons):
+
+        button_map = []
+
+        for y, data_row in enumerate(infl_data):
+            for x, data_value in enumerate(data_row):
+                # buttons[str([y, x])].setCanvasToDefault()
+                button_map += [{'coord': str([y, x]), 'value': data_value}]
+
+        button_map = sorted(button_map, key=lambda x: x['value'], reverse=True)
+
+        for i, each in enumerate(button_map):
+            if i >= 50:  buttons[each['coord']].setCanvasToDefault() ; continue
+            buttons[each['coord']].setCanvasToText(str(i + 1))
+
+
+    def displayInflPredColorSteps(self, infl_data, buttons):
+        for y, data_row in enumerate(infl_data):
+            for x, data_value in enumerate(data_row):
+
+                """
+                TURNOVER NOTES:
+                Need to come back to color steps.  Looks like I need to play around with the values
+                (10 and 5 in this case) to get a good display.  Maybe even think about cutting off
+                the bottom half of data_values.  As in if data_value < 0.5 then don't even display
+                it and color step the top 0.5.
+                """
+
+                # print(f"\ndata_value = {data_value}")
+                data_value = data_value * 10
+                # print(f"data_value = {data_value}")
+                data_value = 5 * round((data_value / 5))
+                # print(f"data_value = {data_value}")
+                data_value = data_value / 10
+                # print(f"data_value = {data_value}")
+
+                if data_value != 0:  rgba_values = [1 - data_value, 1, 1 - data_value, 1]
+                else:  rgba_values = [1, 1, 1, 1]
+                buttons[str([y, x])].setCanvasToColor((rgba_values))
+
+    def displayInflPredColorGradient(self, infl_data, buttons):
+        for y, data_row in enumerate(infl_data):
+            for x, data_value in enumerate(data_row):
+                if data_value != 0:  rgba_values = [1 - data_value, 1, 1 - data_value, 1]
+                else:  rgba_values = [1, 1, 1, 1]
+                buttons[str([y, x])].setCanvasToColor(rgba_values)
 
     def displayStones(self):
         """ Update InfluencePanel board display to also display stones. """
@@ -327,7 +385,6 @@ class Refresh (PanelSettingsSingleButton):
         all_stones = seg_stones['black'] + seg_stones['white']
         # Loop through all_stones and update infl_display_buttons to display stones.
         for stone in all_stones:  infl_display_buttons[str(stone.pos)].setCanvasToStone(stone.color)
-
 
 
 
@@ -366,18 +423,18 @@ class DisplayModeInput (PanelSettingsInput):
 
 
 
-class PredictingStoneInput (PanelSettingsInput):
+class PredictionStoneInput (PanelSettingsInput):
 
     def __init__(self):
-        super(PredictingStoneInput, self).__init__("influence prediction stone")
+        super(PredictionStoneInput, self).__init__("prediction stone")
         self.app = App.get_running_app()
-        self.value = self.app.data['influence']['predicting_stone']
+        self.value = self.app.data['influence']['prediction_stone']
         self.options = BoxLayout(orientation='horizontal', size_hint=[1.0, None], height=20)
         self.black_button = ToggleButton(
-            text="black", group='influence_predicting_stone', font_size=13
+            text="black", group='influence_prediction_stone', font_size=13
         )
         self.white_button = ToggleButton(
-            text="white", group='influence_predicting_stone', font_size=13
+            text="white", group='influence_prediction_stone', font_size=13
         )
         self.black_button.allow_no_selection = False
         self.white_button.allow_no_selection = False
@@ -392,12 +449,71 @@ class PredictingStoneInput (PanelSettingsInput):
         self.white_button.bind(on_release=self.whiteButtonPressed)
 
     def blackButtonPressed(self, *largs):
-        self.app.data['influence']['predicting_stone'] = 'black'
+        self.app.data['influence']['prediction_stone'] = 'black'
         self.value = 'black'
 
     def whiteButtonPressed(self, *largs):
-        self.app.data['influence']['predicting_stone'] = 'white'
+        self.app.data['influence']['prediction_stone'] = 'white'
         self.value = 'white'
+
+
+
+class PredictionDisplayTypeInput (PanelSettingsInput):
+
+    def __init__(self):
+        super(PredictionDisplayTypeInput, self).__init__("prediction display type")
+        self.app = App.get_running_app()
+        self.value = self.app.data['influence']['prediction_display_type']
+
+        self.options1 = BoxLayout(orientation='horizontal', size_hint=[1.0, None], height=20)
+        self.options2 = BoxLayout(orientation='horizontal', size_hint=[1.0, None], height=20)
+
+        self.top_10_button = ToggleButton(
+            text="top 10", group='infl_pred_display_type', font_size=13
+        )
+        self.top_50_button = ToggleButton(
+            text="top 50", group='infl_pred_display_type', font_size=13
+        )
+        self.color_steps_button = ToggleButton(
+            text="color steps", group='infl_pred_display_type', font_size=13
+        )
+        self.color_gradient_button = ToggleButton(
+            text="color gradient", group='infl_pred_display_type', font_size=13
+        )
+
+        self.options1.add_widget(self.top_10_button)
+        self.options1.add_widget(self.top_50_button)
+        self.options2.add_widget(self.color_steps_button)
+        self.options2.add_widget(self.color_gradient_button)
+        self.add_widget(self.options1)
+        self.add_widget(self.options2)
+
+        if self.value == 'top_10':  self.top_10_button.state = 'down'
+        elif self.value == 'top_50':  self.top_50_button.state = 'down'
+        elif self.value == 'color_steps':  self.color_steps_button.state = 'down'
+        elif self.value == 'color_gradient':  self.color_gradient_button.state = 'down'
+
+        self.top_10_button.bind(on_release=self.top10ButtonPressed)
+        self.top_50_button.bind(on_release=self.top50ButtonPressed)
+        self.color_steps_button.bind(on_release=self.colorStepsButtonPressed)
+        self.color_gradient_button.bind(on_release=self.colorGradientButtonPressed)
+
+    def top10ButtonPressed(self, *largs):
+        self.app.data['influence']['prediction_display_type'] = 'top_10'
+        self.value = 'top_10'
+
+    def top50ButtonPressed(self, *largs):
+        self.app.data['influence']['prediction_display_type'] = 'top_50'
+        self.value = 'top_50'
+
+    def colorStepsButtonPressed(self, *largs):
+        self.app.data['influence']['prediction_display_type'] = 'color_steps'
+        self.value = 'color_steps'
+
+    def colorGradientButtonPressed(self, *largs):
+        self.app.data['influence']['prediction_display_type'] = 'color_gradient'
+        self.value = 'color_gradient'
+
 
 
 
