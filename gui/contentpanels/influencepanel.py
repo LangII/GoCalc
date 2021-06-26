@@ -315,7 +315,19 @@ class Refresh (PanelSettingsSingleButton):
                     elif data_value < 0:  rgba_values = [1, 1 - abs(data_value), 1 - abs(data_value), 1]
                     elif data_value == 0:  rgba_values = [1, 1, 1, 1]
 
-                infl_display_buttons[str([y, x])].board_rect_color.rgba = rgba_values
+                infl_display_buttons[str([y, x])].setCanvasToColor(rgba_values)
+
+        if self.app.data['influence']['display_stones'] == 'yes':  self.displayStones()
+
+    def displayStones(self):
+        """ Update InfluencePanel board display to also display stones. """
+        # Get reference variables.
+        infl_display_buttons = self.app.main.content_scroll.influence_panel.display.buttons
+        seg_stones = self.app.data['board'].stones
+        all_stones = seg_stones['black'] + seg_stones['white']
+        # Loop through all_stones and update infl_display_buttons to display stones.
+        for stone in all_stones:  infl_display_buttons[str(stone.pos)].setCanvasToStone(stone.color)
+
 
 
 

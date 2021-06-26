@@ -152,31 +152,7 @@ class MainWindow (BoxLayout):
 
         print("\n<><><>")
 
-        # self.test_button.setCanvasToStone('white')
-        # self.test_button.setCanvasToColor([1, 0, 0, 1])
-        self.test_button.setCanvasToText("4")
-
-        # from kivy.graphics import Color, Rectangle, Line, Ellipse
-        # from kivy.core.text import Label as CoreLabel
-        #
-        # self.test_button.canvas.before.clear()
-        # self.test_button.canvas.after.clear()
-        # with self.test_button.canvas.before:
-        #     self.test_button.board_rect_color = Color(*self.test_button.board_color)
-        #     self.test_button.board_rect = Rectangle()
-        # self.test_button.updateCanvas()
-        #
-        # core_label = CoreLabel(text="A", font_size=100, color=[0, 0, 0, 1])
-        # core_label.refresh()
-        # text_texture = core_label.texture
-        #
-        # with self.test_button.canvas.after:
-        #     self.text_line_color = Color(0, 0, 0, 1)
-        #     self.text_line = Line()
-        #     self.test_button.text_label = Rectangle(texture=text_texture)
-        # self.test_button.text_label.pos = self.test_button.pos
-        # self.test_button.text_label.size = self.test_button.size
-        # self.text_line.rectangle = [*self.test_button.pos, *self.test_button.size]
+        print(app.data['influence']['display_stones'])
 
         print("space bar pressed ... \_(**)_/")
         print("<><><>")
@@ -185,14 +161,7 @@ class MainWindow (BoxLayout):
 
         print("\n<><><>")
 
-        # self.test_button.setCanvasToDefault()
-        self.test_button.setCanvasToColor([1, 0, 0, 1])
-
-        # self.test_button.canvas.before.clear()
-        # self.test_button.canvas.after.clear()
-        # self.test_button.setAndAddCanvasBeforeObjects()
-        # self.test_button.setAndAddCanvasAfterObjects()
-        # self.test_button.updateCanvas()
+        #
 
         print("x key pressed ... \_(**)_/")
         print("<><><>")
