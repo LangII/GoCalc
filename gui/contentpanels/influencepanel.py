@@ -151,30 +151,84 @@ class DataBoardButton (ButtonBehavior, Widget):
         self.grid_star_size = self.app.data['grid_star_size']
         self.grid_star_coords = self.app.data['grid_star_coords']
         self.coord = coord
+        self.canvas_state = 'default'
 
         self.grid_hor_line_type = self.getHorLineType()
         self.grid_vert_line_type = self.getVertLineType()
         self.setAndAddCanvasBeforeObjects()
         self.setAndAddCanvasAfterObjects()
 
-        self.bind(pos=self.updateCanvas, size=self.updateCanvas)
+        self.bind(pos=self.refreshCanvas, size=self.refreshCanvas)
 
     def setAndAddCanvasBeforeObjects(self):
+        self.canvas.before.clear()
         with self.canvas.before:
             self.board_rect_color = Color(*self.board_color)
             self.board_rect = Rectangle()
-            self.grid_hor_line_color = Color(0, 0, 0, 1)
-            self.grid_hor_line = Line()
-            self.grid_vert_line_color = Color(0, 0, 0, 1)
-            self.grid_vert_line = Line()
-            self.grid_star = self.getGridStar()
 
     def setAndAddCanvasAfterObjects(self):
+        self.canvas.after.clear()
         with self.canvas.after:
+            self.grid_line_color = Color(0, 0, 0, 1)
+            self.grid_hor_line = Line()
+            self.grid_vert_line = Line()
+            self.grid_star_line = self.getGridStarLine()
             self.stone_color = Color(*self.no_stone_color)
             self.stone = Ellipse(size=self.size)
             self.stone_line_color = Color(0, 0, 0, 0)
             self.stone_line = Line()
+            self.text_color = Color(0, 0, 0, 0)
+            self.text_boarder_line = Line()
+            self.text_rect = Rectangle()
+
+    def refreshCanvas(self, *largs):
+        self.board_rect.pos = self.pos
+        self.board_rect.size = self.size
+        self.grid_hor_line.points = self.getHorLinePoints()
+        self.grid_vert_line.points = self.getVertLinePoints()
+        if self.grid_star_line:  self.grid_star_line.pos = self.getGridStarPos()
+        self.stone.pos = self.pos
+        self.stone.size = self.size
+        self.stone_line.circle = self.getStoneLineCircleArgs()
+        self.text_boarder_line.rectangle = [*self.pos, *self.size]
+        self.text_rect.pos = self.pos
+        self.text_rect.size = self.size
+
+    def setCanvasToDefault(self):
+        self.board_rect_color.rgba = self.board_color
+        self.grid_line_color.a = 1
+        self.stone_color.rgba = self.no_stone_color
+        self.stone_line_color.a = 0
+        self.text_color.a = 0
+        self.refreshCanvas()
+
+    def setCanvasToStone(self, stone):
+        self.board_rect_color.rgba = self.board_color
+        self.grid_line_color.a = 0
+        if stone == 'black':  self.stone_color.rgba = self.black_stone_color
+        elif stone == 'white':  self.stone_color.rgba = self.white_stone_color
+        self.stone_line_color.a = 1
+        self.text_color.a = 0
+        self.refreshCanvas()
+
+    def setCanvasToColor(self, color):
+        self.board_rect_color.rgba = color
+        self.grid_line_color.a = 1
+        self.stone_color.rgba = self.no_stone_color
+        self.stone_line_color.a = 0
+        self.text_color.a = 0
+        self.refreshCanvas()
+
+    def setCanvasToText(self, text):
+        self.board_rect_color.rgba = self.board_color
+        self.grid_line_color.a = 0
+        self.stone_color.rgba = self.no_stone_color
+        self.stone_line_color.a = 0
+        self.text_color.a = 1
+        core_label = CoreLabel(text=text, font_size=100, color=[0, 0, 0, 1])
+        core_label.refresh()
+        self.text_rect.texture = core_label.texture
+        self.refreshCanvas()
 
     def getHorLineType(self):
         if self.coord[1] == 0:  return 'left'
@@ -186,19 +240,9 @@ class DataBoardButton (ButtonBehavior, Widget):
         elif self.coord[0] == self.board_size - 1:  return 'bottom'
         else:  return 'center'
 
-    def getGridStar(self):
+    def getGridStarLine(self):
         if self.coord not in self.grid_star_coords[self.board_size]:  return None
         else:  return Ellipse(size=[self.grid_star_size] * 2)
-
-    def updateCanvas(self, *largs):
-        self.board_rect.pos = self.pos
-        self.board_rect.size = self.size
-        self.grid_hor_line.points = self.getHorLinePoints()
-        self.grid_vert_line.points = self.getVertLinePoints()
-        if self.grid_star:  self.grid_star.pos = self.getGridStarPos()
-        self.stone.pos = self.pos
-        self.stone.size = self.size
-        self.stone_line.circle = self.getStoneLineCircleArgs()
 
     def getHorLinePoints(self):
         type = self.grid_hor_line_type
@@ -219,8 +263,8 @@ class DataBoardButton (ButtonBehavior, Widget):
         return [x1, y1, x2, y2]
 
     def getGridStarPos(self):
-        pos_x = (self.pos[0] + (self.size[0] / 2)) - (self.grid_star.size[0] / 2)
-        pos_y = (self.pos[1] + (self.size[1] / 2)) - (self.grid_star.size[1] / 2)
+        pos_x = (self.pos[0] + (self.size[0] / 2)) - (self.grid_star_line.size[0] / 2)
+        pos_y = (self.pos[1] + (self.size[1] / 2)) - (self.grid_star_line.size[1] / 2)
         return pos_x, pos_y
 
     def getStoneLineCircleArgs(self):
