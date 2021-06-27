@@ -49,9 +49,9 @@ APP_DATA = {
     },
     'influence': {
         'panel_location': 'scroll',  # 'stationary', 'scroll', or 'unselected'
-        'display_mode': 'cur_infl',  # 'cur_infl' or 'infl_pred'
+        'display_mode': 'infl_pred',  # 'cur_infl' or 'infl_pred'
         'prediction_stone': 'black',  # 'black' or 'white'
-        'prediction_display_type': 'top_10',  # 'top_10', 'top_50', 'color_steps', or 'color_gradient'
+        'prediction_display_type': 'top_5',  # 'top_5', 'top_20', 'color_steps', or 'color_gradient'
         'display_stones': 'yes',  # 'yes' or 'no'
         'adjustments': {
             'distance_decay': True,
@@ -153,7 +153,8 @@ class MainWindow (BoxLayout):
 
         print("\n<><><>")
 
-        print(f"app.data['influence']['prediction_display_type'] = {app.data['influence']['prediction_display_type']}")
+        # print(f"app.data['influence']['prediction_display_type'] = {app.data['influence']['prediction_display_type']}")
+        self.test_button.setCanvasToText("HI")
 
         print("space bar pressed ... \_(**)_/")
         print("<><><>")
@@ -162,6 +163,7 @@ class MainWindow (BoxLayout):
 
         print("\n<><><>")
 
+        self.test_button.setCanvasToDefault()
         #
 
         print("x key pressed ... \_(**)_/")

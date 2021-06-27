@@ -307,10 +307,10 @@ class Refresh (PanelSettingsSingleButton):
         if display_mode == 'cur_infl':
             self.displayCurInfl(infl_data, infl_display_buttons)
         elif display_mode == 'infl_pred':
-            if pred_display_type == 'top_10':
-                self.displayInflPredTop10(infl_data, infl_display_buttons)
-            elif pred_display_type == 'top_50':
-                self.displayInflPredTop50(infl_data, infl_display_buttons)
+            if pred_display_type == 'top_5':
+                self.displayInflPredTopNum(infl_data, infl_display_buttons, 5)
+            elif pred_display_type == 'top_20':
+                self.displayInflPredTopNum(infl_data, infl_display_buttons, 20)
             elif pred_display_type == 'color_steps':
                 self.displayInflPredColorSteps(infl_data, infl_display_buttons)
             elif pred_display_type == 'color_gradient':
@@ -325,38 +325,26 @@ class Refresh (PanelSettingsSingleButton):
                 elif data_value == 0:  rgba_values = [1, 1, 1, 1]
                 buttons[str([y, x])].setCanvasToColor(rgba_values)
 
-    def displayInflPredTop10(self, infl_data, buttons):
-        for y, data_row in enumerate(infl_data):
-            for x, data_value in enumerate(data_row):
-                buttons[str([y, x])].setCanvasToDefault()
-
-    def displayInflPredTop50(self, infl_data, buttons):
-
+    def displayInflPredTopNum(self, infl_data, buttons, num):
+        if num == 5:  text_format = "{}"
+        elif num == 20:  text_format = "{0:02d}"
         button_map = []
-
         for y, data_row in enumerate(infl_data):
             for x, data_value in enumerate(data_row):
-                # buttons[str([y, x])].setCanvasToDefault()
                 button_map += [{'coord': str([y, x]), 'value': data_value}]
-
         button_map = sorted(button_map, key=lambda x: x['value'], reverse=True)
-
         for i, each in enumerate(button_map):
-            if i >= 50:  buttons[each['coord']].setCanvasToDefault() ; continue
-            buttons[each['coord']].setCanvasToText(str(i + 1))
-
+            if i >= num:  buttons[each['coord']].setCanvasToDefault(); continue
+            buttons[each['coord']].setCanvasToText(text_format.format((i + 1)))
 
     def displayInflPredColorSteps(self, infl_data, buttons):
         for y, data_row in enumerate(infl_data):
             for x, data_value in enumerate(data_row):
 
-                """
-                TURNOVER NOTES:
-                Need to come back to color steps.  Looks like I need to play around with the values
-                (10 and 5 in this case) to get a good display.  Maybe even think about cutting off
-                the bottom half of data_values.  As in if data_value < 0.5 then don't even display
-                it and color step the top 0.5.
-                """
+                # TODO:  Need to come back to color steps.  Looks like I need to play around with
+                # TODO:  the values (10 and 5 in this case) to get a good display.  Maybe even think
+                # TODO:  about cutting off the bottom half of the data_values.  As in if data_value
+                # TODO:  < 0.5 then don't even display it and color step the top 0.5.
 
                 # print(f"\ndata_value = {data_value}")
                 data_value = data_value * 10
@@ -395,16 +383,16 @@ class DisplayModeInput (PanelSettingsInput):
         self.app = App.get_running_app()
         self.value = self.app.data['influence']['display_mode']
         self.options = BoxLayout(orientation='horizontal', size_hint=[1.0, None], height=20)
-        self.cur_infl_button = ToggleButton(
-            text="current influence", group='influence_display_mode', font_size=13
-        )
         self.infl_pred_button = ToggleButton(
             text="influence prediction", group='influence_display_mode', font_size=13
         )
-        self.cur_infl_button.allow_no_selection = False
+        self.cur_infl_button = ToggleButton(
+            text="current influence", group='influence_display_mode', font_size=13
+        )
         self.infl_pred_button.allow_no_selection = False
-        self.options.add_widget(self.cur_infl_button)
+        self.cur_infl_button.allow_no_selection = False
         self.options.add_widget(self.infl_pred_button)
+        self.options.add_widget(self.cur_infl_button)
         self.add_widget(self.options)
 
         if self.value == 'cur_infl':  self.cur_infl_button.state = 'down'
@@ -468,11 +456,11 @@ class PredictionDisplayTypeInput (PanelSettingsInput):
         self.options1 = BoxLayout(orientation='horizontal', size_hint=[1.0, None], height=20)
         self.options2 = BoxLayout(orientation='horizontal', size_hint=[1.0, None], height=20)
 
-        self.top_10_button = ToggleButton(
-            text="top 10", group='infl_pred_display_type', font_size=13
+        self.top_5_button = ToggleButton(
+            text="top 5", group='infl_pred_display_type', font_size=13
         )
-        self.top_50_button = ToggleButton(
-            text="top 50", group='infl_pred_display_type', font_size=13
+        self.top_20_button = ToggleButton(
+            text="top 20", group='infl_pred_display_type', font_size=13
         )
         self.color_steps_button = ToggleButton(
             text="color steps", group='infl_pred_display_type', font_size=13
@@ -480,31 +468,35 @@ class PredictionDisplayTypeInput (PanelSettingsInput):
         self.color_gradient_button = ToggleButton(
             text="color gradient", group='infl_pred_display_type', font_size=13
         )
+        self.top_5_button.allow_no_selection = False
+        self.top_20_button.allow_no_selection = False
+        self.color_steps_button.allow_no_selection = False
+        self.color_gradient_button.allow_no_selection = False
 
-        self.options1.add_widget(self.top_10_button)
-        self.options1.add_widget(self.top_50_button)
+        self.options1.add_widget(self.top_5_button)
+        self.options1.add_widget(self.top_20_button)
         self.options2.add_widget(self.color_steps_button)
         self.options2.add_widget(self.color_gradient_button)
         self.add_widget(self.options1)
         self.add_widget(self.options2)
 
-        if self.value == 'top_10':  self.top_10_button.state = 'down'
-        elif self.value == 'top_50':  self.top_50_button.state = 'down'
+        if self.value == 'top_5':  self.top_5_button.state = 'down'
+        elif self.value == 'top_20':  self.top_20_button.state = 'down'
         elif self.value == 'color_steps':  self.color_steps_button.state = 'down'
         elif self.value == 'color_gradient':  self.color_gradient_button.state = 'down'
 
-        self.top_10_button.bind(on_release=self.top10ButtonPressed)
-        self.top_50_button.bind(on_release=self.top50ButtonPressed)
+        self.top_5_button.bind(on_release=self.top5ButtonPressed)
+        self.top_20_button.bind(on_release=self.top20ButtonPressed)
         self.color_steps_button.bind(on_release=self.colorStepsButtonPressed)
         self.color_gradient_button.bind(on_release=self.colorGradientButtonPressed)
 
-    def top10ButtonPressed(self, *largs):
-        self.app.data['influence']['prediction_display_type'] = 'top_10'
-        self.value = 'top_10'
+    def top5ButtonPressed(self, *largs):
+        self.app.data['influence']['prediction_display_type'] = 'top_5'
+        self.value = 'top_5'
 
-    def top50ButtonPressed(self, *largs):
-        self.app.data['influence']['prediction_display_type'] = 'top_50'
-        self.value = 'top_50'
+    def top20ButtonPressed(self, *largs):
+        self.app.data['influence']['prediction_display_type'] = 'top_20'
+        self.value = 'top_20'
 
     def colorStepsButtonPressed(self, *largs):
         self.app.data['influence']['prediction_display_type'] = 'color_steps'
