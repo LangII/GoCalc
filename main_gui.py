@@ -48,6 +48,7 @@ APP_DATA = {
         'next_stone': 'black',  # 'black' or 'white'
     },
     'influence': {
+        'cur_calc_data': None,
         'panel_location': 'scroll',  # 'stationary', 'scroll', or 'unselected'
         'display_mode': 'infl_pred',  # 'cur_infl' or 'infl_pred'
         'prediction_stone': 'black',  # 'black' or 'white'
@@ -135,14 +136,9 @@ class MainWindow (BoxLayout):
 
         """ TESTING / DEBUGGING >>> """
 
-        infl_panel = self.content_scroll.influence_panel
-
-        coord = [12, 16]
-        # char = "A"
-
-        self.test_button = infl_panel.display.buttons[str(coord)]
-
         Window.bind(on_key_down=self.keyboardInput)
+
+        #
 
     def keyboardInput(self, obj, num1, num2, text, *args):
         if text == ' ':  self.spaceBarInput()
@@ -153,8 +149,11 @@ class MainWindow (BoxLayout):
 
         print("\n<><><>")
 
-        # print(f"app.data['influence']['prediction_display_type'] = {app.data['influence']['prediction_display_type']}")
-        self.test_button.setCanvasToText("HI")
+        print("app.data['influence']['cur_calc_data'] =")
+        print(app.data['influence']['cur_calc_data'])
+
+        print("app.main.content_scroll.influence_panel.cur_calc_data =")
+        print(app.main.content_scroll.influence_panel.cur_calc_data)
 
         print("space bar pressed ... \_(**)_/")
         print("<><><>")
@@ -163,7 +162,6 @@ class MainWindow (BoxLayout):
 
         print("\n<><><>")
 
-        self.test_button.setCanvasToDefault()
         #
 
         print("x key pressed ... \_(**)_/")

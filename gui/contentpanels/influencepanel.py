@@ -8,6 +8,8 @@ GoCalc/gui/contentpanels/influencepanel.py
 ####################################################################################################
 
 
+import numpy as np
+
 from kivy.app import App
 from kivy.uix.button import ButtonBehavior, Button
 from kivy.uix.widget import Widget
@@ -17,6 +19,7 @@ from kivy.uix.togglebutton import ToggleButton
 from kivy.uix.splitter import Splitter
 from kivy.properties import NumericProperty, ListProperty, ObjectProperty
 from kivy.graphics import Color, Rectangle, Line, Ellipse
+from kivy.core.text import Label as CoreLabel
 
 from gui.contentbasewidgets import (
     ContentPanel, PanelSettings, PanelSettingsInput, PanelSettingsSingleButton,
@@ -25,7 +28,6 @@ from gui.contentbasewidgets import (
 import calculate.influencecalc as infl_calc
 import messenger
 
-from kivy.core.text import Label as CoreLabel
 
 
 ####################################################################################################
@@ -45,6 +47,10 @@ class InfluencePanel (ContentPanel):
         self.add_widget(self.display)
 
         self.display.bind(height=self.displayHeightChange)
+
+        self.cur_calc_data = None
+        self.app.data['influence']['cur_calc_data'] = None
+        self.refreshCurCalcData('init')
 
         self.stationary_settings = PanelStationarySettings()
         self.details_display = DetailsDisplay()
@@ -107,6 +113,15 @@ class InfluencePanel (ContentPanel):
         # for i in range(20):
         #     self.settings.layout.add_widget(Label(text=f'{i + 1}', size_hint=[1.0, None], height=20))
 
+    def refreshCurCalcData(self, infl_data):
+        if infl_data == 'init':
+            infl_data = np.zeros(([self.board_size] * 2), dtype=float)
+            self.cur_calc_data = infl_data
+            self.app.data['influence']['cur_calc_data'] = infl_data
+            return
+        self.cur_calc_data = infl_data
+        self.app.data['influence']['cur_calc_data'] = infl_data
+
     def displayHeightChange(self, obj, value):
         self.width = value
 
@@ -161,7 +176,7 @@ class DataBoardButton (ButtonBehavior, Widget):
         self.setAndAddCanvasBeforeObjects()
         self.setAndAddCanvasAfterObjects()
 
-        self.bind(pos=self.refreshCanvas, size=self.refreshCanvas)
+        self.bind(pos=self.refreshCanvas, size=self.refreshCanvas, on_release=self.setDetailsDisplay)
 
     def setAndAddCanvasBeforeObjects(self):
         self.canvas.before.clear()
@@ -273,17 +288,24 @@ class DataBoardButton (ButtonBehavior, Widget):
     def getStoneLineCircleArgs(self):
         return [self.center_x, self.center_y, self.width / 2]
 
+    def setDetailsDisplay(self, *largs):
+        parent_panel = self.parent.parent.parent
+        display_value = parent_panel.cur_calc_data[self.coord[0]][self.coord[1]]
+        parent_panel.details_display.updateText(self.coord, display_value)
+
 
 
 class DetailsDisplay (Label):
     def __init__(self):
         super(DetailsDisplay, self).__init__()
         self.app = App.get_running_app()
-        self.template = "details:  [{}, {}] {}"
+        self.template = "details:  [{}, {}] = {}"
         self.text = self.template.format('?', '?', '0.0')
+        self.value_round_to = 4
 
-    def updateText(self):
-        return
+    def updateText(self, coord, value):
+        rounded = round(float(value), self.value_round_to)
+        self.text = self.template.format(coord[0], coord[1], rounded)
 
 
 
@@ -303,6 +325,9 @@ class Refresh (PanelSettingsSingleButton):
         infl_data = infl_calc.getInfluenceData()
 
         print(infl_data)
+
+        # Refresh base app data.
+        self.parent.parent.refreshCurCalcData(infl_data)
 
         if display_mode == 'cur_infl':
             self.displayCurInfl(infl_data, infl_display_buttons)
